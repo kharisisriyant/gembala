@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "dashboard": "Beranda",
+    "members": "Anggota",
+    "groups": "Kelompok Kecil",
+    "analytics": "Analitik",
+    "settings": "Pengaturan"
+  },
+  "dashboard": {
+    "title": "Beranda",
+    "welcome": "Selamat datang kembali, {name}.",
+    "followUp": "Perlu Tindak Lanjut",
+    "noFollowUp": "Tidak ada anggota yang perlu ditindaklanjuti saat ini."
+  },
+  "members": {
+    "title": "Anggota",
+    "addMember": "Tambah Anggota",
+    "search": "Cari nama, telepon, email…",
+    "allTags": "Semua label",
+    "allTypes": "Semua tipe",
+    "regular": "Reguler",
+    "guest": "Tamu",
+    "noMembers": "Tidak ada anggota ditemukan.",
+    "loading": "Memuat…"
+  },
+  "groups": {
+    "title": "Kelompok Kecil",
+    "createGroup": "Buat Kelompok",
+    "noGroups": "Belum ada kelompok.",
+    "sessions": "Pertemuan",
+    "members": "Anggota"
+  },
+  "analytics": {
+    "title": "Analitik",
+    "chart": "Grafik",
+    "heatmap": "Peta Kehadiran",
+    "absences": "Absensi"
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "tags": "Label",
+    "users": "Pengguna",
+    "integrations": "Integrasi"
+  },
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "loading": "Memuat…",
+    "saving": "Menyimpan…",
+    "signOut": "Keluar"
+  },
+  "auth": {
+    "signIn": "Masuk",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "newChurch": "Gereja baru?",
+    "createAccount": "Buat akun",
+    "alreadyHave": "Sudah punya akun?",
+    "invalidCredentials": "Email atau kata sandi salah"
+  }
+}

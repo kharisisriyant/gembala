@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "members": "Members",
+    "groups": "Small Groups",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {name}.",
+    "followUp": "Needs Follow-Up",
+    "noFollowUp": "No members currently need follow-up."
+  },
+  "members": {
+    "title": "Members",
+    "addMember": "Add Member",
+    "search": "Search name, phone, email…",
+    "allTags": "All tags",
+    "allTypes": "All types",
+    "regular": "Regular",
+    "guest": "Guest",
+    "noMembers": "No members found.",
+    "loading": "Loading…"
+  },
+  "groups": {
+    "title": "Small Groups",
+    "createGroup": "Create Group",
+    "noGroups": "No groups yet.",
+    "sessions": "Sessions",
+    "members": "Members"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "chart": "Chart",
+    "heatmap": "Heatmap",
+    "absences": "Absences"
+  },
+  "settings": {
+    "title": "Settings",
+    "tags": "Tags",
+    "users": "Users",
+    "integrations": "Integrations"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "signOut": "Sign out"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "newChurch": "New church?",
+    "createAccount": "Create an account",
+    "alreadyHave": "Already have an account?",
+    "invalidCredentials": "Invalid email or password"
+  }
+}
