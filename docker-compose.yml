@@ -1,26 +1,14 @@
-version: "3.9"
-
 services:
-  postgres:
-    image: postgres:16-alpine
+  db:
+    image: postgres:17-alpine
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_USER: gembala
       POSTGRES_PASSWORD: gembala
       POSTGRES_DB: gembala
-    ports:
-      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://gembala:gembala@postgres:5432/gembala
-      AUTH_SECRET: ${AUTH_SECRET}
-    depends_on:
-      - postgres
+      - pgdata:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  pgdata:
