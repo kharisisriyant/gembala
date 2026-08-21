@@ -15,6 +15,7 @@ import { MembersModule } from "./members/members.module"
 import { GroupsModule } from "./groups/groups.module"
 import { DashboardModule } from "./dashboard/dashboard.module"
 import { InvitesModule } from "./invites/invites.module"
+import { TelegramModule } from "./telegram/telegram.module"
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { InvitesModule } from "./invites/invites.module"
     GroupsModule,
     DashboardModule,
     InvitesModule,
+    TelegramModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
