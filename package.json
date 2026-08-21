@@ -1,16 +1,10 @@
 {
   "name": "gembala",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "scripts": {
-    "dev": "pnpm --parallel --filter @gembala/web --filter @gembala/api dev",
     "dev:web": "pnpm --filter @gembala/web dev",
     "dev:api": "pnpm --filter @gembala/api dev",
-    "build": "pnpm -r build",
-    "db:up": "docker compose up -d",
-    "db:generate": "pnpm --filter @gembala/api db:generate",
-    "db:migrate": "pnpm --filter @gembala/api db:migrate",
-    "db:seed": "pnpm --filter @gembala/api db:seed",
-    "lint": "pnpm -r lint"
+    "db:up": "docker compose up -d"
   }
 }
