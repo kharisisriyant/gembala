@@ -14,6 +14,7 @@ import type {
   TagCreateInput,
   TagResponse,
   TagUpdateInput,
+  TelegramLinkStatusResponse,
 } from "@gembala/shared"
 import { apiFetch } from "./api"
 
@@ -69,6 +70,13 @@ export function useInvites() {
   return useQuery({
     queryKey: ["invites"],
     queryFn: () => apiFetch<InviteResponse[]>("/invites"),
+  })
+}
+
+export function useTelegramLink() {
+  return useQuery({
+    queryKey: ["telegram-link"],
+    queryFn: () => apiFetch<TelegramLinkStatusResponse>("/telegram/link"),
   })
 }
 
@@ -154,5 +162,13 @@ export function useRevokeInvite() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/invites/${id}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["invites"] }),
+  })
+}
+
+export function useUnlinkTelegram() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch<void>("/telegram/link", { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["telegram-link"] }),
   })
 }
