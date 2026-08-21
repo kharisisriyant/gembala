@@ -239,3 +239,17 @@ export type DashboardResponse = {
   tagHistogram: { tag: string; count: number }[]
   prayerNotes: { groupName: string; date: string; notes: string }[]
 }
+
+// ---------------------------------------------------------------------------
+// Telegram
+// ---------------------------------------------------------------------------
+
+export type TelegramLinkStatusResponse =
+  | { linked: true; telegramUsername: string | null }
+  | {
+      linked: false
+      code: string
+      expiresAt: string
+      botConfigured: boolean
+      botUsername: string | null
+    }
