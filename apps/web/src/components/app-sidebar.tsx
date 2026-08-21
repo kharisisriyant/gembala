@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Sprout, Leaf, Tags, MailPlus } from "lucide-react"
+import { LayoutDashboard, Users, Sprout, Leaf, Tags, MailPlus, Send } from "lucide-react"
 import { NavLink } from "react-router-dom"
 import {
   Sidebar,
@@ -15,18 +15,42 @@ import {
 import { useAuth } from "@/lib/auth"
 import { MemberAvatar } from "@/components/member-avatar"
 
-const nav = [
+type NavItem = { title: string; to: string; icon: typeof LayoutDashboard }
+
+const nav: NavItem[] = [
   { title: "Dashboard", to: "/", icon: LayoutDashboard },
   { title: "Small Groups", to: "/groups", icon: Sprout },
   { title: "Members", to: "/members", icon: Users },
   { title: "Tags", to: "/tags", icon: Tags },
 ]
 
-const adminNav = [{ title: "Invites", to: "/settings/invites", icon: MailPlus }]
+const adminNav: NavItem[] = [{ title: "Invites", to: "/settings/invites", icon: MailPlus }]
+
+const personalNav: NavItem[] = [{ title: "Telegram", to: "/settings/telegram", icon: Send }]
+
+function NavItems({ items }: { items: NavItem[] }) {
+  return (
+    <SidebarMenu>
+      {items.map((item) => (
+        <SidebarMenuItem key={item.to}>
+          <NavLink to={item.to} end={item.to === "/"}>
+            {({ isActive }) => (
+              <SidebarMenuButton isActive={isActive} tooltip={item.title}>
+                <item.icon />
+                <span>{item.title}</span>
+              </SidebarMenuButton>
+            )}
+          </NavLink>
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenu>
+  )
+}
 
 export function AppSidebar() {
   const { me, isAdmin } = useAuth()
-  const items = isAdmin ? [...nav, ...adminNav] : nav
+  const manageItems = isAdmin ? [...nav, ...adminNav] : nav
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -44,20 +68,13 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Manage</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.to}>
-                  <NavLink to={item.to} end={item.to === "/"}>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive} tooltip={item.title}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <NavItems items={manageItems} />
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Personal</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <NavItems items={personalNav} />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

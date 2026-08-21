@@ -8,6 +8,7 @@ import { GroupDetailPage } from "@/pages/group-detail"
 import { MembersPage } from "@/pages/members"
 import { TagsPage } from "@/pages/tags"
 import { InvitesPage } from "@/pages/invites"
+import { TelegramPage } from "@/pages/telegram"
 import { LoginPage } from "@/pages/auth/login"
 import { RegisterPage } from "@/pages/auth/register"
 import { ForgotPasswordPage } from "@/pages/auth/forgot-password"
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/members" element={<MembersPage />} />
           <Route path="/tags" element={<TagsPage />} />
           <Route path="/settings/invites" element={<InvitesPage />} />
+          <Route path="/settings/telegram" element={<TelegramPage />} />
         </Route>
       </Routes>
       <Toaster richColors position="top-right" />
