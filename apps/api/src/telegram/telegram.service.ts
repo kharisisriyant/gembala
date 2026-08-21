@@ -6,6 +6,8 @@ import type { TelegramLinkStatusResponse } from "@gembala/shared"
 import { InjectDb, type Db } from "../db/drizzle.module"
 import { telegramLinkCodes, telegramLinks } from "../db/schema"
 import type { AuthContext } from "../authz/auth-context"
+import { AuthContextService } from "../authz/auth-context.service"
+import { TelegramAgentService } from "./telegram-agent.service"
 
 const CODE_TTL_MS = 10 * 60 * 1000
 
@@ -28,6 +30,8 @@ export class TelegramService implements OnModuleInit {
   constructor(
     @InjectDb() private readonly db: Db,
     private readonly config: ConfigService,
+    private readonly authContext: AuthContextService,
+    private readonly agent: TelegramAgentService,
   ) {
     this.token = this.config.get<string>("TELEGRAM_BOT_TOKEN")
     this.botUsername = this.config.get<string>("TELEGRAM_BOT_USERNAME")
@@ -112,13 +116,43 @@ export class TelegramService implements OnModuleInit {
       return
     }
 
-    const match = /^\/link\s+(\S+)$/i.exec(text)
-    if (!match) {
-      await this.reply(chatId, "Send /link <code> from the Integrations page to connect your account.")
+    const linkMatch = /^\/link\s+(\S+)$/i.exec(text)
+    if (linkMatch) {
+      await this.consumeCode(chatId, username, linkMatch[1].toUpperCase())
       return
     }
 
-    await this.consumeCode(chatId, username, match[1].toUpperCase())
+    await this.handleFreeText(chatId, text)
+  }
+
+  private async handleFreeText(chatId: string, text: string): Promise<void> {
+    const [link] = await this.db
+      .select({ userId: telegramLinks.userId })
+      .from(telegramLinks)
+      .where(and(eq(telegramLinks.telegramChatId, chatId), isNull(telegramLinks.revokedAt)))
+      .limit(1)
+
+    if (!link) {
+      await this.reply(
+        chatId,
+        "Your Telegram account isn't linked yet. Send /link <code> from the Integrations page to connect it.",
+      )
+      return
+    }
+
+    if (!this.agent.isConfigured) {
+      await this.reply(chatId, "The AI assistant isn't configured yet.")
+      return
+    }
+
+    const auth = await this.authContext.load(link.userId)
+    if (!auth) {
+      await this.reply(chatId, "Sorry, something went wrong. Please try again.")
+      return
+    }
+
+    const reply = await this.agent.processMessage(auth, chatId, text)
+    await this.reply(chatId, reply, { markdown: true })
   }
 
   private async createCode(userId: string) {
@@ -165,12 +199,16 @@ export class TelegramService implements OnModuleInit {
     await this.reply(chatId, "Connected! Your Gembala account is now linked.")
   }
 
-  private async reply(chatId: string, text: string): Promise<void> {
+  private async reply(chatId: string, text: string, opts?: { markdown?: boolean }): Promise<void> {
     if (!this.token) return
     await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text }),
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        ...(opts?.markdown ? { parse_mode: "Markdown" } : {}),
+      }),
     })
   }
 }
