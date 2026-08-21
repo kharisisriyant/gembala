@@ -9,6 +9,6 @@ import { GroupsService } from "./groups.service"
   imports: [TagsModule, MembersModule],
   controllers: [GroupsController],
   providers: [GroupsService, AttendanceService],
-  exports: [GroupsService],
+  exports: [GroupsService, AttendanceService],
 })
 export class GroupsModule {}
