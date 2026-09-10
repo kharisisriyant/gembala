@@ -7,6 +7,7 @@ import type {
   GroupCreateInput,
   GroupDetailResponse,
   GroupSummaryResponse,
+  GroupUpdateInput,
   SessionResponse,
 } from "@gembala/shared"
 import { and, eq, inArray } from "drizzle-orm"
@@ -174,6 +175,59 @@ export class GroupsService {
       lastSessionDate: null,
       lastSessionPresent: null,
     }
+  }
+
+  async update(auth: AuthContext, groupId: string, input: GroupUpdateInput): Promise<GroupSummaryResponse> {
+    const existing = await this.requireVisibleGroup(auth, groupId)
+
+    let scopeTagId: string | undefined
+    if (input.scopeTag !== undefined) {
+      const scope = await this.scope.expandedScope(auth)
+      // moving a group also requires visibility into its destination scope
+      this.scope.assertGroupVisible(scope, input.scopeTag)
+      scopeTagId = (await this.tags.resolveTagIds(auth.orgId, [input.scopeTag])).get(input.scopeTag)!
+    }
+
+    const finalLeaderId = input.leaderId ?? existing.leaderMemberId
+    const rosterChanged = input.memberIds !== undefined || input.leaderId !== undefined
+    let finalMemberIds: string[] = []
+    if (rosterChanged) {
+      const base =
+        input.memberIds ??
+        (
+          await this.db
+            .select({ memberId: groupMembers.memberId })
+            .from(groupMembers)
+            .where(eq(groupMembers.groupId, groupId))
+        ).map((r) => r.memberId)
+      // leader is always part of the roster, matching create()
+      finalMemberIds = [...new Set([finalLeaderId, ...base])]
+      const memberRows = await this.db
+        .select({ id: members.id })
+        .from(members)
+        .where(and(eq(members.orgId, auth.orgId), inArray(members.id, finalMemberIds)))
+      if (memberRows.length !== finalMemberIds.length) {
+        throw new BadRequestException("one or more member ids do not exist in this organization")
+      }
+    }
+
+    await this.db.transaction(async (tx) => {
+      const patch: Partial<typeof groups.$inferInsert> = {}
+      if (input.name !== undefined) patch.name = input.name
+      if (input.leaderId !== undefined) patch.leaderMemberId = input.leaderId
+      if (scopeTagId !== undefined) patch.scopeTagId = scopeTagId
+      if (input.schedule !== undefined) patch.schedule = input.schedule
+      if (input.location !== undefined) patch.location = input.location
+      if (Object.keys(patch).length > 0) {
+        await tx.update(groups).set(patch).where(and(eq(groups.id, groupId), eq(groups.orgId, auth.orgId)))
+      }
+      if (rosterChanged) {
+        await tx.delete(groupMembers).where(eq(groupMembers.groupId, groupId))
+        await tx.insert(groupMembers).values(finalMemberIds.map((memberId) => ({ groupId, memberId })))
+      }
+    })
+
+    return (await this.list(auth)).find((g) => g.id === groupId)!
   }
 
   // Shared precondition for detail + attendance logging: group must exist in

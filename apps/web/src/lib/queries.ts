@@ -4,6 +4,7 @@ import type {
   GroupCreateInput,
   GroupDetailResponse,
   GroupSummaryResponse,
+  GroupUpdateInput,
   InviteCreateInput,
   InviteResponse,
   MemberCreateInput,
@@ -102,6 +103,19 @@ export function useCreateGroup() {
       apiFetch<GroupSummaryResponse>("/groups", { method: "POST", body: input }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["groups"] })
+      void qc.invalidateQueries({ queryKey: ["dashboard"] })
+    },
+  })
+}
+
+export function useUpdateGroup() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: GroupUpdateInput & { id: string }) =>
+      apiFetch<GroupSummaryResponse>(`/groups/${id}`, { method: "PATCH", body: input }),
+    onSuccess: (_data, { id }) => {
+      void qc.invalidateQueries({ queryKey: ["groups"] })
+      void qc.invalidateQueries({ queryKey: ["groups", id] })
       void qc.invalidateQueries({ queryKey: ["dashboard"] })
     },
   })

@@ -13,8 +13,10 @@ const SYSTEM_PROMPT = `You are Gembala's assistant for church leaders, reachable
 - Look up members and small groups (scoped to the caller's access)
 - List a group's past sessions
 - Log a new session with who was present
+- Create a new small group
+- Update an existing small group (name, leader, scope tag, roster, schedule, location)
 
-Confirm the member list with the user before calling log_session.
+Confirm the details with the user before calling log_session, create_group, or update_group.
 For ambiguous member or group names, list the matches and ask which one.
 Respond concisely. The user is a church leader messaging from Telegram.`
 
@@ -135,6 +137,30 @@ export class TelegramAgentService {
           const groupId = args.group_id as string
           await this.groups.requireVisibleGroup(auth, groupId)
           return JSON.stringify(await this.groups.sessionsForGroup(groupId))
+        }
+        case "create_group":
+          return JSON.stringify(
+            await this.groups.create(auth, {
+              name: args.name as string,
+              leaderId: args.leader_id as string,
+              scopeTag: args.scope_tag as string,
+              memberIds: (args.member_ids as string[]) ?? [],
+              schedule: (args.schedule as string) ?? "",
+              location: (args.location as string) ?? "",
+            }),
+          )
+        case "update_group": {
+          const groupId = args.group_id as string
+          return JSON.stringify(
+            await this.groups.update(auth, groupId, {
+              ...(args.name !== undefined ? { name: args.name as string } : {}),
+              ...(args.leader_id !== undefined ? { leaderId: args.leader_id as string } : {}),
+              ...(args.scope_tag !== undefined ? { scopeTag: args.scope_tag as string } : {}),
+              ...(args.member_ids !== undefined ? { memberIds: args.member_ids as string[] } : {}),
+              ...(args.schedule !== undefined ? { schedule: args.schedule as string } : {}),
+              ...(args.location !== undefined ? { location: args.location as string } : {}),
+            }),
+          )
         }
         case "log_session": {
           const groupId = args.group_id as string

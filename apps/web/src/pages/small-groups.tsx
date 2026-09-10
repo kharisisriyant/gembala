@@ -1,11 +1,18 @@
-import { MapPin, CalendarClock, Users, ChevronRight } from "lucide-react"
+import { MapPin, CalendarClock, Users, ChevronRight, MoreHorizontal, Pencil } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { PageHeader } from "@/components/page-header"
 import { MemberAvatar } from "@/components/member-avatar"
 import { Tag } from "@/components/tag"
 import { AddGroupDialog } from "@/components/add-group-dialog"
+import { EditGroupDialog } from "@/components/edit-group-dialog"
 import { useAuth } from "@/lib/auth"
 import { useGroups } from "@/lib/queries"
 import { formatShort } from "@/lib/helpers"
@@ -39,7 +46,34 @@ export function SmallGroupsPage() {
                     Led by {g.leader?.name ?? "—"}
                   </div>
                 </div>
-                <Tag name={g.scopeTag} />
+                <div className="flex items-center gap-1">
+                  <Tag name={g.scopeTag} />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="size-7">
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <EditGroupDialog
+                        group={{
+                          id: g.id,
+                          name: g.name,
+                          leaderId: g.leader?.id ?? "",
+                          scopeTag: g.scopeTag,
+                          memberIds: g.members.map((m) => m.id),
+                          schedule: g.schedule,
+                          location: g.location,
+                        }}
+                        trigger={
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Pencil className="size-4" /> Edit group
+                          </DropdownMenuItem>
+                        }
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="flex-1 space-y-3 text-sm">

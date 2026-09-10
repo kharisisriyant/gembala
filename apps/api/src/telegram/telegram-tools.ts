@@ -66,6 +66,55 @@ export const TELEGRAM_TOOLS: TelegramToolDef[] = [
   {
     type: "function",
     function: {
+      name: "create_group",
+      description:
+        "Create a new small group. Look up the leader and member ids first via list_members. Confirm the name, leader, and roster with the user before calling.",
+      parameters: {
+        type: "object",
+        required: ["name", "leader_id", "scope_tag"],
+        properties: {
+          name: { type: "string", description: "Group name" },
+          leader_id: { type: "string", description: "Leader's member UUID" },
+          scope_tag: { type: "string", description: "Tag name controlling who can see this group" },
+          member_ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "Member UUIDs in the group (leader is added automatically)",
+          },
+          schedule: { type: "string", description: "e.g. Fri 7:00 PM (optional)" },
+          location: { type: "string", description: "Meeting location (optional)" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_group",
+      description:
+        "Update an existing small group. Only include fields that are changing. Confirm the changes with the user before calling.",
+      parameters: {
+        type: "object",
+        required: ["group_id"],
+        properties: {
+          group_id: { type: "string", description: "Group UUID" },
+          name: { type: "string", description: "New group name" },
+          leader_id: { type: "string", description: "New leader's member UUID" },
+          scope_tag: { type: "string", description: "New scope tag name" },
+          member_ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "Full replacement roster of member UUIDs (leader is added automatically)",
+          },
+          schedule: { type: "string", description: "e.g. Fri 7:00 PM" },
+          location: { type: "string", description: "Meeting location" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "log_session",
       description:
         "Log a small group session with who was present. Confirm the member list with the user before calling.",

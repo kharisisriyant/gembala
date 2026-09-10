@@ -7,6 +7,7 @@ import {
   Check,
   X,
   Lock,
+  Pencil,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MemberAvatar } from "@/components/member-avatar"
 import { Tag, TagList } from "@/components/tag"
 import { LogAttendanceDialog } from "@/components/log-attendance-dialog"
+import { EditGroupDialog } from "@/components/edit-group-dialog"
 import { useGroup } from "@/lib/queries"
 import { ApiError } from "@/lib/api"
 import { formatDate } from "@/lib/helpers"
@@ -59,7 +61,25 @@ export function GroupDetailPage() {
             </span>
           </div>
         </div>
-        <LogAttendanceDialog group={group} />
+        <div className="flex items-center gap-2">
+          <EditGroupDialog
+            group={{
+              id: group.id,
+              name: group.name,
+              leaderId: group.leader?.id ?? "",
+              scopeTag: group.scopeTag,
+              memberIds: group.members.map((m) => m.id),
+              schedule: group.schedule,
+              location: group.location,
+            }}
+            trigger={
+              <Button variant="outline">
+                <Pencil className="size-4" /> Edit
+              </Button>
+            }
+          />
+          <LogAttendanceDialog group={group} />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

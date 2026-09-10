@@ -139,6 +139,9 @@ export const groupCreateSchema = z.object({
 })
 export type GroupCreateInput = z.infer<typeof groupCreateSchema>
 
+export const groupUpdateSchema = groupCreateSchema.partial()
+export type GroupUpdateInput = z.infer<typeof groupUpdateSchema>
+
 export type GroupSummaryResponse = {
   id: string
   name: string

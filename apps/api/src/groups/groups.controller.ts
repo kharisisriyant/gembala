@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from "@nestjs/common"
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common"
 import { createZodDto } from "nestjs-zod"
 import {
   groupCreateSchema,
+  groupUpdateSchema,
   sessionCreateSchema,
   type GroupDetailResponse,
   type GroupSummaryResponse,
@@ -13,6 +14,7 @@ import { GroupsService } from "./groups.service"
 import { AttendanceService } from "./attendance.service"
 
 class GroupCreateDto extends createZodDto(groupCreateSchema) {}
+class GroupUpdateDto extends createZodDto(groupUpdateSchema) {}
 class SessionCreateDto extends createZodDto(sessionCreateSchema) {}
 
 @Controller("groups")
@@ -38,6 +40,15 @@ export class GroupsController {
     @Param("id", ParseUUIDPipe) id: string,
   ): Promise<GroupDetailResponse> {
     return this.groups.detail(auth, id)
+  }
+
+  @Patch(":id")
+  update(
+    @CurrentAuth() auth: AuthContext,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: GroupUpdateDto,
+  ): Promise<GroupSummaryResponse> {
+    return this.groups.update(auth, id, dto)
   }
 
   @Post(":id/sessions")
