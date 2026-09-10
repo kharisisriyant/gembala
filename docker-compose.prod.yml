@@ -6,9 +6,6 @@ services:
       target: migrate
     environment:
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
-    depends_on:
-      db:
-        condition: service_healthy
     restart: "no"
 
   api:
@@ -25,8 +22,6 @@ services:
     ports:
       - "3000:4000"
     depends_on:
-      db:
-        condition: service_healthy
       migrate:
         condition: service_completed_successfully
 
@@ -41,6 +36,3 @@ services:
       - "5173:4001"
     depends_on:
       - api
-
-volumes:
-  pgdata:
