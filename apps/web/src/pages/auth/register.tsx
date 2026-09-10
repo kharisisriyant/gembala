@@ -22,7 +22,7 @@ export function RegisterPage() {
     try {
       await register({ organizationName, name, email, password })
       toast.success(`${organizationName} created`, { description: "You are the organization admin." })
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Registration failed")
     } finally {

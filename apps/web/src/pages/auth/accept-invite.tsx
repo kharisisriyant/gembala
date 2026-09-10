@@ -33,7 +33,7 @@ export function AcceptInvitePage() {
     try {
       await acceptInvite({ token, name, password })
       toast.success(`Welcome to ${invite?.orgName}`)
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not accept invite")
     } finally {

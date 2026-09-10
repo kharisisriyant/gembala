@@ -1,19 +1,4 @@
 services:
-  db:
-    image: postgres:17-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-gembala}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-gembala}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gembala}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   migrate:
     build:
       context: .
@@ -38,7 +23,7 @@ services:
       PORT: 3000
       WEB_ORIGIN: ${WEB_ORIGIN:?set WEB_ORIGIN}
     ports:
-      - "3000:3000"
+      - "3000:4000"
     depends_on:
       db:
         condition: service_healthy
@@ -53,7 +38,7 @@ services:
         VITE_API_URL: ${VITE_API_URL:?set VITE_API_URL}
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "5173:4001"
     depends_on:
       - api
 

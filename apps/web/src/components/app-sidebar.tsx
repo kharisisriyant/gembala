@@ -18,7 +18,7 @@ import { MemberAvatar } from "@/components/member-avatar"
 type NavItem = { title: string; to: string; icon: typeof LayoutDashboard }
 
 const nav: NavItem[] = [
-  { title: "Dashboard", to: "/", icon: LayoutDashboard },
+  { title: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { title: "Small Groups", to: "/groups", icon: Sprout },
   { title: "Members", to: "/members", icon: Users },
   { title: "Tags", to: "/tags", icon: Tags },

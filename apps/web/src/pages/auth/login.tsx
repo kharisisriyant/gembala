@@ -15,7 +15,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("")
   const [busy, setBusy] = useState(false)
 
-  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? "/"
+  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? "/dashboard"
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
