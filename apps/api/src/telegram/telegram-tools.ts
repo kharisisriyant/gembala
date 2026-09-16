@@ -44,6 +44,33 @@ export const TELEGRAM_TOOLS: TelegramToolDef[] = [
   {
     type: "function",
     function: {
+      name: "add_member",
+      description:
+        "Add a new member to the org. Confirm name, email/phone, and tags with the user before calling.",
+      parameters: {
+        type: "object",
+        required: ["name", "tags"],
+        properties: {
+          name: { type: "string", description: "Full name" },
+          email: { type: "string", description: "Email address (optional)" },
+          phone: { type: "string", description: "Phone number (optional)" },
+          tags: {
+            type: "array",
+            items: { type: "string" },
+            description: "At least one tag name (controls who can see this member)",
+          },
+          status: {
+            type: "string",
+            enum: ["active", "newcomer", "inactive"],
+            description: "Defaults to active",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "list_groups",
       description: "List all small groups visible to the caller, with id, name, leader, and roster.",
       parameters: { type: "object", properties: {} },
