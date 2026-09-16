@@ -31,7 +31,11 @@ export class TelegramController {
     if (!expected || secret !== expected) {
       throw new NotFoundException()
     }
-    await this.telegram.handleUpdate(update)
+    // Fire-and-forget: respond 200 immediately so Telegram doesn't retry the
+    // webhook while the AI is still processing (which causes duplicate replies).
+    this.telegram.handleUpdate(update).catch((err: unknown) => {
+      console.error("Telegram handleUpdate error:", err)
+    })
     return { ok: true }
   }
 }

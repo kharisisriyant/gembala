@@ -79,7 +79,7 @@ export class TelegramAgentService {
         return "Sorry, something went wrong. Please try again."
       }
 
-      const message = response.choices[0]?.message
+      const message = response.choices?.[0]?.message
       if (!message) break
 
       if (!message.tool_calls || message.tool_calls.length === 0) {
