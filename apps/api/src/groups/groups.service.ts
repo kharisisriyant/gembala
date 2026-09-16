@@ -4,13 +4,14 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import type {
+  AttendanceHeatmapResponse,
   GroupCreateInput,
   GroupDetailResponse,
   GroupSummaryResponse,
   GroupUpdateInput,
   SessionResponse,
 } from "@gembala/shared"
-import { and, eq, inArray } from "drizzle-orm"
+import { and, eq, gte, inArray } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
 import {
   attendanceSessions,
@@ -311,4 +312,100 @@ export class GroupsService {
       }))
       .sort((a, b) => b.date.localeCompare(a.date))
   }
+
+  // Monday-start week buckets, oldest first, ending with the current week.
+  async attendanceHeatmap(auth: AuthContext, weeksCount = 52): Promise<AttendanceHeatmapResponse> {
+    const scope = await this.scope.expandedScope(auth)
+    const visible = (await this.orgGroups(auth.orgId)).filter((g) =>
+      this.scope.groupVisible(scope, g.scopeTagName),
+    )
+    const weeks = weekBuckets(weeksCount)
+    if (visible.length === 0) return { weeks, groups: [] }
+    const ids = visible.map((g) => g.id)
+
+    const rosterRows = await this.db
+      .select({ groupId: groupMembers.groupId })
+      .from(groupMembers)
+      .where(inArray(groupMembers.groupId, ids))
+    const memberCountByGroup = new Map<string, number>()
+    for (const r of rosterRows) {
+      memberCountByGroup.set(r.groupId, (memberCountByGroup.get(r.groupId) ?? 0) + 1)
+    }
+
+    const sessionRows = await this.db
+      .select({ id: attendanceSessions.id, groupId: attendanceSessions.groupId, date: attendanceSessions.date })
+      .from(attendanceSessions)
+      .where(and(inArray(attendanceSessions.groupId, ids), gte(attendanceSessions.date, weeks[0].start)))
+
+    const presentCountBySession = new Map<string, number>()
+    if (sessionRows.length > 0) {
+      const presentRows = await this.db
+        .select({ sessionId: sessionAttendance.sessionId })
+        .from(sessionAttendance)
+        .where(
+          inArray(
+            sessionAttendance.sessionId,
+            sessionRows.map((s) => s.id),
+          ),
+        )
+      for (const r of presentRows) {
+        presentCountBySession.set(r.sessionId, (presentCountBySession.get(r.sessionId) ?? 0) + 1)
+      }
+    }
+
+    type WeekAcc = { present: number; sessions: number }
+    const accByGroup = new Map<string, WeekAcc[]>()
+    for (const g of visible) accByGroup.set(g.id, weeks.map(() => ({ present: 0, sessions: 0 })))
+
+    for (const s of sessionRows) {
+      const weekIndex = weeks.findIndex((w) => s.date >= w.start && s.date <= w.end)
+      if (weekIndex === -1) continue
+      const acc = accByGroup.get(s.groupId)?.[weekIndex]
+      if (!acc) continue
+      acc.present += presentCountBySession.get(s.id) ?? 0
+      acc.sessions += 1
+    }
+
+    const groups = visible
+      .map((g) => {
+        const memberCount = memberCountByGroup.get(g.id) ?? 0
+        const cells = accByGroup.get(g.id)!.map((acc) => ({
+          present: acc.present,
+          sessions: acc.sessions,
+          rate:
+            acc.sessions === 0 || memberCount === 0
+              ? null
+              : Math.round((acc.present / (acc.sessions * memberCount)) * 100),
+        }))
+        return { groupId: g.id, groupName: g.name, memberCount, cells }
+      })
+      .sort((a, b) => a.groupName.localeCompare(b.groupName))
+
+    return { weeks, groups }
+  }
+}
+
+function mondayOf(d: Date): Date {
+  const daysSinceMonday = (d.getUTCDay() + 6) % 7
+  const monday = new Date(d)
+  monday.setUTCDate(d.getUTCDate() - daysSinceMonday)
+  monday.setUTCHours(0, 0, 0, 0)
+  return monday
+}
+
+function toISODate(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+function weekBuckets(count: number): { start: string; end: string }[] {
+  const thisMonday = mondayOf(new Date())
+  const buckets: { start: string; end: string }[] = []
+  for (let i = count - 1; i >= 0; i--) {
+    const start = new Date(thisMonday)
+    start.setUTCDate(thisMonday.getUTCDate() - i * 7)
+    const end = new Date(start)
+    end.setUTCDate(start.getUTCDate() + 6)
+    buckets.push({ start: toISODate(start), end: toISODate(end) })
+  }
+  return buckets
 }

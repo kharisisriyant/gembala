@@ -4,6 +4,7 @@ import {
   groupCreateSchema,
   groupUpdateSchema,
   sessionCreateSchema,
+  type AttendanceHeatmapResponse,
   type GroupDetailResponse,
   type GroupSummaryResponse,
   type SessionResponse,
@@ -32,6 +33,11 @@ export class GroupsController {
   @Post()
   create(@CurrentAuth() auth: AuthContext, @Body() dto: GroupCreateDto): Promise<GroupSummaryResponse> {
     return this.groups.create(auth, dto)
+  }
+
+  @Get("attendance-heatmap")
+  attendanceHeatmap(@CurrentAuth() auth: AuthContext): Promise<AttendanceHeatmapResponse> {
+    return this.groups.attendanceHeatmap(auth)
   }
 
   @Get(":id")

@@ -192,6 +192,16 @@ export const sessionCreateSchema = z.object({
 })
 export type SessionCreateInput = z.infer<typeof sessionCreateSchema>
 
+export type AttendanceHeatmapResponse = {
+  weeks: { start: string; end: string }[]
+  groups: {
+    groupId: string
+    groupName: string
+    memberCount: number
+    cells: { rate: number | null; present: number; sessions: number }[]
+  }[]
+}
+
 // ---------------------------------------------------------------------------
 // Invites
 // ---------------------------------------------------------------------------

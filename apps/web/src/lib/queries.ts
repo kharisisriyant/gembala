@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
+  AttendanceHeatmapResponse,
   DashboardResponse,
   GroupCreateInput,
   GroupDetailResponse,
@@ -47,6 +48,13 @@ export function useGroups() {
   return useQuery({
     queryKey: ["groups"],
     queryFn: () => apiFetch<GroupSummaryResponse[]>("/groups"),
+  })
+}
+
+export function useAttendanceHeatmap() {
+  return useQuery({
+    queryKey: ["groups", "attendance-heatmap"],
+    queryFn: () => apiFetch<AttendanceHeatmapResponse>("/groups/attendance-heatmap"),
   })
 }
 

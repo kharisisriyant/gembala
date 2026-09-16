@@ -11,12 +11,13 @@ const MAX_TOOL_ROUNDS = 6
 
 const SYSTEM_PROMPT = `You are Gembala's assistant for church leaders, reachable via Telegram. You can:
 - Look up members and small groups (scoped to the caller's access)
+- Add a new member
 - List a group's past sessions
 - Log a new session with who was present
 - Create a new small group
 - Update an existing small group (name, leader, scope tag, roster, schedule, location)
 
-Confirm the details with the user before calling log_session, create_group, or update_group.
+Confirm the details with the user before calling add_member, log_session, create_group, or update_group.
 For ambiguous member or group names, list the matches and ask which one.
 Respond concisely. The user is a church leader messaging from Telegram.`
 
@@ -131,6 +132,16 @@ export class TelegramAgentService {
           }
           return JSON.stringify(await this.members.list(auth, nameOrId))
         }
+        case "add_member":
+          return JSON.stringify(
+            await this.members.create(auth, {
+              name: args.name as string,
+              email: (args.email as string) ?? "",
+              phone: (args.phone as string) ?? "",
+              tags: (args.tags as string[]) ?? [],
+              status: (args.status as "active" | "newcomer" | "inactive") ?? "active",
+            }),
+          )
         case "list_groups":
           return JSON.stringify(await this.groups.list(auth))
         case "list_sessions": {
