@@ -13,6 +13,7 @@ import { MemberAvatar } from "@/components/member-avatar"
 import { Tag } from "@/components/tag"
 import { AddGroupDialog } from "@/components/add-group-dialog"
 import { EditGroupDialog } from "@/components/edit-group-dialog"
+import { AttendanceHeatmap } from "@/components/attendance-heatmap"
 import { useAuth } from "@/lib/auth"
 import { useGroups } from "@/lib/queries"
 import { formatShort } from "@/lib/helpers"
@@ -32,6 +33,8 @@ export function SmallGroupsPage() {
         }
         action={<AddGroupDialog />}
       />
+
+      <AttendanceHeatmap />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {visibleGroups.map((g) => (
