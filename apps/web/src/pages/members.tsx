@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Search, UserPlus, Phone, Mail, Pencil } from "lucide-react"
+import { Search, UserPlus, Phone, Mail, Pencil, Upload } from "lucide-react"
 import type { MemberResponse } from "@gembala/shared"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import { MemberAvatar } from "@/components/member-avatar"
 import { Tag, TagList } from "@/components/tag"
 import { AddMemberDialog } from "@/components/add-member-dialog"
 import { EditMemberDialog } from "@/components/edit-member-dialog"
+import { ImportMembersDialog } from "@/components/import-members-dialog"
 import { useAuth } from "@/lib/auth"
 import { useGroups, useMember, useMembers } from "@/lib/queries"
 import { formatDate } from "@/lib/helpers"
@@ -74,7 +75,18 @@ export function MembersPage() {
             ? `You can see members tagged #${me.scopeTags.join(" #")}.`
             : "Everyone in the church directory."
         }
-        action={<AddMemberDialog trigger={<Button><UserPlus className="size-4" /> Add member</Button>} />}
+        action={
+          <div className="flex items-center gap-2">
+            <ImportMembersDialog
+              trigger={
+                <Button variant="outline">
+                  <Upload className="size-4" /> Import CSV
+                </Button>
+              }
+            />
+            <AddMemberDialog trigger={<Button><UserPlus className="size-4" /> Add member</Button>} />
+          </div>
+        }
       />
 
       <div className="mb-4 flex flex-col gap-3">

@@ -129,6 +129,16 @@ export type MemberCreateInput = z.infer<typeof memberCreateSchema>
 export const memberUpdateSchema = memberCreateSchema.partial()
 export type MemberUpdateInput = z.infer<typeof memberUpdateSchema>
 
+export const memberImportSchema = z.object({
+  members: z.array(memberCreateSchema).min(1).max(500),
+})
+export type MemberImportInput = z.infer<typeof memberImportSchema>
+
+export type MemberImportResult = {
+  created: MemberResponse[]
+  errors: { row: number; name: string; message: string }[]
+}
+
 export type MemberResponse = {
   id: string
   name: string

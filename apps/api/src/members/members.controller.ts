@@ -2,8 +2,10 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from 
 import { createZodDto } from "nestjs-zod"
 import {
   memberCreateSchema,
+  memberImportSchema,
   memberUpdateSchema,
   type MemberDetailResponse,
+  type MemberImportResult,
   type MemberResponse,
 } from "@gembala/shared"
 import { CurrentAuth } from "../authz/decorators"
@@ -12,6 +14,7 @@ import { MembersService } from "./members.service"
 
 class MemberCreateDto extends createZodDto(memberCreateSchema) {}
 class MemberUpdateDto extends createZodDto(memberUpdateSchema) {}
+class MemberImportDto extends createZodDto(memberImportSchema) {}
 
 @Controller("members")
 export class MembersController {
@@ -29,6 +32,14 @@ export class MembersController {
   @Post()
   create(@CurrentAuth() auth: AuthContext, @Body() dto: MemberCreateDto): Promise<MemberResponse> {
     return this.members.create(auth, dto)
+  }
+
+  @Post("import")
+  importMany(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: MemberImportDto,
+  ): Promise<MemberImportResult> {
+    return this.members.importMany(auth, dto.members)
   }
 
   @Get(":id")

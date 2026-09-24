@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common"
 import type {
   MemberCreateInput,
   MemberDetailResponse,
+  MemberImportResult,
   MemberResponse,
   MemberUpdateInput,
 } from "@gembala/shared"
@@ -144,6 +145,27 @@ export class MembersService {
       baptismDate: created.baptismDate,
       tags: [...input.tags].sort(),
     }
+  }
+
+  // Best-effort bulk create for CSV import: each row is independent, so one
+  // bad row (unknown tag, out-of-scope tags, ...) doesn't block the rest.
+  async importMany(auth: AuthContext, inputs: MemberCreateInput[]): Promise<MemberImportResult> {
+    const created: MemberResponse[] = []
+    const errors: { row: number; name: string; message: string }[] = []
+
+    for (let i = 0; i < inputs.length; i++) {
+      try {
+        created.push(await this.create(auth, inputs[i]))
+      } catch (err) {
+        errors.push({
+          row: i,
+          name: inputs[i].name,
+          message: err instanceof Error ? err.message : "unknown error",
+        })
+      }
+    }
+
+    return { created, errors }
   }
 
   async update(auth: AuthContext, id: string, input: MemberUpdateInput): Promise<MemberResponse> {

@@ -10,6 +10,8 @@ import type {
   InviteResponse,
   MemberCreateInput,
   MemberDetailResponse,
+  MemberImportInput,
+  MemberImportResult,
   MemberResponse,
   MemberUpdateInput,
   SessionCreateInput,
@@ -97,6 +99,19 @@ export function useCreateMember() {
   return useMutation({
     mutationFn: (input: MemberCreateInput) =>
       apiFetch<MemberResponse>("/members", { method: "POST", body: input }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["members"] })
+      void qc.invalidateQueries({ queryKey: ["dashboard"] })
+      void qc.invalidateQueries({ queryKey: ["tags"] })
+    },
+  })
+}
+
+export function useImportMembers() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: MemberImportInput) =>
+      apiFetch<MemberImportResult>("/members/import", { method: "POST", body: input }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["members"] })
       void qc.invalidateQueries({ queryKey: ["dashboard"] })
