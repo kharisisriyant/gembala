@@ -29,11 +29,14 @@ import { useAuth } from "@/lib/auth"
 import { useGroups, useMember, useMembers } from "@/lib/queries"
 import { formatDate } from "@/lib/helpers"
 
-const statusStyles: Record<MemberResponse["status"], string> = {
-  active: "bg-primary/15 text-primary border-primary/20",
-  newcomer: "bg-accent text-accent-foreground border-accent",
-  inactive: "bg-muted text-muted-foreground border-border",
-  moved: "bg-muted text-muted-foreground border-border",
+const statusVariant: Record<
+  MemberResponse["status"],
+  "success" | "info" | "muted"
+> = {
+  active: "success",
+  newcomer: "info",
+  inactive: "muted",
+  moved: "muted",
 }
 
 export function MembersPage() {
@@ -134,9 +137,7 @@ export function MembersPage() {
                   {groupCountOf(m.id)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={statusStyles[m.status]}>
-                    {m.status}
-                  </Badge>
+                  <Badge variant={statusVariant[m.status]}>{m.status}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground hidden text-sm xl:table-cell">
                   {formatDate(m.joinedAt)}

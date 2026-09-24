@@ -9,11 +9,11 @@ export function ComingSoonPage() {
             <Leaf className="size-5" />
           </div>
           <div className="text-left leading-tight">
-            <div className="font-heading text-xl font-bold">Gembala</div>
+            <div className="text-xl font-bold">Gembala</div>
             <div className="text-muted-foreground text-xs">Shepherd your people</div>
           </div>
         </div>
-        <h1 className="font-heading text-2xl font-bold">Coming soon</h1>
+        <h1 className="text-2xl font-bold">Coming soon</h1>
         <p className="text-muted-foreground mt-2 text-sm">
           We're still building this. Check back soon.
         </p>

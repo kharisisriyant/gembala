@@ -30,11 +30,11 @@ import { useCreateInvite, useInvites, useRevokeInvite, useTags } from "@/lib/que
 import { rootTags, childrenOf } from "@/lib/tag-tree"
 import { formatDate } from "@/lib/helpers"
 
-const statusStyles: Record<string, string> = {
-  pending: "bg-accent text-accent-foreground border-accent",
-  accepted: "bg-primary/15 text-primary border-primary/20",
-  revoked: "bg-muted text-muted-foreground border-border",
-  expired: "bg-muted text-muted-foreground border-border",
+const statusVariant: Record<string, "success" | "warning" | "muted"> = {
+  pending: "warning",
+  accepted: "success",
+  revoked: "muted",
+  expired: "muted",
 }
 
 function InviteDialog() {
@@ -166,9 +166,7 @@ export function InvitesPage() {
                   <TagList tags={inv.scopeTags} />
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={statusStyles[inv.status]}>
-                    {inv.status}
-                  </Badge>
+                  <Badge variant={statusVariant[inv.status]}>{inv.status}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
                   {formatDate(inv.expiresAt.slice(0, 10))}

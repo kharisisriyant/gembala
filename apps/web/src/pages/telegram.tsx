@@ -33,7 +33,7 @@ export function TelegramPage() {
           ) : data.linked ? (
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <Badge variant="outline" className="border-primary/20 bg-primary/15 text-primary">
+                <Badge variant="success">
                   <CheckCircle2 className="size-3.5" /> Connected
                 </Badge>
                 {data.telegramUsername && (
