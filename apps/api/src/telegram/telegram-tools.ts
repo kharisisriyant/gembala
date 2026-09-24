@@ -61,7 +61,7 @@ export const TELEGRAM_TOOLS: TelegramToolDef[] = [
           },
           status: {
             type: "string",
-            enum: ["active", "newcomer", "inactive"],
+            enum: ["active", "newcomer", "inactive", "moved"],
             description: "Defaults to active",
           },
         },

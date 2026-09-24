@@ -139,7 +139,11 @@ export class TelegramAgentService {
               email: (args.email as string) ?? "",
               phone: (args.phone as string) ?? "",
               tags: (args.tags as string[]) ?? [],
-              status: (args.status as "active" | "newcomer" | "inactive") ?? "active",
+              status: (args.status as "active" | "newcomer" | "inactive" | "moved") ?? "active",
+              address: "",
+              occupation: "",
+              notes: "",
+              photoUrl: "",
             }),
           )
         case "list_groups":

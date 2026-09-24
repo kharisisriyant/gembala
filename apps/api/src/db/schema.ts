@@ -12,8 +12,16 @@ import {
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
-export const memberStatus = pgEnum("member_status", ["active", "newcomer", "inactive"])
+export const memberStatus = pgEnum("member_status", ["active", "newcomer", "inactive", "moved"])
 export const membershipRole = pgEnum("membership_role", ["admin", "leader"])
+export const memberGender = pgEnum("member_gender", ["male", "female"])
+export const memberMaritalStatus = pgEnum("member_marital_status", [
+  "single",
+  "married",
+  "widowed",
+  "divorced",
+])
+export const memberBaptismStatus = pgEnum("member_baptism_status", ["not_baptized", "baptized"])
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -85,6 +93,15 @@ export const members = pgTable(
     phone: text("phone").notNull().default(""),
     status: memberStatus("status").notNull().default("active"),
     joinedAt: date("joined_at").notNull(),
+    dateOfBirth: date("date_of_birth"),
+    gender: memberGender("gender"),
+    maritalStatus: memberMaritalStatus("marital_status"),
+    address: text("address").notNull().default(""),
+    occupation: text("occupation").notNull().default(""),
+    notes: text("notes").notNull().default(""),
+    photoUrl: text("photo_url").notNull().default(""),
+    baptismStatus: memberBaptismStatus("baptism_status"),
+    baptismDate: date("baptism_date"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("members_org_idx").on(t.orgId)],

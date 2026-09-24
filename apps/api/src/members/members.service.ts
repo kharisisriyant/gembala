@@ -46,6 +46,15 @@ export class MembersService {
       phone: m.phone,
       status: m.status,
       joinedAt: m.joinedAt,
+      dateOfBirth: m.dateOfBirth,
+      gender: m.gender,
+      maritalStatus: m.maritalStatus,
+      address: m.address,
+      occupation: m.occupation,
+      notes: m.notes,
+      photoUrl: m.photoUrl,
+      baptismStatus: m.baptismStatus,
+      baptismDate: m.baptismDate,
       tags: (tagsByMember.get(m.id) ?? []).sort(),
     }))
   }
@@ -100,6 +109,15 @@ export class MembersService {
           phone: input.phone,
           status: input.status,
           joinedAt: input.joinedAt ?? new Date().toISOString().slice(0, 10),
+          dateOfBirth: input.dateOfBirth,
+          gender: input.gender,
+          maritalStatus: input.maritalStatus,
+          address: input.address,
+          occupation: input.occupation,
+          notes: input.notes,
+          photoUrl: input.photoUrl,
+          baptismStatus: input.baptismStatus,
+          baptismDate: input.baptismDate,
         })
         .returning()
       await tx.insert(memberTags).values(
@@ -115,6 +133,15 @@ export class MembersService {
       phone: created.phone,
       status: created.status,
       joinedAt: created.joinedAt,
+      dateOfBirth: created.dateOfBirth,
+      gender: created.gender,
+      maritalStatus: created.maritalStatus,
+      address: created.address,
+      occupation: created.occupation,
+      notes: created.notes,
+      photoUrl: created.photoUrl,
+      baptismStatus: created.baptismStatus,
+      baptismDate: created.baptismDate,
       tags: [...input.tags].sort(),
     }
   }
@@ -135,6 +162,15 @@ export class MembersService {
       if (input.phone !== undefined) patch.phone = input.phone
       if (input.status !== undefined) patch.status = input.status
       if (input.joinedAt !== undefined) patch.joinedAt = input.joinedAt
+      if (input.dateOfBirth !== undefined) patch.dateOfBirth = input.dateOfBirth
+      if (input.gender !== undefined) patch.gender = input.gender
+      if (input.maritalStatus !== undefined) patch.maritalStatus = input.maritalStatus
+      if (input.address !== undefined) patch.address = input.address
+      if (input.occupation !== undefined) patch.occupation = input.occupation
+      if (input.notes !== undefined) patch.notes = input.notes
+      if (input.photoUrl !== undefined) patch.photoUrl = input.photoUrl
+      if (input.baptismStatus !== undefined) patch.baptismStatus = input.baptismStatus
+      if (input.baptismDate !== undefined) patch.baptismDate = input.baptismDate
       if (Object.keys(patch).length > 0) {
         await tx.update(members).set(patch).where(and(eq(members.id, id), eq(members.orgId, auth.orgId)))
       }
@@ -154,6 +190,15 @@ export class MembersService {
       ...("phone" in input ? { phone: input.phone! } : {}),
       ...("status" in input ? { status: input.status! } : {}),
       ...("joinedAt" in input ? { joinedAt: input.joinedAt! } : {}),
+      ...("dateOfBirth" in input ? { dateOfBirth: input.dateOfBirth ?? null } : {}),
+      ...("gender" in input ? { gender: input.gender ?? null } : {}),
+      ...("maritalStatus" in input ? { maritalStatus: input.maritalStatus ?? null } : {}),
+      ...("address" in input ? { address: input.address! } : {}),
+      ...("occupation" in input ? { occupation: input.occupation! } : {}),
+      ...("notes" in input ? { notes: input.notes! } : {}),
+      ...("photoUrl" in input ? { photoUrl: input.photoUrl! } : {}),
+      ...("baptismStatus" in input ? { baptismStatus: input.baptismStatus ?? null } : {}),
+      ...("baptismDate" in input ? { baptismDate: input.baptismDate ?? null } : {}),
       tags: input.tags ? [...input.tags].sort() : existing.tags,
     }
   }

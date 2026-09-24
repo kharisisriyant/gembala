@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import type { MemberResponse } from "@gembala/shared"
 import {
   Dialog,
   DialogContent,
@@ -22,55 +23,65 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tag } from "@/components/tag"
-import { useCreateMember, useTags } from "@/lib/queries"
+import { useTags, useUpdateMember } from "@/lib/queries"
 import { rootTags, childrenOf } from "@/lib/tag-tree"
 
 const NONE = "__none__"
 
-export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
+export function EditMemberDialog({
+  trigger,
+  member,
+}: {
+  trigger: React.ReactNode
+  member: MemberResponse
+}) {
   const { data: defs = [] } = useTags()
-  const createMember = useCreateMember()
+  const updateMember = useUpdateMember()
   const [open, setOpen] = useState(false)
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [picked, setPicked] = useState<string[]>(["members"])
-  const [status, setStatus] = useState<"active" | "newcomer" | "inactive" | "moved">("active")
-  const [dateOfBirth, setDateOfBirth] = useState("")
-  const [gender, setGender] = useState<"" | "male" | "female">("")
+  const [name, setName] = useState(member.name)
+  const [email, setEmail] = useState(member.email)
+  const [phone, setPhone] = useState(member.phone)
+  const [picked, setPicked] = useState<string[]>(member.tags)
+  const [status, setStatus] = useState(member.status)
+  const [dateOfBirth, setDateOfBirth] = useState(member.dateOfBirth ?? "")
+  const [gender, setGender] = useState<"" | "male" | "female">(member.gender ?? "")
   const [maritalStatus, setMaritalStatus] = useState<
     "" | "single" | "married" | "widowed" | "divorced"
-  >("")
-  const [address, setAddress] = useState("")
-  const [occupation, setOccupation] = useState("")
-  const [notes, setNotes] = useState("")
-  const [photoUrl, setPhotoUrl] = useState("")
-  const [baptismStatus, setBaptismStatus] = useState<"" | "not_baptized" | "baptized">("")
-  const [baptismDate, setBaptismDate] = useState("")
+  >(member.maritalStatus ?? "")
+  const [address, setAddress] = useState(member.address)
+  const [occupation, setOccupation] = useState(member.occupation)
+  const [notes, setNotes] = useState(member.notes)
+  const [photoUrl, setPhotoUrl] = useState(member.photoUrl)
+  const [baptismStatus, setBaptismStatus] = useState<"" | "not_baptized" | "baptized">(
+    member.baptismStatus ?? "",
+  )
+  const [baptismDate, setBaptismDate] = useState(member.baptismDate ?? "")
+
+  useEffect(() => {
+    if (!open) return
+    setName(member.name)
+    setEmail(member.email)
+    setPhone(member.phone)
+    setPicked(member.tags)
+    setStatus(member.status)
+    setDateOfBirth(member.dateOfBirth ?? "")
+    setGender(member.gender ?? "")
+    setMaritalStatus(member.maritalStatus ?? "")
+    setAddress(member.address)
+    setOccupation(member.occupation)
+    setNotes(member.notes)
+    setPhotoUrl(member.photoUrl)
+    setBaptismStatus(member.baptismStatus ?? "")
+    setBaptismDate(member.baptismDate ?? "")
+  }, [open, member])
 
   const toggle = (t: string) =>
     setPicked((p) => (p.includes(t) ? p.filter((x) => x !== t) : [...p, t]))
 
-  const reset = () => {
-    setName("")
-    setEmail("")
-    setPhone("")
-    setPicked(["members"])
-    setStatus("active")
-    setDateOfBirth("")
-    setGender("")
-    setMaritalStatus("")
-    setAddress("")
-    setOccupation("")
-    setNotes("")
-    setPhotoUrl("")
-    setBaptismStatus("")
-    setBaptismDate("")
-  }
-
   const save = async () => {
     try {
-      await createMember.mutateAsync({
+      await updateMember.mutateAsync({
+        id: member.id,
         name,
         email,
         phone,
@@ -86,13 +97,10 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
         baptismStatus: baptismStatus || undefined,
         baptismDate: baptismDate || undefined,
       })
-      toast.success(`${name} added`, {
-        description: `Tagged ${picked.map((t) => "#" + t).join(" ")}`,
-      })
-      reset()
+      toast.success(`${name} updated`)
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not add member")
+      toast.error(err instanceof Error ? err.message : "Could not update member")
     }
   }
 
@@ -101,24 +109,24 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add a member</DialogTitle>
+          <DialogTitle>Edit member</DialogTitle>
           <DialogDescription>
             Tags decide which leaders can see this person and which groups fit.
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[70vh] space-y-4 overflow-y-auto py-2 pr-1">
           <div className="grid gap-2">
-            <Label htmlFor="name">Full name</Label>
-            <Input id="name" placeholder="e.g. Sarah Wijaya" value={name} onChange={(e) => setName(e.target.value)} />
+            <Label htmlFor="edit-name">Full name</Label>
+            <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="sarah@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Label htmlFor="edit-email">Email</Label>
+              <Input id="edit-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" placeholder="0812-…" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Label htmlFor="edit-phone">Phone</Label>
+              <Input id="edit-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
           <div className="grid gap-2">
@@ -140,8 +148,8 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="dob">Date of birth</Label>
-              <Input id="dob" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+              <Label htmlFor="edit-dob">Date of birth</Label>
+              <Input id="edit-dob" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
             </div>
             <div className="grid gap-2">
               <Label>Gender</Label>
@@ -190,18 +198,18 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="occupation">Occupation</Label>
-            <Input id="occupation" placeholder="e.g. Teacher" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
+            <Label htmlFor="edit-occupation">Occupation</Label>
+            <Input id="edit-occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="address">Address</Label>
-            <Textarea id="address" placeholder="Street, city…" value={address} onChange={(e) => setAddress(e.target.value)} rows={2} />
+            <Label htmlFor="edit-address">Address</Label>
+            <Textarea id="edit-address" value={address} onChange={(e) => setAddress(e.target.value)} rows={2} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="photoUrl">Photo URL</Label>
-            <Input id="photoUrl" placeholder="https://…" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} />
+            <Label htmlFor="edit-photoUrl">Photo URL</Label>
+            <Input id="edit-photoUrl" placeholder="https://…" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -220,22 +228,22 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="baptismDate">Baptism date</Label>
-              <Input id="baptismDate" type="date" value={baptismDate} onChange={(e) => setBaptismDate(e.target.value)} />
+              <Label htmlFor="edit-baptismDate">Baptism date</Label>
+              <Input id="edit-baptismDate" type="date" value={baptismDate} onChange={(e) => setBaptismDate(e.target.value)} />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" placeholder="Anything worth remembering…" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+            <Label htmlFor="edit-notes">Notes</Label>
+            <Textarea id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={save} disabled={!name || picked.length === 0 || createMember.isPending}>
-            {createMember.isPending ? "Saving…" : "Save member"}
+          <Button onClick={save} disabled={!name || picked.length === 0 || updateMember.isPending}>
+            {updateMember.isPending ? "Saving…" : "Save changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

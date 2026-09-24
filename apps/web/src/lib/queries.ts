@@ -11,6 +11,7 @@ import type {
   MemberCreateInput,
   MemberDetailResponse,
   MemberResponse,
+  MemberUpdateInput,
   SessionCreateInput,
   SessionResponse,
   TagCreateInput,
@@ -98,6 +99,20 @@ export function useCreateMember() {
       apiFetch<MemberResponse>("/members", { method: "POST", body: input }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["members"] })
+      void qc.invalidateQueries({ queryKey: ["dashboard"] })
+      void qc.invalidateQueries({ queryKey: ["tags"] })
+    },
+  })
+}
+
+export function useUpdateMember() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: MemberUpdateInput & { id: string }) =>
+      apiFetch<MemberResponse>(`/members/${id}`, { method: "PATCH", body: input }),
+    onSuccess: (_data, { id }) => {
+      void qc.invalidateQueries({ queryKey: ["members"] })
+      void qc.invalidateQueries({ queryKey: ["members", id] })
       void qc.invalidateQueries({ queryKey: ["dashboard"] })
       void qc.invalidateQueries({ queryKey: ["tags"] })
     },

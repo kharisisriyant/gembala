@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Search, UserPlus, Phone, Mail } from "lucide-react"
+import { Search, UserPlus, Phone, Mail, Pencil } from "lucide-react"
 import type { MemberResponse } from "@gembala/shared"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -24,6 +24,7 @@ import { PageHeader } from "@/components/page-header"
 import { MemberAvatar } from "@/components/member-avatar"
 import { Tag, TagList } from "@/components/tag"
 import { AddMemberDialog } from "@/components/add-member-dialog"
+import { EditMemberDialog } from "@/components/edit-member-dialog"
 import { useAuth } from "@/lib/auth"
 import { useGroups, useMember, useMembers } from "@/lib/queries"
 import { formatDate } from "@/lib/helpers"
@@ -32,6 +33,7 @@ const statusStyles: Record<MemberResponse["status"], string> = {
   active: "bg-primary/15 text-primary border-primary/20",
   newcomer: "bg-accent text-accent-foreground border-accent",
   inactive: "bg-muted text-muted-foreground border-border",
+  moved: "bg-muted text-muted-foreground border-border",
 }
 
 export function MembersPage() {
@@ -118,7 +120,7 @@ export function MembersPage() {
               >
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <MemberAvatar name={m.name} />
+                    <MemberAvatar name={m.name} photoUrl={m.photoUrl} />
                     <div className="leading-tight">
                       <div className="font-medium">{m.name}</div>
                       <div className="text-muted-foreground text-xs">{m.email}</div>
@@ -161,14 +163,24 @@ export function MembersPage() {
           {selected && (
             <>
               <SheetHeader>
-                <div className="flex items-center gap-3">
-                  <MemberAvatar name={selected.name} className="size-12" />
-                  <div>
-                    <SheetTitle>{selected.name}</SheetTitle>
-                    <SheetDescription>
-                      Member since {formatDate(selected.joinedAt)}
-                    </SheetDescription>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <MemberAvatar name={selected.name} photoUrl={selected.photoUrl} className="size-12" />
+                    <div>
+                      <SheetTitle>{selected.name}</SheetTitle>
+                      <SheetDescription>
+                        Member since {formatDate(selected.joinedAt)}
+                      </SheetDescription>
+                    </div>
                   </div>
+                  <EditMemberDialog
+                    member={selected}
+                    trigger={
+                      <Button variant="outline" size="sm">
+                        <Pencil className="size-4" /> Edit
+                      </Button>
+                    }
+                  />
                 </div>
               </SheetHeader>
               <div className="space-y-6 px-4">
@@ -183,6 +195,41 @@ export function MembersPage() {
                 <div>
                   <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">Tags</div>
                   <TagList tags={selected.tags} />
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  <div>
+                    <div className="text-muted-foreground text-xs">Date of birth</div>
+                    <div>{selected.dateOfBirth ? formatDate(selected.dateOfBirth) : "—"}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Gender</div>
+                    <div className="capitalize">{selected.gender ?? "—"}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Marital status</div>
+                    <div className="capitalize">{selected.maritalStatus ?? "—"}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Occupation</div>
+                    <div>{selected.occupation || "—"}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Baptism</div>
+                    <div className="capitalize">
+                      {selected.baptismStatus?.replace("_", " ") ?? "—"}
+                      {selected.baptismDate ? ` · ${formatDate(selected.baptismDate)}` : ""}
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="text-muted-foreground text-xs">Address</div>
+                    <div className="whitespace-pre-wrap">{selected.address || "—"}</div>
+                  </div>
+                  {selected.notes && (
+                    <div className="col-span-2">
+                      <div className="text-muted-foreground text-xs">Notes</div>
+                      <div className="whitespace-pre-wrap">{selected.notes}</div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">Small groups</div>

@@ -10,8 +10,17 @@ export const tagNameSchema = z
   .max(50)
   .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "must be a lowercase slug (a-z, 0-9, hyphens)")
 
-export const memberStatusSchema = z.enum(["active", "newcomer", "inactive"])
+export const memberStatusSchema = z.enum(["active", "newcomer", "inactive", "moved"])
 export type MemberStatus = z.infer<typeof memberStatusSchema>
+
+export const memberGenderSchema = z.enum(["male", "female"])
+export type MemberGender = z.infer<typeof memberGenderSchema>
+
+export const memberMaritalStatusSchema = z.enum(["single", "married", "widowed", "divorced"])
+export type MemberMaritalStatus = z.infer<typeof memberMaritalStatusSchema>
+
+export const memberBaptismStatusSchema = z.enum(["not_baptized", "baptized"])
+export type MemberBaptismStatus = z.infer<typeof memberBaptismStatusSchema>
 
 export const membershipRoleSchema = z.enum(["admin", "leader"])
 export type MembershipRole = z.infer<typeof membershipRoleSchema>
@@ -105,6 +114,15 @@ export const memberCreateSchema = z.object({
   tags: z.array(tagNameSchema).min(1, "pick at least one tag"),
   status: memberStatusSchema.default("active"),
   joinedAt: isoDate.optional(),
+  dateOfBirth: isoDate.optional(),
+  gender: memberGenderSchema.optional(),
+  maritalStatus: memberMaritalStatusSchema.optional(),
+  address: z.string().max(500).or(z.literal("")),
+  occupation: z.string().max(200).or(z.literal("")),
+  notes: z.string().max(2000).or(z.literal("")),
+  photoUrl: z.string().max(2000).or(z.literal("")),
+  baptismStatus: memberBaptismStatusSchema.optional(),
+  baptismDate: isoDate.optional(),
 })
 export type MemberCreateInput = z.infer<typeof memberCreateSchema>
 
@@ -119,6 +137,15 @@ export type MemberResponse = {
   tags: string[]
   status: MemberStatus
   joinedAt: string
+  dateOfBirth: string | null
+  gender: MemberGender | null
+  maritalStatus: MemberMaritalStatus | null
+  address: string
+  occupation: string
+  notes: string
+  photoUrl: string
+  baptismStatus: MemberBaptismStatus | null
+  baptismDate: string | null
 }
 
 export type MemberDetailResponse = MemberResponse & {
