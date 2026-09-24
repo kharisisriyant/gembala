@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider, RequireAuth } from "@/lib/auth"
 import { Layout } from "@/components/layout"
 import { DashboardPage } from "@/pages/dashboard"
-import { ComingSoonPage } from "@/pages/coming-soon"
+import { LandingPage } from "@/pages/landing"
 import { SmallGroupsPage } from "@/pages/small-groups"
 import { GroupDetailPage } from "@/pages/group-detail"
 import { MembersPage } from "@/pages/members"
@@ -20,7 +20,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<ComingSoonPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
