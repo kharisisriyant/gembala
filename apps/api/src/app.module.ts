@@ -13,6 +13,7 @@ import { AuthModule } from "./auth/auth.module"
 import { TagsModule } from "./tags/tags.module"
 import { MembersModule } from "./members/members.module"
 import { GroupsModule } from "./groups/groups.module"
+import { HouseholdsModule } from "./households/households.module"
 import { DashboardModule } from "./dashboard/dashboard.module"
 import { InvitesModule } from "./invites/invites.module"
 import { TelegramModule } from "./telegram/telegram.module"
@@ -37,6 +38,7 @@ import { TelegramModule } from "./telegram/telegram.module"
     TagsModule,
     MembersModule,
     GroupsModule,
+    HouseholdsModule,
     DashboardModule,
     InvitesModule,
     TelegramModule,

@@ -25,6 +25,16 @@ export type MemberBaptismStatus = z.infer<typeof memberBaptismStatusSchema>
 export const membershipRoleSchema = z.enum(["admin", "leader"])
 export type MembershipRole = z.infer<typeof membershipRoleSchema>
 
+export const memberRelationTypeSchema = z.enum([
+  "spouse",
+  "parent_of",
+  "sibling_of",
+  "guardian_of",
+  "grandparent_of",
+  "other",
+])
+export type MemberRelationType = z.infer<typeof memberRelationTypeSchema>
+
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be an ISO date (YYYY-MM-DD)")
 const password = z.string().min(8, "password must be at least 8 characters").max(128)
 
@@ -160,6 +170,52 @@ export type MemberResponse = {
 
 export type MemberDetailResponse = MemberResponse & {
   groups: { id: string; name: string }[]
+}
+
+export const relationshipCreateSchema = z.object({
+  relatedMemberId: z.string().uuid(),
+  relationType: memberRelationTypeSchema,
+})
+export type RelationshipCreateInput = z.infer<typeof relationshipCreateSchema>
+
+export type MemberRelationshipResponse = {
+  relatedMemberId: string
+  relatedMemberName: string
+  relationType: MemberRelationType
+  // human-readable, resolved relative to the member whose relationships were requested
+  label: string
+}
+
+// ---------------------------------------------------------------------------
+// Households
+// ---------------------------------------------------------------------------
+
+export const householdCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  address: z.string().max(500).or(z.literal("")),
+  primaryContactMemberId: z.string().uuid().optional(),
+  memberIds: z.array(z.string().uuid()).optional(),
+})
+export type HouseholdCreateInput = z.infer<typeof householdCreateSchema>
+
+export const householdUpdateSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  address: z.string().max(500).or(z.literal("")).optional(),
+  primaryContactMemberId: z.string().uuid().nullable().optional(),
+})
+export type HouseholdUpdateInput = z.infer<typeof householdUpdateSchema>
+
+export type HouseholdResponse = {
+  id: string
+  name: string
+  address: string
+  primaryContact: { id: string; name: string } | null
+  members: { id: string; name: string }[]
+  memberCount: number
+}
+
+export type HouseholdCountResponse = {
+  totalFamilies: number
 }
 
 // ---------------------------------------------------------------------------
