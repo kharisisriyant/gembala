@@ -1,4 +1,5 @@
 import { Fragment } from "react"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useAttendanceHeatmap } from "@/lib/queries"
@@ -17,6 +18,7 @@ function weekLabel(iso: string): string {
 }
 
 export function AttendanceHeatmap() {
+  const { t } = useTranslation("groups")
   const { data, isLoading } = useAttendanceHeatmap()
 
   if (isLoading || !data || data.groups.length === 0) return null
@@ -24,8 +26,8 @@ export function AttendanceHeatmap() {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>Weekly attendance</CardTitle>
-        <CardDescription>Attendance rate per group, Mon–Sun weeks over the past year</CardDescription>
+        <CardTitle>{t("attendanceHeatmap.title")}</CardTitle>
+        <CardDescription>{t("attendanceHeatmap.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="overflow-x-auto">
         <TooltipProvider delayDuration={0}>
@@ -61,8 +63,12 @@ export function AttendanceHeatmap() {
                       </div>
                       <div>
                         {c.rate === null
-                          ? "No meeting"
-                          : `${c.present}/${c.sessions * g.memberCount} present · ${c.rate}%`}
+                          ? t("attendanceHeatmap.noMeeting")
+                          : t("attendanceHeatmap.presentStat", {
+                              present: c.present,
+                              total: c.sessions * g.memberCount,
+                              rate: c.rate,
+                            })}
                       </div>
                     </TooltipContent>
                   </Tooltip>

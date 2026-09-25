@@ -1,5 +1,6 @@
 import { useRef, useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { CheckCircle2, Upload, XCircle } from "lucide-react"
 import { memberCreateSchema, type MemberCreateInput, type MemberImportResult } from "@gembala/shared"
 import {
@@ -67,6 +68,7 @@ function downloadTemplate() {
 }
 
 export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
+  const { t } = useTranslation("members")
   const importMembers = useImportMembers()
   const fileInput = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
@@ -108,12 +110,18 @@ export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
       })
       setResult(res)
       if (res.errors.length === 0) {
-        toast.success(`Imported ${res.created.length} members`)
+        toast.success(t("import.toastImported", { count: res.created.length }))
       } else {
-        toast.warning(`Imported ${res.created.length} of ${validRows.length}, ${res.errors.length} failed`)
+        toast.warning(
+          t("import.toastPartial", {
+            created: res.created.length,
+            total: validRows.length,
+            failed: res.errors.length,
+          }),
+        )
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Import failed")
+      toast.error(err instanceof Error ? err.message : t("import.toastError"))
     }
   }
 
@@ -127,11 +135,8 @@ export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Import members from CSV</DialogTitle>
-          <DialogDescription>
-            Header row required. Separate multiple tags in a cell with <code>;</code>, e.g.{" "}
-            <code>members;youth</code>. Only <code>name</code> and <code>tags</code> are required.
-          </DialogDescription>
+          <DialogTitle>{t("import.title")}</DialogTitle>
+          <DialogDescription dangerouslySetInnerHTML={{ __html: t("import.description") }} />
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -148,11 +153,11 @@ export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
                 }}
               />
               <Button variant="outline" onClick={() => fileInput.current?.click()}>
-                <Upload className="size-4" /> Choose CSV file
+                <Upload className="size-4" /> {t("import.chooseFile")}
               </Button>
               {fileName && <span className="text-muted-foreground text-sm">{fileName}</span>}
               <Button variant="ghost" size="sm" onClick={downloadTemplate} className="ml-auto">
-                Download template
+                {t("import.downloadTemplate")}
               </Button>
             </div>
           )}
@@ -160,17 +165,17 @@ export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
           {!result && rows.length > 0 && (
             <>
               <div className="text-muted-foreground text-sm">
-                {validRows.length} of {rows.length} rows look valid.
+                {t("import.validSummary", { valid: validRows.length, total: rows.length })}
                 {rows.length - validRows.length > 0 &&
-                  ` ${rows.length - validRows.length} will be skipped.`}
+                  ` ${t("import.skippedSummary", { count: rows.length - validRows.length })}`}
               </div>
               <div className="max-h-[45vh] overflow-y-auto rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/40">
-                      <TableHead className="w-12">Row</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="w-12">{t("import.table.row")}</TableHead>
+                      <TableHead>{t("import.table.name")}</TableHead>
+                      <TableHead>{t("import.table.status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -181,7 +186,7 @@ export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
                         <TableCell>
                           {r.data ? (
                             <span className="text-primary flex items-center gap-1.5 text-sm">
-                              <CheckCircle2 className="size-4" /> Ready
+                              <CheckCircle2 className="size-4" /> {t("import.ready")}
                             </span>
                           ) : (
                             <span className="flex items-center gap-1.5 text-sm text-destructive">
@@ -201,20 +206,20 @@ export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle2 className="text-primary size-4" />
-                {result.created.length} member{result.created.length === 1 ? "" : "s"} imported
+                {t("import.resultImported", { count: result.created.length })}
               </div>
               {result.errors.length > 0 && (
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2 text-sm text-destructive">
-                    <XCircle className="size-4" /> {result.errors.length} failed
+                    <XCircle className="size-4" /> {t("import.resultFailed", { count: result.errors.length })}
                   </div>
                   <div className="max-h-[30vh] overflow-y-auto rounded-md border">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/40">
-                          <TableHead className="w-12">Row</TableHead>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Error</TableHead>
+                          <TableHead className="w-12">{t("import.table.row")}</TableHead>
+                          <TableHead>{t("import.table.name")}</TableHead>
+                          <TableHead>{t("import.table.error")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -237,12 +242,12 @@ export function ImportMembersDialog({ trigger }: { trigger: React.ReactNode }) {
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" onClick={reset}>
-              {result ? "Close" : "Cancel"}
+              {result ? t("common:actions.close") : t("common:actions.cancel")}
             </Button>
           </DialogClose>
           {!result && (
             <Button onClick={submit} disabled={validRows.length === 0 || importMembers.isPending}>
-              {importMembers.isPending ? "Importing…" : `Import ${validRows.length} member${validRows.length === 1 ? "" : "s"}`}
+              {importMembers.isPending ? t("import.importing") : t("import.submit", { count: validRows.length })}
             </Button>
           )}
         </DialogFooter>

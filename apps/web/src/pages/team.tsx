@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Pencil } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,22 +18,23 @@ import { useTeam } from "@/lib/queries"
 import type { TeamMemberResponse } from "@gembala/shared"
 
 export function TeamPage() {
+  const { t } = useTranslation("team")
   const { data: team = [], isLoading } = useTeam()
   const [editing, setEditing] = useState<TeamMemberResponse | null>(null)
 
   return (
     <div>
-      <PageHeader title="Team" subtitle="Everyone with access to this organization, and their roles." />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
       <Card className="py-0">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Roles</TableHead>
-                <TableHead>Scope</TableHead>
+                <TableHead>{t("table.name")}</TableHead>
+                <TableHead>{t("table.email")}</TableHead>
+                <TableHead>{t("table.roles")}</TableHead>
+                <TableHead>{t("table.scope")}</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -51,7 +53,7 @@ export function TeamPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {m.scopeTags === null ? "Full access" : m.scopeTags.join(", ") || "None"}
+                    {m.scopeTags === null ? t("scope.fullAccess") : m.scopeTags.join(", ") || t("scope.none")}
                   </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" className="size-7" onClick={() => setEditing(m)}>
@@ -63,7 +65,7 @@ export function TeamPage() {
             </TableBody>
           </Table>
           {!isLoading && team.length === 0 && (
-            <div className="text-muted-foreground py-12 text-center">No team members yet.</div>
+            <div className="text-muted-foreground py-12 text-center">{t("empty")}</div>
           )}
         </CardContent>
       </Card>

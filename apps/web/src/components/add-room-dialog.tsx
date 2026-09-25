@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { Plus } from "lucide-react"
 import {
   Dialog,
@@ -18,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCreateRoom } from "@/lib/queries"
 
 export function AddRoomDialog() {
+  const { t } = useTranslation("rooms")
   const createRoom = useCreateRoom()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
@@ -32,13 +34,13 @@ export function AddRoomDialog() {
         description,
         isActive: true,
       })
-      toast.success(`${name} added`)
+      toast.success(t("add.success", { name }))
       setName("")
       setCapacity("")
       setDescription("")
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not add room")
+      toast.error(err instanceof Error ? err.message : t("add.error"))
     }
   }
 
@@ -46,40 +48,40 @@ export function AddRoomDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="size-4" /> New room
+          <Plus className="size-4" /> {t("add.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New room</DialogTitle>
-          <DialogDescription>A physical space events can be booked into.</DialogDescription>
+          <DialogTitle>{t("add.title")}</DialogTitle>
+          <DialogDescription>{t("add.description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="room-name">Name</Label>
+            <Label htmlFor="room-name">{t("add.nameLabel")}</Label>
             <Input
               id="room-name"
-              placeholder="e.g. Main Hall"
+              placeholder={t("add.namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="room-capacity">Capacity</Label>
+            <Label htmlFor="room-capacity">{t("add.capacityLabel")}</Label>
             <Input
               id="room-capacity"
               type="number"
               min={1}
-              placeholder="e.g. 200"
+              placeholder={t("add.capacityPlaceholder")}
               value={capacity}
               onChange={(e) => setCapacity(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="room-description">Description</Label>
+            <Label htmlFor="room-description">{t("add.descriptionLabel")}</Label>
             <Textarea
               id="room-description"
-              placeholder="e.g. 2nd floor, has projector"
+              placeholder={t("add.descriptionPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -87,10 +89,10 @@ export function AddRoomDialog() {
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button onClick={save} disabled={!name || createRoom.isPending}>
-            {createRoom.isPending ? "Adding…" : "Add room"}
+            {createRoom.isPending ? t("add.adding") : t("add.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

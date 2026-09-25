@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Invites",
+    "subtitle": "Bring leaders into your organization with scoped access."
+  },
+  "dialog": {
+    "trigger": "Invite leader",
+    "title": "Invite a leader",
+    "description": "They'll get a link to set their password. Scope tags decide what they can see.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "leader@example.com",
+    "rolesLabel": "Roles",
+    "scopeTagsLabel": "Scope tags",
+    "scopeTagsHint": "A parent tag grants its whole subtree (e.g. #youth includes #teen and #college).",
+    "send": "Send invite",
+    "sending": "Sending…"
+  },
+  "table": {
+    "email": "Email",
+    "role": "Role",
+    "scope": "Scope",
+    "status": "Status",
+    "expires": "Expires"
+  },
+  "status": {
+    "pending": "pending",
+    "accepted": "accepted",
+    "revoked": "revoked",
+    "expired": "expired"
+  },
+  "actions": {
+    "revoke": "Revoke"
+  },
+  "empty": "No invites yet. Invite a leader to give them scoped access.",
+  "toast": {
+    "sent": "Invite sent to {{email}}",
+    "sentDescription": "The accept link was emailed (check the API console in dev).",
+    "sendError": "Could not create invite",
+    "revoked": "Invite for {{email}} revoked"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "title": "Tim",
+  "subtitle": "Semua orang yang memiliki akses ke organisasi ini, beserta peran mereka.",
+  "table": {
+    "name": "Nama",
+    "email": "Email",
+    "roles": "Peran",
+    "scope": "Cakupan"
+  },
+  "scope": {
+    "fullAccess": "Akses penuh",
+    "none": "Tidak ada"
+  },
+  "empty": "Belum ada anggota tim.",
+  "dialog": {
+    "title": "Ubah peran {{name}}",
+    "rolesUpdated": "Peran {{name}} berhasil diperbarui",
+    "updateError": "Gagal memperbarui peran"
+  }
+}

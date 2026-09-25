@@ -1,4 +1,5 @@
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { Plus, MoreHorizontal, CornerDownRight, Hash, Users } from "lucide-react"
 import type { TagResponse } from "@gembala/shared"
 import { Card, CardContent } from "@/components/ui/card"
@@ -28,6 +29,7 @@ function TagRow({
   canCreate: boolean
   canDelete: boolean
 }) {
+  const { t } = useTranslation("tags")
   const deleteTag = useDeleteTag()
   const counts = byName.get(node.name)
   const direct = counts?.directCount ?? 0
@@ -37,11 +39,11 @@ function TagRow({
   const remove = async () => {
     try {
       await deleteTag.mutateAsync(node.name)
-      toast(`#${node.name} removed`, {
-        description: isParent ? "Children moved up one level." : undefined,
+      toast(t("page.toast.removed", { name: node.name }), {
+        description: isParent ? t("page.toast.childrenMoved") : undefined,
       })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not delete tag")
+      toast.error(err instanceof Error ? err.message : t("page.toast.deleteError"))
     }
   }
 
@@ -65,7 +67,7 @@ function TagRow({
             <Users className="size-3" />
             {direct}
             {isParent && subtree !== direct && (
-              <span className="text-muted-foreground">/ {subtree} w/ children</span>
+              <span className="text-muted-foreground">{t("page.row.withChildren", { count: subtree })}</span>
             )}
           </Badge>
           {(canCreate || canDelete) && (
@@ -81,14 +83,14 @@ function TagRow({
                     defaultParent={node.name}
                     trigger={
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Plus className="size-4" /> Add child tag
+                        <Plus className="size-4" /> {t("page.row.addChild")}
                       </DropdownMenuItem>
                     }
                   />
                 )}
                 {canDelete && (
                   <DropdownMenuItem variant="destructive" onClick={remove}>
-                    Delete tag
+                    {t("page.row.deleteTag")}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -104,6 +106,7 @@ function TagRow({
 }
 
 export function TagsPage() {
+  const { t } = useTranslation("tags")
   const { hasPermission } = useAuth()
   const canCreate = hasPermission("tags", "create")
   const canDelete = hasPermission("tags", "delete")
@@ -114,14 +117,14 @@ export function TagsPage() {
   return (
     <div>
       <PageHeader
-        title="Tags"
-        subtitle="Organize members with structured tags. Nest tags to build ministries and life-stages."
+        title={t("page.title")}
+        subtitle={t("page.subtitle")}
         action={
           canCreate ? (
             <AddTagDialog
               trigger={
                 <Button>
-                  <Plus className="size-4" /> New tag
+                  <Plus className="size-4" /> {t("page.newTag")}
                 </Button>
               }
             />
@@ -130,9 +133,9 @@ export function TagsPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat icon={Hash} label="Total tags" value={defs.length} />
-        <Stat icon={CornerDownRight} label="Nested tags" value={defs.filter((d) => d.parent).length} />
-        <Stat icon={Users} label="Top-level groups" value={forest.length} />
+        <Stat icon={Hash} label={t("page.stats.totalTags")} value={defs.length} />
+        <Stat icon={CornerDownRight} label={t("page.stats.nestedTags")} value={defs.filter((d) => d.parent).length} />
+        <Stat icon={Users} label={t("page.stats.topLevelGroups")} value={forest.length} />
       </div>
 
       <Card className="mt-6 py-2">
@@ -146,10 +149,10 @@ export function TagsPage() {
       <p className="text-muted-foreground mt-4 flex items-start gap-2 text-sm">
         <Hash className="mt-0.5 size-4 shrink-0" />
         <span>
-          Tags drive access. A leader scoped to a parent like{" "}
-          <span className="font-mono">#youth</span> automatically sees members tagged
-          with its children (<span className="font-mono">#teen</span>,{" "}
-          <span className="font-mono">#college</span>) — no need to grant each one.
+          {t("page.footer.prefix")}{" "}
+          <span className="font-mono">#youth</span> {t("page.footer.middle")}
+          <span className="font-mono">#teen</span>,{" "}
+          <span className="font-mono">#college</span>{t("page.footer.suffix")}
         </span>
       </p>
     </div>

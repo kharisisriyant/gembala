@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import type { RoomResponse } from "@gembala/shared"
 import {
   Dialog,
@@ -25,6 +26,7 @@ export function EditRoomDialog({
   room: RoomResponse
   trigger: React.ReactNode
 }) {
+  const { t } = useTranslation("rooms")
   const updateRoom = useUpdateRoom()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState(room.name)
@@ -51,10 +53,10 @@ export function EditRoomDialog({
         description,
         isActive,
       })
-      toast.success(`${name} updated`)
+      toast.success(t("edit.success", { name }))
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update room")
+      toast.error(err instanceof Error ? err.message : t("edit.error"))
     }
   }
 
@@ -63,16 +65,16 @@ export function EditRoomDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit room</DialogTitle>
-          <DialogDescription>Update details for this room.</DialogDescription>
+          <DialogTitle>{t("edit.title")}</DialogTitle>
+          <DialogDescription>{t("edit.description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="edit-room-name">Name</Label>
+            <Label htmlFor="edit-room-name">{t("edit.nameLabel")}</Label>
             <Input id="edit-room-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="edit-room-capacity">Capacity</Label>
+            <Label htmlFor="edit-room-capacity">{t("edit.capacityLabel")}</Label>
             <Input
               id="edit-room-capacity"
               type="number"
@@ -82,7 +84,7 @@ export function EditRoomDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="edit-room-description">Description</Label>
+            <Label htmlFor="edit-room-description">{t("edit.descriptionLabel")}</Label>
             <Textarea
               id="edit-room-description"
               value={description}
@@ -91,15 +93,15 @@ export function EditRoomDialog({
           </div>
           <label className="flex cursor-pointer items-center gap-2">
             <Checkbox checked={isActive} onCheckedChange={(c) => setIsActive(c === true)} />
-            <span className="text-sm">Active (bookable)</span>
+            <span className="text-sm">{t("edit.activeLabel")}</span>
           </label>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button onClick={save} disabled={!name || updateRoom.isPending}>
-            {updateRoom.isPending ? "Saving…" : "Save changes"}
+            {updateRoom.isPending ? t("common:actions.saving") : t("edit.saveChanges")}
           </Button>
         </DialogFooter>
       </DialogContent>

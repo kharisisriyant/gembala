@@ -1,4 +1,5 @@
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { MoreHorizontal, Pencil, Trash2, ShieldCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,23 +23,24 @@ import { RoleFormDialog } from "@/components/role-form-dialog"
 import { useDeleteRole, useRoles } from "@/lib/queries"
 
 export function RolesPage() {
+  const { t } = useTranslation("roles")
   const { data: roles = [], isLoading } = useRoles()
   const deleteRole = useDeleteRole()
 
   const remove = async (id: string, name: string) => {
     try {
       await deleteRole.mutateAsync(id)
-      toast(`${name} removed`)
+      toast(t("toast.removed", { name }))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not delete role")
+      toast.error(err instanceof Error ? err.message : t("toast.deleteError"))
     }
   }
 
   return (
     <div>
       <PageHeader
-        title="Roles"
-        subtitle="Define what each role can do. Assign roles to people from the Team page."
+        title={t("title")}
+        subtitle={t("subtitle")}
         action={<RoleFormDialog />}
       />
 
@@ -47,10 +49,10 @@ export function RolesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Permissions</TableHead>
-                <TableHead>Members</TableHead>
+                <TableHead>{t("table.name")}</TableHead>
+                <TableHead>{t("table.description")}</TableHead>
+                <TableHead>{t("table.permissions")}</TableHead>
+                <TableHead>{t("table.members")}</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -67,7 +69,7 @@ export function RolesPage() {
                     {r.description || "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {r.isSystemAdmin ? "All" : r.permissions.length}
+                    {r.isSystemAdmin ? t("allPermissions") : r.permissions.length}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{r.memberCount}</Badge>
@@ -85,12 +87,12 @@ export function RolesPage() {
                             role={r}
                             trigger={
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Pencil className="size-4" /> Edit role
+                                <Pencil className="size-4" /> {t("menu.edit")}
                               </DropdownMenuItem>
                             }
                           />
                           <DropdownMenuItem variant="destructive" onClick={() => remove(r.id, r.name)}>
-                            <Trash2 className="size-4" /> Delete role
+                            <Trash2 className="size-4" /> {t("menu.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -101,7 +103,7 @@ export function RolesPage() {
             </TableBody>
           </Table>
           {!isLoading && roles.length === 0 && (
-            <div className="text-muted-foreground py-12 text-center">No roles yet.</div>
+            <div className="text-muted-foreground py-12 text-center">{t("empty")}</div>
           )}
         </CardContent>
       </Card>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Search, UserPlus, Phone, Mail, Pencil, Upload } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { MemberResponse } from "@gembala/shared"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -41,6 +42,7 @@ const statusVariant: Record<
 }
 
 export function MembersPage() {
+  const { t } = useTranslation("members")
   const { me, hasPermission } = useAuth()
   const canCreate = hasPermission("members", "create")
   const canUpdate = hasPermission("members", "update")
@@ -50,6 +52,27 @@ export function MembersPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const { data: selected } = useMember(selectedId)
+
+  const statusLabel: Record<MemberResponse["status"], string> = {
+    active: t("status.active"),
+    newcomer: t("status.newcomer"),
+    inactive: t("status.inactive"),
+    moved: t("status.moved"),
+  }
+  const genderLabel: Record<string, string> = {
+    male: t("options.gender.male"),
+    female: t("options.gender.female"),
+  }
+  const maritalStatusLabel: Record<string, string> = {
+    single: t("options.maritalStatus.single"),
+    married: t("options.maritalStatus.married"),
+    widowed: t("options.maritalStatus.widowed"),
+    divorced: t("options.maritalStatus.divorced"),
+  }
+  const baptismStatusLabel: Record<string, string> = {
+    not_baptized: t("options.baptismStatus.notBaptized"),
+    baptized: t("options.baptismStatus.baptized"),
+  }
 
   const allTags = useMemo(() => {
     const s = new Set<string>()
@@ -71,11 +94,11 @@ export function MembersPage() {
   return (
     <div>
       <PageHeader
-        title="Members"
+        title={t("page.title")}
         subtitle={
           me?.scopeTags
-            ? `You can see members tagged #${me.scopeTags.join(" #")}.`
-            : "Everyone in the church directory."
+            ? t("page.subtitleScoped", { tags: me.scopeTags.join(" #") })
+            : t("page.subtitleAll")
         }
         action={
           canCreate ? (
@@ -83,11 +106,11 @@ export function MembersPage() {
               <ImportMembersDialog
                 trigger={
                   <Button variant="outline">
-                    <Upload className="size-4" /> Import CSV
+                    <Upload className="size-4" /> {t("actions.importCsv")}
                   </Button>
                 }
               />
-              <AddMemberDialog trigger={<Button><UserPlus className="size-4" /> Add member</Button>} />
+              <AddMemberDialog trigger={<Button><UserPlus className="size-4" /> {t("actions.addMember")}</Button>} />
             </div>
           ) : undefined
         }
@@ -97,14 +120,14 @@ export function MembersPage() {
         <div className="relative max-w-sm">
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input
-            placeholder="Search by name or email…"
+            placeholder={t("search.placeholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9"
           />
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-muted-foreground mr-1 text-sm">Filter:</span>
+          <span className="text-muted-foreground mr-1 text-sm">{t("filter.label")}</span>
           <Tag name="all" onClick={() => setActiveTag(null)} active={activeTag === null} />
           {allTags
             .filter((t) => t !== "members")
@@ -123,11 +146,11 @@ export function MembersPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40">
-              <TableHead>Member</TableHead>
-              <TableHead className="hidden lg:table-cell">Tags</TableHead>
-              <TableHead className="hidden md:table-cell">Groups</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden xl:table-cell">Joined</TableHead>
+              <TableHead>{t("table.member")}</TableHead>
+              <TableHead className="hidden lg:table-cell">{t("table.tags")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("table.groups")}</TableHead>
+              <TableHead>{t("table.status")}</TableHead>
+              <TableHead className="hidden xl:table-cell">{t("table.joined")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -153,7 +176,7 @@ export function MembersPage() {
                   {groupCountOf(m.id)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={statusVariant[m.status]}>{m.status}</Badge>
+                  <Badge variant={statusVariant[m.status]}>{statusLabel[m.status]}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground hidden text-sm xl:table-cell">
                   {formatDate(m.joinedAt)}
@@ -163,7 +186,7 @@ export function MembersPage() {
             {!isLoading && filtered.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-muted-foreground py-10 text-center">
-                  No members match your filters.
+                  {t("table.empty")}
                 </TableCell>
               </TableRow>
             )}
@@ -172,7 +195,7 @@ export function MembersPage() {
       </Card>
 
       <p className="text-muted-foreground mt-3 text-sm">
-        Showing {filtered.length} of {visibleMembers.length} members
+        {t("summary", { filtered: filtered.length, total: visibleMembers.length })}
       </p>
 
       <Sheet open={!!selectedId} onOpenChange={(o) => !o && setSelectedId(null)}>
@@ -186,7 +209,7 @@ export function MembersPage() {
                     <div>
                       <SheetTitle>{selected.name}</SheetTitle>
                       <SheetDescription>
-                        Member since {formatDate(selected.joinedAt)}
+                        {t("detail.memberSince", { date: formatDate(selected.joinedAt) })}
                       </SheetDescription>
                     </div>
                   </div>
@@ -195,7 +218,7 @@ export function MembersPage() {
                       member={selected}
                       trigger={
                         <Button variant="outline" size="sm">
-                          <Pencil className="size-4" /> Edit
+                          <Pencil className="size-4" /> {t("common:actions.edit")}
                         </Button>
                       }
                     />
@@ -212,46 +235,46 @@ export function MembersPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">Tags</div>
+                  <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">{t("detail.tags")}</div>
                   <TagList tags={selected.tags} />
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                   <div>
-                    <div className="text-muted-foreground text-xs">Date of birth</div>
+                    <div className="text-muted-foreground text-xs">{t("detail.dateOfBirth")}</div>
                     <div>{selected.dateOfBirth ? formatDate(selected.dateOfBirth) : "—"}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Gender</div>
-                    <div className="capitalize">{selected.gender ?? "—"}</div>
+                    <div className="text-muted-foreground text-xs">{t("detail.gender")}</div>
+                    <div>{selected.gender ? genderLabel[selected.gender] : "—"}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Marital status</div>
-                    <div className="capitalize">{selected.maritalStatus ?? "—"}</div>
+                    <div className="text-muted-foreground text-xs">{t("detail.maritalStatus")}</div>
+                    <div>{selected.maritalStatus ? maritalStatusLabel[selected.maritalStatus] : "—"}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Occupation</div>
+                    <div className="text-muted-foreground text-xs">{t("detail.occupation")}</div>
                     <div>{selected.occupation || "—"}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground text-xs">Baptism</div>
-                    <div className="capitalize">
-                      {selected.baptismStatus?.replace("_", " ") ?? "—"}
+                    <div className="text-muted-foreground text-xs">{t("detail.baptism")}</div>
+                    <div>
+                      {selected.baptismStatus ? baptismStatusLabel[selected.baptismStatus] : "—"}
                       {selected.baptismDate ? ` · ${formatDate(selected.baptismDate)}` : ""}
                     </div>
                   </div>
                   <div className="col-span-2">
-                    <div className="text-muted-foreground text-xs">Address</div>
+                    <div className="text-muted-foreground text-xs">{t("detail.address")}</div>
                     <div className="whitespace-pre-wrap">{selected.address || "—"}</div>
                   </div>
                   {selected.notes && (
                     <div className="col-span-2">
-                      <div className="text-muted-foreground text-xs">Notes</div>
+                      <div className="text-muted-foreground text-xs">{t("detail.notes")}</div>
                       <div className="whitespace-pre-wrap">{selected.notes}</div>
                     </div>
                   )}
                 </div>
                 <div>
-                  <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">Small groups</div>
+                  <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">{t("detail.smallGroups")}</div>
                   <div className="space-y-2">
                     {selected.groups.map((g) => (
                       <div key={g.id} className="rounded-md border p-2 text-sm">
@@ -259,7 +282,7 @@ export function MembersPage() {
                       </div>
                     ))}
                     {selected.groups.length === 0 && (
-                      <p className="text-muted-foreground text-sm">Not in any group yet.</p>
+                      <p className="text-muted-foreground text-sm">{t("detail.noGroups")}</p>
                     )}
                   </div>
                 </div>

@@ -1,0 +1,46 @@
+{
+  "title": "Peran",
+  "subtitle": "Tentukan apa yang dapat dilakukan setiap peran. Tetapkan peran untuk orang dari halaman Tim.",
+  "table": {
+    "name": "Nama",
+    "description": "Deskripsi",
+    "permissions": "Izin akses",
+    "members": "Jemaat"
+  },
+  "allPermissions": "Semua",
+  "empty": "Belum ada peran.",
+  "menu": {
+    "edit": "Ubah peran",
+    "delete": "Hapus peran"
+  },
+  "toast": {
+    "removed": "{{name}} dihapus",
+    "deleteError": "Peran tidak dapat dihapus"
+  },
+  "dialog": {
+    "trigger": "Peran baru",
+    "title": "Peran baru",
+    "editTitle": "Ubah peran",
+    "description": "Pilih tindakan apa yang dapat dilakukan peran ini pada setiap sumber daya.",
+    "nameLabel": "Nama",
+    "descriptionLabel": "Deskripsi",
+    "permissionsLabel": "Izin akses",
+    "resourceHeader": "Sumber daya",
+    "saveChanges": "Simpan perubahan",
+    "createRole": "Buat peran",
+    "successUpdated": "{{name}} diperbarui",
+    "successCreated": "{{name}} dibuat",
+    "error": "Peran tidak dapat disimpan"
+  },
+  "permissions": {
+    "resources": {
+      "households": "Keluarga"
+    },
+    "actions": {
+      "create": "buat",
+      "read": "lihat",
+      "update": "ubah",
+      "delete": "hapus"
+    }
+  }
+}

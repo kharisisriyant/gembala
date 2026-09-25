@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import type { EventResponse } from "@gembala/shared"
 import {
   Dialog,
@@ -35,6 +36,7 @@ export function EditEventDialog({
   event: EventResponse
   trigger: React.ReactNode
 }) {
+  const { t } = useTranslation("events")
   const { data: rooms = [] } = useRooms()
   const updateEvent = useUpdateEvent()
   const [open, setOpen] = useState(false)
@@ -68,10 +70,10 @@ export function EditEventDialog({
         endAt: new Date(endAt),
         isPublic,
       })
-      toast.success(`${title} updated`)
+      toast.success(t("toast.updated", { title }))
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update event")
+      toast.error(err instanceof Error ? err.message : t("toast.updateError"))
     }
   }
 
@@ -80,17 +82,17 @@ export function EditEventDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit event</DialogTitle>
-          <DialogDescription>Update this event's details or room.</DialogDescription>
+          <DialogTitle>{t("editDialog.title")}</DialogTitle>
+          <DialogDescription>{t("editDialog.description")}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2">
           <div className="grid gap-2">
-            <Label htmlFor="edit-event-title">Title</Label>
+            <Label htmlFor="edit-event-title">{t("editDialog.titleLabel")}</Label>
             <Input id="edit-event-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="edit-event-start">Starts</Label>
+              <Label htmlFor="edit-event-start">{t("editDialog.startsLabel")}</Label>
               <Input
                 id="edit-event-start"
                 type="datetime-local"
@@ -99,7 +101,7 @@ export function EditEventDialog({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-event-end">Ends</Label>
+              <Label htmlFor="edit-event-end">{t("editDialog.endsLabel")}</Label>
               <Input
                 id="edit-event-end"
                 type="datetime-local"
@@ -109,13 +111,13 @@ export function EditEventDialog({
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Room</Label>
+            <Label>{t("editDialog.roomLabel")}</Label>
             <Select value={roomId} onValueChange={setRoomId}>
               <SelectTrigger>
-                <SelectValue placeholder="No room" />
+                <SelectValue placeholder={t("editDialog.noRoom")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_ROOM}>No room</SelectItem>
+                <SelectItem value={NO_ROOM}>{t("editDialog.noRoom")}</SelectItem>
                 {rooms.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
                     {r.name}
@@ -125,7 +127,7 @@ export function EditEventDialog({
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="edit-event-description">Description</Label>
+            <Label htmlFor="edit-event-description">{t("editDialog.descriptionLabel")}</Label>
             <Textarea
               id="edit-event-description"
               value={description}
@@ -134,18 +136,18 @@ export function EditEventDialog({
           </div>
           <label className="flex cursor-pointer items-center gap-2">
             <Checkbox checked={isPublic} onCheckedChange={(c) => setIsPublic(c === true)} />
-            <span className="text-sm">Public — safe to show on a public site later</span>
+            <span className="text-sm">{t("editDialog.publicLabel")}</span>
           </label>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button
             onClick={save}
             disabled={!title || !startAt || !endAt || updateEvent.isPending}
           >
-            {updateEvent.isPending ? "Saving…" : "Save changes"}
+            {updateEvent.isPending ? t("editDialog.saving") : t("editDialog.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

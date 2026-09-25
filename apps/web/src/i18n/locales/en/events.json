@@ -1,0 +1,58 @@
+{
+  "page": {
+    "title": "Events",
+    "subtitle": "Upcoming and past events, optionally booked into a room."
+  },
+  "table": {
+    "event": "Event",
+    "starts": "Starts",
+    "ends": "Ends",
+    "room": "Room",
+    "visibility": "Visibility"
+  },
+  "visibility": {
+    "public": "Public",
+    "internal": "Internal"
+  },
+  "empty": "No events yet.",
+  "actions": {
+    "editEvent": "Edit event",
+    "deleteEvent": "Delete event"
+  },
+  "toast": {
+    "removed": "{{title}} removed",
+    "deleteError": "Could not delete event",
+    "created": "{{title}} created",
+    "createError": "Could not create event",
+    "updated": "{{title}} updated",
+    "updateError": "Could not update event"
+  },
+  "addDialog": {
+    "trigger": "New event",
+    "title": "New event",
+    "description": "Schedule an event and optionally book a room.",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Sunday Service",
+    "startsLabel": "Starts",
+    "endsLabel": "Ends",
+    "roomLabel": "Room",
+    "noRoom": "No room",
+    "descriptionLabel": "Description",
+    "publicLabel": "Public — safe to show on a public site later",
+    "creating": "Creating…",
+    "create": "Create event"
+  },
+  "editDialog": {
+    "title": "Edit event",
+    "description": "Update this event's details or room.",
+    "titleLabel": "Title",
+    "startsLabel": "Starts",
+    "endsLabel": "Ends",
+    "roomLabel": "Room",
+    "noRoom": "No room",
+    "descriptionLabel": "Description",
+    "publicLabel": "Public — safe to show on a public site later",
+    "saving": "Saving…",
+    "save": "Save changes"
+  }
+}

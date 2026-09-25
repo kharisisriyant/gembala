@@ -1,5 +1,6 @@
 import { MapPin, CalendarClock, Users, ChevronRight, MoreHorizontal, Pencil } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +20,7 @@ import { useGroups } from "@/lib/queries"
 import { formatShort } from "@/lib/helpers"
 
 export function SmallGroupsPage() {
+  const { t } = useTranslation("groups")
   const { me, hasPermission } = useAuth()
   const canCreate = hasPermission("groups", "create")
   const canUpdate = hasPermission("groups", "update")
@@ -27,11 +29,11 @@ export function SmallGroupsPage() {
   return (
     <div>
       <PageHeader
-        title="Small Groups"
+        title={t("smallGroups.title")}
         subtitle={
           me?.scopeTags
-            ? `Groups scoped to #${me.scopeTags.join(" #")}.`
-            : "Every komsel and connect group in the church."
+            ? t("smallGroups.subtitleScoped", { tags: me.scopeTags.join(" #") })
+            : t("smallGroups.subtitleAll")
         }
         action={canCreate ? <AddGroupDialog /> : undefined}
       />
@@ -48,7 +50,7 @@ export function SmallGroupsPage() {
                     {g.name}
                   </Link>
                   <div className="text-muted-foreground mt-0.5 text-sm">
-                    Led by {g.leader?.name ?? "—"}
+                    {t("smallGroups.ledBy", { name: g.leader?.name ?? "—" })}
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -73,7 +75,7 @@ export function SmallGroupsPage() {
                           }}
                           trigger={
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                              <Pencil className="size-4" /> Edit group
+                              <Pencil className="size-4" /> {t("smallGroups.editGroup")}
                             </DropdownMenuItem>
                           }
                         />
@@ -97,19 +99,22 @@ export function SmallGroupsPage() {
                   ))}
                 </div>
                 <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                  <Users className="size-3.5" /> {g.memberCount} members
+                  <Users className="size-3.5" /> {t("smallGroups.memberCount", { count: g.memberCount })}
                 </span>
               </div>
             </CardContent>
             <CardFooter className="flex items-center justify-between border-t">
               <div className="text-muted-foreground text-xs">
                 {g.lastSessionDate
-                  ? `Last met ${formatShort(g.lastSessionDate)} · ${g.lastSessionPresent ?? 0} came`
-                  : "No meetings yet"}
+                  ? t("smallGroups.lastMet", {
+                      date: formatShort(g.lastSessionDate),
+                      count: g.lastSessionPresent ?? 0,
+                    })
+                  : t("smallGroups.noMeetingsYet")}
               </div>
               <Button asChild variant="ghost" size="sm" className="gap-1">
                 <Link to={`/groups/${g.id}`}>
-                  Open <ChevronRight className="size-4" />
+                  {t("smallGroups.open")} <ChevronRight className="size-4" />
                 </Link>
               </Button>
             </CardFooter>
@@ -120,7 +125,7 @@ export function SmallGroupsPage() {
       {!isLoading && visibleGroups.length === 0 && (
         <Card>
           <CardContent className="text-muted-foreground py-12 text-center">
-            No groups in your scope yet.
+            {t("smallGroups.empty")}
           </CardContent>
         </Card>
       )}

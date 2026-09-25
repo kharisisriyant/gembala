@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ import { rootTags, childrenOf } from "@/lib/tag-tree"
 const NONE = "__none__"
 
 export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
+  const { t } = useTranslation("members")
   const { data: defs = [] } = useTags()
   const createMember = useCreateMember()
   const [open, setOpen] = useState(false)
@@ -86,13 +88,15 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
         baptismStatus: baptismStatus || undefined,
         baptismDate: baptismDate || undefined,
       })
-      toast.success(`${name} added`, {
-        description: `Tagged ${picked.map((t) => "#" + t).join(" ")}`,
+      toast.success(t("add.toastAdded", { name }), {
+        description: t("add.toastAddedDescription", {
+          tags: picked.map((tag) => "#" + tag).join(" "),
+        }),
       })
       reset()
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not add member")
+      toast.error(err instanceof Error ? err.message : t("add.toastError"))
     }
   }
 
@@ -101,28 +105,26 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add a member</DialogTitle>
-          <DialogDescription>
-            Tags decide which leaders can see this person and which groups fit.
-          </DialogDescription>
+          <DialogTitle>{t("add.title")}</DialogTitle>
+          <DialogDescription>{t("add.description")}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[70vh] space-y-4 overflow-y-auto py-2 pr-1">
           <div className="grid gap-2">
-            <Label htmlFor="name">Full name</Label>
-            <Input id="name" placeholder="e.g. Sarah Wijaya" value={name} onChange={(e) => setName(e.target.value)} />
+            <Label htmlFor="name">{t("form.fullName")}</Label>
+            <Input id="name" placeholder={t("form.fullNamePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="sarah@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Label htmlFor="email">{t("form.email")}</Label>
+              <Input id="email" type="email" placeholder={t("form.emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" placeholder="0812-…" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Label htmlFor="phone">{t("form.phone")}</Label>
+              <Input id="phone" placeholder={t("form.phonePlaceholder")} value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Tags</Label>
+            <Label>{t("form.tags")}</Label>
             <div className="space-y-2.5 rounded-md border p-3">
               {rootTags(defs).map((root) => {
                 const kids = childrenOf(defs, root.name)
@@ -140,17 +142,17 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="dob">Date of birth</Label>
+              <Label htmlFor="dob">{t("form.dateOfBirth")}</Label>
               <Input id="dob" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label>Gender</Label>
+              <Label>{t("form.gender")}</Label>
               <Select value={gender || NONE} onValueChange={(v) => setGender(v === NONE ? "" : (v as "male" | "female"))}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder={t("common:actions.notSpecified")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>Not specified</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value={NONE}>{t("common:actions.notSpecified")}</SelectItem>
+                  <SelectItem value="male">{t("options.gender.male")}</SelectItem>
+                  <SelectItem value="female">{t("options.gender.female")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -158,84 +160,84 @@ export function AddMemberDialog({ trigger }: { trigger: React.ReactNode }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Marital status</Label>
+              <Label>{t("form.maritalStatus")}</Label>
               <Select
                 value={maritalStatus || NONE}
                 onValueChange={(v) =>
                   setMaritalStatus(v === NONE ? "" : (v as "single" | "married" | "widowed" | "divorced"))
                 }
               >
-                <SelectTrigger className="w-full"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder={t("common:actions.notSpecified")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>Not specified</SelectItem>
-                  <SelectItem value="single">Single</SelectItem>
-                  <SelectItem value="married">Married</SelectItem>
-                  <SelectItem value="widowed">Widowed</SelectItem>
-                  <SelectItem value="divorced">Divorced</SelectItem>
+                  <SelectItem value={NONE}>{t("common:actions.notSpecified")}</SelectItem>
+                  <SelectItem value="single">{t("options.maritalStatus.single")}</SelectItem>
+                  <SelectItem value="married">{t("options.maritalStatus.married")}</SelectItem>
+                  <SelectItem value="widowed">{t("options.maritalStatus.widowed")}</SelectItem>
+                  <SelectItem value="divorced">{t("options.maritalStatus.divorced")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Membership status</Label>
+              <Label>{t("form.membershipStatus")}</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="newcomer">Newcomer</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="moved">Moved</SelectItem>
+                  <SelectItem value="active">{t("status.active")}</SelectItem>
+                  <SelectItem value="newcomer">{t("status.newcomer")}</SelectItem>
+                  <SelectItem value="inactive">{t("status.inactive")}</SelectItem>
+                  <SelectItem value="moved">{t("status.moved")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="occupation">Occupation</Label>
-            <Input id="occupation" placeholder="e.g. Teacher" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
+            <Label htmlFor="occupation">{t("form.occupation")}</Label>
+            <Input id="occupation" placeholder={t("form.occupationPlaceholder")} value={occupation} onChange={(e) => setOccupation(e.target.value)} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="address">Address</Label>
-            <Textarea id="address" placeholder="Street, city…" value={address} onChange={(e) => setAddress(e.target.value)} rows={2} />
+            <Label htmlFor="address">{t("form.address")}</Label>
+            <Textarea id="address" placeholder={t("form.addressPlaceholder")} value={address} onChange={(e) => setAddress(e.target.value)} rows={2} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="photoUrl">Photo URL</Label>
-            <Input id="photoUrl" placeholder="https://…" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} />
+            <Label htmlFor="photoUrl">{t("form.photoUrl")}</Label>
+            <Input id="photoUrl" placeholder={t("form.photoUrlPlaceholder")} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Baptism status</Label>
+              <Label>{t("form.baptismStatus")}</Label>
               <Select
                 value={baptismStatus || NONE}
                 onValueChange={(v) => setBaptismStatus(v === NONE ? "" : (v as "not_baptized" | "baptized"))}
               >
-                <SelectTrigger className="w-full"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder={t("common:actions.notSpecified")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>Not specified</SelectItem>
-                  <SelectItem value="not_baptized">Not baptized</SelectItem>
-                  <SelectItem value="baptized">Baptized</SelectItem>
+                  <SelectItem value={NONE}>{t("common:actions.notSpecified")}</SelectItem>
+                  <SelectItem value="not_baptized">{t("options.baptismStatus.notBaptized")}</SelectItem>
+                  <SelectItem value="baptized">{t("options.baptismStatus.baptized")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="baptismDate">Baptism date</Label>
+              <Label htmlFor="baptismDate">{t("form.baptismDate")}</Label>
               <Input id="baptismDate" type="date" value={baptismDate} onChange={(e) => setBaptismDate(e.target.value)} />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" placeholder="Anything worth remembering…" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+            <Label htmlFor="notes">{t("form.notes")}</Label>
+            <Textarea id="notes" placeholder={t("form.notesPlaceholder")} value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button onClick={save} disabled={!name || picked.length === 0 || createMember.isPending}>
-            {createMember.isPending ? "Saving…" : "Save member"}
+            {createMember.isPending ? t("common:actions.saving") : t("add.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

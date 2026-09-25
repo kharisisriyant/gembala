@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import type { MemberResponse } from "@gembala/shared"
 import {
   Dialog,
@@ -35,6 +36,7 @@ export function EditMemberDialog({
   trigger: React.ReactNode
   member: MemberResponse
 }) {
+  const { t } = useTranslation("members")
   const { data: defs = [] } = useTags()
   const updateMember = useUpdateMember()
   const [open, setOpen] = useState(false)
@@ -97,10 +99,10 @@ export function EditMemberDialog({
         baptismStatus: baptismStatus || undefined,
         baptismDate: baptismDate || undefined,
       })
-      toast.success(`${name} updated`)
+      toast.success(t("edit.toastUpdated", { name }))
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update member")
+      toast.error(err instanceof Error ? err.message : t("edit.toastError"))
     }
   }
 
@@ -109,28 +111,26 @@ export function EditMemberDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit member</DialogTitle>
-          <DialogDescription>
-            Tags decide which leaders can see this person and which groups fit.
-          </DialogDescription>
+          <DialogTitle>{t("edit.title")}</DialogTitle>
+          <DialogDescription>{t("edit.description")}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[70vh] space-y-4 overflow-y-auto py-2 pr-1">
           <div className="grid gap-2">
-            <Label htmlFor="edit-name">Full name</Label>
+            <Label htmlFor="edit-name">{t("form.fullName")}</Label>
             <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="edit-email">Email</Label>
+              <Label htmlFor="edit-email">{t("form.email")}</Label>
               <Input id="edit-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-phone">Phone</Label>
+              <Label htmlFor="edit-phone">{t("form.phone")}</Label>
               <Input id="edit-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Tags</Label>
+            <Label>{t("form.tags")}</Label>
             <div className="space-y-2.5 rounded-md border p-3">
               {rootTags(defs).map((root) => {
                 const kids = childrenOf(defs, root.name)
@@ -148,17 +148,17 @@ export function EditMemberDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="edit-dob">Date of birth</Label>
+              <Label htmlFor="edit-dob">{t("form.dateOfBirth")}</Label>
               <Input id="edit-dob" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label>Gender</Label>
+              <Label>{t("form.gender")}</Label>
               <Select value={gender || NONE} onValueChange={(v) => setGender(v === NONE ? "" : (v as "male" | "female"))}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder={t("common:actions.notSpecified")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>Not specified</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value={NONE}>{t("common:actions.notSpecified")}</SelectItem>
+                  <SelectItem value="male">{t("options.gender.male")}</SelectItem>
+                  <SelectItem value="female">{t("options.gender.female")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -166,84 +166,84 @@ export function EditMemberDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Marital status</Label>
+              <Label>{t("form.maritalStatus")}</Label>
               <Select
                 value={maritalStatus || NONE}
                 onValueChange={(v) =>
                   setMaritalStatus(v === NONE ? "" : (v as "single" | "married" | "widowed" | "divorced"))
                 }
               >
-                <SelectTrigger className="w-full"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder={t("common:actions.notSpecified")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>Not specified</SelectItem>
-                  <SelectItem value="single">Single</SelectItem>
-                  <SelectItem value="married">Married</SelectItem>
-                  <SelectItem value="widowed">Widowed</SelectItem>
-                  <SelectItem value="divorced">Divorced</SelectItem>
+                  <SelectItem value={NONE}>{t("common:actions.notSpecified")}</SelectItem>
+                  <SelectItem value="single">{t("options.maritalStatus.single")}</SelectItem>
+                  <SelectItem value="married">{t("options.maritalStatus.married")}</SelectItem>
+                  <SelectItem value="widowed">{t("options.maritalStatus.widowed")}</SelectItem>
+                  <SelectItem value="divorced">{t("options.maritalStatus.divorced")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Membership status</Label>
+              <Label>{t("form.membershipStatus")}</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="newcomer">Newcomer</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="moved">Moved</SelectItem>
+                  <SelectItem value="active">{t("status.active")}</SelectItem>
+                  <SelectItem value="newcomer">{t("status.newcomer")}</SelectItem>
+                  <SelectItem value="inactive">{t("status.inactive")}</SelectItem>
+                  <SelectItem value="moved">{t("status.moved")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="edit-occupation">Occupation</Label>
+            <Label htmlFor="edit-occupation">{t("form.occupation")}</Label>
             <Input id="edit-occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="edit-address">Address</Label>
+            <Label htmlFor="edit-address">{t("form.address")}</Label>
             <Textarea id="edit-address" value={address} onChange={(e) => setAddress(e.target.value)} rows={2} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="edit-photoUrl">Photo URL</Label>
-            <Input id="edit-photoUrl" placeholder="https://…" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} />
+            <Label htmlFor="edit-photoUrl">{t("form.photoUrl")}</Label>
+            <Input id="edit-photoUrl" placeholder={t("form.photoUrlPlaceholder")} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Baptism status</Label>
+              <Label>{t("form.baptismStatus")}</Label>
               <Select
                 value={baptismStatus || NONE}
                 onValueChange={(v) => setBaptismStatus(v === NONE ? "" : (v as "not_baptized" | "baptized"))}
               >
-                <SelectTrigger className="w-full"><SelectValue placeholder="Not specified" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder={t("common:actions.notSpecified")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>Not specified</SelectItem>
-                  <SelectItem value="not_baptized">Not baptized</SelectItem>
-                  <SelectItem value="baptized">Baptized</SelectItem>
+                  <SelectItem value={NONE}>{t("common:actions.notSpecified")}</SelectItem>
+                  <SelectItem value="not_baptized">{t("options.baptismStatus.notBaptized")}</SelectItem>
+                  <SelectItem value="baptized">{t("options.baptismStatus.baptized")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-baptismDate">Baptism date</Label>
+              <Label htmlFor="edit-baptismDate">{t("form.baptismDate")}</Label>
               <Input id="edit-baptismDate" type="date" value={baptismDate} onChange={(e) => setBaptismDate(e.target.value)} />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="edit-notes">Notes</Label>
+            <Label htmlFor="edit-notes">{t("form.notes")}</Label>
             <Textarea id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button onClick={save} disabled={!name || picked.length === 0 || updateMember.isPending}>
-            {updateMember.isPending ? "Saving…" : "Save changes"}
+            {updateMember.isPending ? t("common:actions.saving") : t("edit.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

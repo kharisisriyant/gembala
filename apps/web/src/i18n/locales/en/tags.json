@@ -1,0 +1,46 @@
+{
+  "page": {
+    "title": "Tags",
+    "subtitle": "Organize members with structured tags. Nest tags to build ministries and life-stages.",
+    "newTag": "New tag",
+    "stats": {
+      "totalTags": "Total tags",
+      "nestedTags": "Nested tags",
+      "topLevelGroups": "Top-level groups"
+    },
+    "row": {
+      "addChild": "Add child tag",
+      "deleteTag": "Delete tag",
+      "withChildren": "/ {{count}} w/ children"
+    },
+    "toast": {
+      "removed": "#{{name}} removed",
+      "childrenMoved": "Children moved up one level.",
+      "deleteError": "Could not delete tag"
+    },
+    "footer": {
+      "prefix": "Tags drive access. A leader scoped to a parent like",
+      "middle": "automatically sees members tagged with its children (",
+      "suffix": ") — no need to grant each one."
+    }
+  },
+  "dialog": {
+    "title": "New tag",
+    "description": "Give it a parent to nest it. A parent's scope covers all its children.",
+    "nameLabel": "Name",
+    "namePlaceholder": "drummer",
+    "nameTaken": "#{{name}} already exists.",
+    "parentLabel": "Parent tag",
+    "parentNone": "— none (top-level) —",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "e.g. Drum & percussion team",
+    "create": "Create tag",
+    "creating": "Creating…",
+    "toast": {
+      "created": "#{{name}} created",
+      "topLevel": "Top-level tag",
+      "childOf": "Child of #{{name}}",
+      "createError": "Could not create tag"
+    }
+  }
+}

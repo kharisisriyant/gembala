@@ -1,0 +1,41 @@
+{
+  "page": {
+    "title": "Undangan",
+    "subtitle": "Libatkan pemimpin ke organisasi Anda dengan akses yang dibatasi."
+  },
+  "dialog": {
+    "trigger": "Undang pemimpin",
+    "title": "Undang pemimpin",
+    "description": "Mereka akan menerima tautan untuk membuat kata sandi. Tag cakupan menentukan apa yang bisa mereka lihat.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "leader@example.com",
+    "rolesLabel": "Peran",
+    "scopeTagsLabel": "Tag cakupan",
+    "scopeTagsHint": "Tag induk memberikan akses ke seluruh subtag-nya (mis. #youth mencakup #teen dan #college).",
+    "send": "Kirim undangan",
+    "sending": "Mengirim…"
+  },
+  "table": {
+    "email": "Email",
+    "role": "Peran",
+    "scope": "Cakupan",
+    "status": "Status",
+    "expires": "Kedaluwarsa"
+  },
+  "status": {
+    "pending": "menunggu",
+    "accepted": "diterima",
+    "revoked": "dicabut",
+    "expired": "kedaluwarsa"
+  },
+  "actions": {
+    "revoke": "Cabut"
+  },
+  "empty": "Belum ada undangan. Undang pemimpin untuk memberikan akses terbatas.",
+  "toast": {
+    "sent": "Undangan terkirim ke {{email}}",
+    "sentDescription": "Tautan konfirmasi telah dikirim lewat email (periksa konsol API saat pengembangan).",
+    "sendError": "Undangan gagal dibuat",
+    "revoked": "Undangan untuk {{email}} telah dicabut"
+  }
+}

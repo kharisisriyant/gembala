@@ -1,4 +1,5 @@
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { MoreHorizontal, Pencil, Trash2, Users2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ import { useAuth } from "@/lib/auth"
 import { useDeleteRoom, useRooms } from "@/lib/queries"
 
 export function RoomsPage() {
+  const { t } = useTranslation("rooms")
   const { hasPermission } = useAuth()
   const canCreate = hasPermission("rooms", "create")
   const canManage = hasPermission("rooms", "update") || hasPermission("rooms", "delete")
@@ -33,17 +35,17 @@ export function RoomsPage() {
   const remove = async (id: string, name: string) => {
     try {
       await deleteRoom.mutateAsync(id)
-      toast(`${name} removed`)
+      toast(t("toast.removed", { name }))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not delete room")
+      toast.error(err instanceof Error ? err.message : t("toast.deleteError"))
     }
   }
 
   return (
     <div>
       <PageHeader
-        title="Rooms"
-        subtitle="Physical spaces events can be booked into."
+        title={t("title")}
+        subtitle={t("subtitle")}
         action={canCreate ? <AddRoomDialog /> : undefined}
       />
 
@@ -52,10 +54,10 @@ export function RoomsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Capacity</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("table.name")}</TableHead>
+                <TableHead>{t("table.capacity")}</TableHead>
+                <TableHead>{t("table.description")}</TableHead>
+                <TableHead>{t("table.status")}</TableHead>
                 {canManage && <TableHead className="w-10" />}
               </TableRow>
             </TableHeader>
@@ -77,7 +79,7 @@ export function RoomsPage() {
                   </TableCell>
                   <TableCell>
                     <Badge variant={r.isActive ? "success" : "muted"}>
-                      {r.isActive ? "Active" : "Inactive"}
+                      {r.isActive ? t("status.active") : t("status.inactive")}
                     </Badge>
                   </TableCell>
                   {canManage && (
@@ -93,12 +95,12 @@ export function RoomsPage() {
                             room={r}
                             trigger={
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Pencil className="size-4" /> Edit room
+                                <Pencil className="size-4" /> {t("menu.edit")}
                               </DropdownMenuItem>
                             }
                           />
                           <DropdownMenuItem variant="destructive" onClick={() => remove(r.id, r.name)}>
-                            <Trash2 className="size-4" /> Delete room
+                            <Trash2 className="size-4" /> {t("menu.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -109,7 +111,7 @@ export function RoomsPage() {
             </TableBody>
           </Table>
           {!isLoading && rooms.length === 0 && (
-            <div className="text-muted-foreground py-12 text-center">No rooms yet.</div>
+            <div className="text-muted-foreground py-12 text-center">{t("empty")}</div>
           )}
         </CardContent>
       </Card>

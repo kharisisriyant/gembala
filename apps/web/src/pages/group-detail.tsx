@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   ArrowLeft,
   MapPin,
@@ -23,26 +24,27 @@ import { ApiError } from "@/lib/api"
 import { formatDate } from "@/lib/helpers"
 
 export function GroupDetailPage() {
+  const { t } = useTranslation("groups")
   const { id } = useParams()
   const { hasPermission } = useAuth()
   const canUpdate = hasPermission("groups", "update")
   const { data: group, isLoading, error } = useGroup(id)
 
   if (isLoading) {
-    return <p className="text-muted-foreground text-sm">Loading…</p>
+    return <p className="text-muted-foreground text-sm">{t("groupDetail.loading")}</p>
   }
   if (error instanceof ApiError && error.status === 403) {
-    return <Restricted message="This group is outside your access." />
+    return <Restricted message={t("groupDetail.restrictedOutsideAccess")} />
   }
   if (error || !group) {
-    return <Restricted message="This group doesn't exist." />
+    return <Restricted message={t("groupDetail.restrictedNotFound")} />
   }
 
   return (
     <div>
       <Button asChild variant="ghost" size="sm" className="mb-3 -ml-2">
         <Link to="/groups">
-          <ArrowLeft className="size-4" /> Small Groups
+          <ArrowLeft className="size-4" /> {t("groupDetail.backLink")}
         </Link>
       </Button>
 
@@ -60,7 +62,7 @@ export function GroupDetailPage() {
               <MapPin className="size-4" /> {group.location}
             </span>
             <span className="flex items-center gap-1.5">
-              <Users className="size-4" /> {group.stats.memberCount} members
+              <Users className="size-4" /> {t("groupDetail.memberCount", { count: group.stats.memberCount })}
             </span>
           </div>
         </div>
@@ -78,7 +80,7 @@ export function GroupDetailPage() {
               }}
               trigger={
                 <Button variant="outline">
-                  <Pencil className="size-4" /> Edit
+                  <Pencil className="size-4" /> {t("common:actions.edit")}
                 </Button>
               }
             />
@@ -88,22 +90,22 @@ export function GroupDetailPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat label="Meetings logged" value={group.stats.meetingsLogged} />
-        <Stat label="Avg. attendance" value={group.stats.avgAttendance} />
-        <Stat label="Members" value={group.stats.memberCount} />
+        <Stat label={t("groupDetail.stats.meetingsLogged")} value={group.stats.meetingsLogged} />
+        <Stat label={t("groupDetail.stats.avgAttendance")} value={group.stats.avgAttendance} />
+        <Stat label={t("groupDetail.stats.members")} value={group.stats.memberCount} />
       </div>
 
       <Tabs defaultValue="attendance" className="mt-6">
         <TabsList>
-          <TabsTrigger value="attendance">Attendance history</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
+          <TabsTrigger value="attendance">{t("groupDetail.tabs.attendance")}</TabsTrigger>
+          <TabsTrigger value="members">{t("groupDetail.tabs.members")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="attendance" className="mt-4 space-y-4">
           {group.sessions.length === 0 && (
             <Card>
               <CardContent className="text-muted-foreground py-10 text-center">
-                No meetings logged yet. Use “Log attendance” to record one.
+                {t("groupDetail.noMeetingsLogged")}
               </CardContent>
             </Card>
           )}
@@ -116,13 +118,18 @@ export function GroupDetailPage() {
                     <CardDescription className="mt-1">{s.topic}</CardDescription>
                   </div>
                   <Badge variant="secondary">
-                    {s.presentIds.length}/{group.stats.memberCount} present
+                    {t("groupDetail.presentCount", {
+                      present: s.presentIds.length,
+                      total: group.stats.memberCount,
+                    })}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">Attendance</div>
+                  <div className="text-muted-foreground mb-2 text-xs font-medium uppercase">
+                    {t("groupDetail.attendanceLabel")}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {group.members.map((m) => {
                       const here = s.presentIds.includes(m.id)
@@ -150,7 +157,9 @@ export function GroupDetailPage() {
                 </div>
                 {s.prayerNotes && (
                   <div className="border-primary/40 bg-muted/30 rounded-md border-l-2 p-3">
-                    <div className="text-muted-foreground mb-1 text-xs font-medium uppercase">Prayer notes</div>
+                    <div className="text-muted-foreground mb-1 text-xs font-medium uppercase">
+                      {t("groupDetail.prayerNotesLabel")}
+                    </div>
                     <p className="text-sm">{s.prayerNotes}</p>
                   </div>
                 )}
@@ -169,7 +178,9 @@ export function GroupDetailPage() {
                     <div className="flex items-center gap-2 font-medium">
                       {m.name}
                       {m.id === group.leader?.id && (
-                        <Badge variant="outline" className="border-primary/30 text-primary">leader</Badge>
+                        <Badge variant="outline" className="border-primary/30 text-primary">
+                          {t("groupDetail.leaderBadge")}
+                        </Badge>
                       )}
                     </div>
                     <div className="text-muted-foreground truncate text-xs">{m.email}</div>
@@ -197,15 +208,16 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 function Restricted({ message }: { message: string }) {
+  const { t } = useTranslation("groups")
   return (
     <div className="mx-auto max-w-md py-20 text-center">
       <div className="bg-muted text-muted-foreground mx-auto mb-4 flex size-14 items-center justify-center rounded-full">
         <Lock className="size-6" />
       </div>
-      <h2 className="text-xl">Restricted</h2>
+      <h2 className="text-xl">{t("groupDetail.restrictedTitle")}</h2>
       <p className="text-muted-foreground mt-2">{message}</p>
       <Button asChild variant="outline" className="mt-4">
-        <Link to="/groups">Back to Small Groups</Link>
+        <Link to="/groups">{t("groupDetail.backToGroups")}</Link>
       </Button>
     </div>
   )

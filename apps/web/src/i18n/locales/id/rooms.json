@@ -1,0 +1,49 @@
+{
+  "title": "Ruangan",
+  "subtitle": "Ruang fisik yang dapat dipesan untuk acara.",
+  "table": {
+    "name": "Nama",
+    "capacity": "Kapasitas",
+    "description": "Deskripsi",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Aktif",
+    "inactive": "Tidak aktif"
+  },
+  "empty": "Belum ada ruangan.",
+  "menu": {
+    "edit": "Ubah ruangan",
+    "delete": "Hapus ruangan"
+  },
+  "toast": {
+    "removed": "{{name}} dihapus",
+    "deleteError": "Ruangan tidak dapat dihapus"
+  },
+  "add": {
+    "trigger": "Ruangan baru",
+    "title": "Ruangan baru",
+    "description": "Ruang fisik yang dapat dipesan untuk acara.",
+    "nameLabel": "Nama",
+    "namePlaceholder": "mis. Aula Utama",
+    "capacityLabel": "Kapasitas",
+    "capacityPlaceholder": "mis. 200",
+    "descriptionLabel": "Deskripsi",
+    "descriptionPlaceholder": "mis. Lantai 2, ada proyektor",
+    "adding": "Menambahkan…",
+    "submit": "Tambah ruangan",
+    "success": "{{name}} ditambahkan",
+    "error": "Ruangan tidak dapat ditambahkan"
+  },
+  "edit": {
+    "title": "Ubah ruangan",
+    "description": "Perbarui detail ruangan ini.",
+    "nameLabel": "Nama",
+    "capacityLabel": "Kapasitas",
+    "descriptionLabel": "Deskripsi",
+    "activeLabel": "Aktif (dapat dipesan)",
+    "saveChanges": "Simpan perubahan",
+    "success": "{{name}} diperbarui",
+    "error": "Ruangan tidak dapat diperbarui"
+  }
+}

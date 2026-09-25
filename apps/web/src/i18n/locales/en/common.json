@@ -34,5 +34,16 @@
   },
   "language": {
     "toggle": "Switch language"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "add": "Add",
+    "close": "Close",
+    "notSpecified": "Not specified"
   }
 }

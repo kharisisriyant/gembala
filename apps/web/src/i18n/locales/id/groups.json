@@ -1,0 +1,99 @@
+{
+  "smallGroups": {
+    "title": "Komsel",
+    "subtitleScoped": "Komsel dibatasi ke #{{tags}}.",
+    "subtitleAll": "Semua komsel dan connect group di gereja.",
+    "ledBy": "Dipimpin oleh {{name}}",
+    "editGroup": "Ubah komsel",
+    "memberCount": "{{count}} jemaat",
+    "lastMet": "Terakhir bertemu {{date}} · {{count}} hadir",
+    "noMeetingsYet": "Belum ada pertemuan",
+    "open": "Buka",
+    "empty": "Belum ada komsel dalam cakupan Anda."
+  },
+  "groupDetail": {
+    "loading": "Memuat…",
+    "restrictedOutsideAccess": "Komsel ini di luar akses Anda.",
+    "restrictedNotFound": "Komsel ini tidak ditemukan.",
+    "backLink": "Komsel",
+    "memberCount": "{{count}} jemaat",
+    "stats": {
+      "meetingsLogged": "Pertemuan tercatat",
+      "avgAttendance": "Rata-rata kehadiran",
+      "members": "Jemaat"
+    },
+    "tabs": {
+      "attendance": "Riwayat kehadiran",
+      "members": "Jemaat"
+    },
+    "noMeetingsLogged": "Belum ada pertemuan tercatat. Gunakan “Catat kehadiran” untuk mencatat satu.",
+    "presentCount": "{{present}}/{{total}} hadir",
+    "attendanceLabel": "Kehadiran",
+    "prayerNotesLabel": "Catatan doa",
+    "leaderBadge": "pemimpin",
+    "restrictedTitle": "Akses dibatasi",
+    "backToGroups": "Kembali ke Komsel"
+  },
+  "addGroupDialog": {
+    "trigger": "Komsel baru",
+    "title": "Komsel baru",
+    "description": "Tag cakupan menentukan pemimpin mana yang bisa melihat komsel ini.",
+    "name": "Nama",
+    "namePlaceholder": "misalnya Komsel Pemuda — Timur",
+    "leader": "Pemimpin",
+    "leaderPlaceholder": "Pilih pemimpin",
+    "scopeTag": "Tag cakupan",
+    "scopeTagPlaceholder": "Pilih tag",
+    "schedule": "Jadwal",
+    "schedulePlaceholder": "misalnya Jum · 19.00",
+    "location": "Lokasi",
+    "locationPlaceholder": "misalnya Ruangan Gereja 201",
+    "members": "Jemaat",
+    "selected": "{{count}} dipilih",
+    "leaderIncluded": "Pemimpin selalu disertakan.",
+    "creating": "Membuat…",
+    "create": "Buat komsel",
+    "successToast": "{{name}} berhasil dibuat",
+    "errorToast": "Gagal membuat komsel"
+  },
+  "editGroupDialog": {
+    "title": "Ubah komsel",
+    "description": "Tag cakupan menentukan pemimpin mana yang bisa melihat komsel ini.",
+    "name": "Nama",
+    "leader": "Pemimpin",
+    "leaderPlaceholder": "Pilih pemimpin",
+    "scopeTag": "Tag cakupan",
+    "scopeTagPlaceholder": "Pilih tag",
+    "schedule": "Jadwal",
+    "location": "Lokasi",
+    "members": "Jemaat",
+    "selected": "{{count}} dipilih",
+    "leaderIncluded": "Pemimpin selalu disertakan.",
+    "save": "Simpan perubahan",
+    "successToast": "{{name}} berhasil diperbarui",
+    "errorToast": "Gagal memperbarui komsel"
+  },
+  "logAttendanceDialog": {
+    "trigger": "Catat kehadiran",
+    "title": "Catat pertemuan — {{name}}",
+    "description": "Catat siapa yang hadir, topik, dan catatan doa.",
+    "date": "Tanggal",
+    "topic": "Topik",
+    "topicPlaceholder": "misalnya Roma 8",
+    "whoCame": "Siapa yang hadir?",
+    "selected": "{{count}} dipilih",
+    "prayerNotes": "Catatan doa",
+    "prayerNotesPlaceholder": "Permintaan doa, laporan syukur, tindak lanjut…",
+    "save": "Simpan pertemuan",
+    "successToast": "Kehadiran dicatat",
+    "successDescription": "{{count}} hadir · {{topic}}",
+    "noTopic": "tanpa topik",
+    "errorToast": "Gagal mencatat kehadiran"
+  },
+  "attendanceHeatmap": {
+    "title": "Kehadiran mingguan",
+    "subtitle": "Tingkat kehadiran per komsel, minggu Sen–Min selama setahun terakhir",
+    "noMeeting": "Tidak ada pertemuan",
+    "presentStat": "{{present}}/{{total}} hadir · {{rate}}%"
+  }
+}

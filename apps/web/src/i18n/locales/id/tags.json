@@ -1,0 +1,46 @@
+{
+  "page": {
+    "title": "Tag",
+    "subtitle": "Kelompokkan jemaat dengan tag terstruktur. Susun tag secara bertingkat untuk membentuk pelayanan dan tahap kehidupan.",
+    "newTag": "Tag baru",
+    "stats": {
+      "totalTags": "Total tag",
+      "nestedTags": "Tag bertingkat",
+      "topLevelGroups": "Grup tingkat atas"
+    },
+    "row": {
+      "addChild": "Tambah tag turunan",
+      "deleteTag": "Hapus tag",
+      "withChildren": "/ {{count}} termasuk turunan"
+    },
+    "toast": {
+      "removed": "#{{name}} dihapus",
+      "childrenMoved": "Tag turunan dipindahkan naik satu tingkat.",
+      "deleteError": "Tidak dapat menghapus tag"
+    },
+    "footer": {
+      "prefix": "Tag menentukan akses. Pemimpin yang dibatasi ke tag induk seperti",
+      "middle": "otomatis melihat jemaat yang bertanda tag turunannya (",
+      "suffix": ") — tanpa perlu memberi izin satu per satu."
+    }
+  },
+  "dialog": {
+    "title": "Tag baru",
+    "description": "Beri tag induk untuk menyusunnya secara bertingkat. Cakupan tag induk meliputi semua turunannya.",
+    "nameLabel": "Nama",
+    "namePlaceholder": "drummer",
+    "nameTaken": "#{{name}} sudah ada.",
+    "parentLabel": "Tag induk",
+    "parentNone": "— tidak ada (tingkat atas) —",
+    "descriptionLabel": "Deskripsi (opsional)",
+    "descriptionPlaceholder": "mis. Tim drum & perkusi",
+    "create": "Buat tag",
+    "creating": "Membuat…",
+    "toast": {
+      "created": "#{{name}} dibuat",
+      "topLevel": "Tag tingkat atas",
+      "childOf": "Turunan dari #{{name}}",
+      "createError": "Tidak dapat membuat tag"
+    }
+  }
+}

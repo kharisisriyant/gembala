@@ -1,0 +1,121 @@
+{
+  "page": {
+    "title": "Members",
+    "subtitleAll": "Everyone in the church directory.",
+    "subtitleScoped": "You can see members tagged #{{tags}}."
+  },
+  "search": {
+    "placeholder": "Search by name or email…"
+  },
+  "filter": {
+    "label": "Filter:"
+  },
+  "actions": {
+    "importCsv": "Import CSV",
+    "addMember": "Add member"
+  },
+  "table": {
+    "member": "Member",
+    "tags": "Tags",
+    "groups": "Groups",
+    "status": "Status",
+    "joined": "Joined",
+    "empty": "No members match your filters."
+  },
+  "summary": "Showing {{filtered}} of {{total}} members",
+  "status": {
+    "active": "Active",
+    "newcomer": "Newcomer",
+    "inactive": "Inactive",
+    "moved": "Moved"
+  },
+  "detail": {
+    "memberSince": "Member since {{date}}",
+    "tags": "Tags",
+    "dateOfBirth": "Date of birth",
+    "gender": "Gender",
+    "maritalStatus": "Marital status",
+    "occupation": "Occupation",
+    "baptism": "Baptism",
+    "address": "Address",
+    "notes": "Notes",
+    "smallGroups": "Small groups",
+    "noGroups": "Not in any group yet."
+  },
+  "options": {
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "maritalStatus": {
+      "single": "Single",
+      "married": "Married",
+      "widowed": "Widowed",
+      "divorced": "Divorced"
+    },
+    "baptismStatus": {
+      "notBaptized": "Not baptized",
+      "baptized": "Baptized"
+    }
+  },
+  "form": {
+    "fullName": "Full name",
+    "fullNamePlaceholder": "e.g. Sarah Wijaya",
+    "email": "Email",
+    "emailPlaceholder": "sarah@gmail.com",
+    "phone": "Phone",
+    "phonePlaceholder": "0812-…",
+    "tags": "Tags",
+    "dateOfBirth": "Date of birth",
+    "gender": "Gender",
+    "maritalStatus": "Marital status",
+    "membershipStatus": "Membership status",
+    "occupation": "Occupation",
+    "occupationPlaceholder": "e.g. Teacher",
+    "address": "Address",
+    "addressPlaceholder": "Street, city…",
+    "photoUrl": "Photo URL",
+    "photoUrlPlaceholder": "https://…",
+    "baptismStatus": "Baptism status",
+    "baptismDate": "Baptism date",
+    "notes": "Notes",
+    "notesPlaceholder": "Anything worth remembering…"
+  },
+  "add": {
+    "title": "Add a member",
+    "description": "Tags decide which leaders can see this person and which groups fit.",
+    "save": "Save member",
+    "toastAdded": "{{name}} added",
+    "toastAddedDescription": "Tagged {{tags}}",
+    "toastError": "Could not add member"
+  },
+  "edit": {
+    "title": "Edit member",
+    "description": "Tags decide which leaders can see this person and which groups fit.",
+    "save": "Save changes",
+    "toastUpdated": "{{name}} updated",
+    "toastError": "Could not update member"
+  },
+  "import": {
+    "title": "Import members from CSV",
+    "description": "Header row required. Separate multiple tags in a cell with <code>;</code>, e.g. <code>members;youth</code>. Only <code>name</code> and <code>tags</code> are required.",
+    "chooseFile": "Choose CSV file",
+    "downloadTemplate": "Download template",
+    "validSummary": "{{valid}} of {{total}} rows look valid.",
+    "skippedSummary": "{{count}} will be skipped.",
+    "ready": "Ready",
+    "resultImported": "{{count}} members imported",
+    "resultFailed": "{{count}} failed",
+    "importing": "Importing…",
+    "submit": "Import {{count}} members",
+    "toastImported": "Imported {{count}} members",
+    "toastPartial": "Imported {{created}} of {{total}}, {{failed}} failed",
+    "toastError": "Import failed",
+    "table": {
+      "row": "Row",
+      "name": "Name",
+      "status": "Status",
+      "error": "Error"
+    }
+  }
+}

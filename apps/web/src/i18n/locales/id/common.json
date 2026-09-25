@@ -34,5 +34,16 @@
   },
   "language": {
     "toggle": "Ganti bahasa"
+  },
+  "actions": {
+    "cancel": "Batal",
+    "save": "Simpan",
+    "saving": "Menyimpan…",
+    "edit": "Ubah",
+    "delete": "Hapus",
+    "deleting": "Menghapus…",
+    "add": "Tambah",
+    "close": "Tutup",
+    "notSpecified": "Tidak diisi"
   }
 }

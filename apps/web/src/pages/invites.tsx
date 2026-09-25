@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { MailPlus } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -40,6 +41,7 @@ const statusVariant: Record<string, "success" | "warning" | "muted"> = {
 }
 
 function InviteDialog() {
+  const { t } = useTranslation("invites")
   const { data: tags = [] } = useTags()
   const { data: assignableRoles = [] } = useAssignableRoles()
   const createInvite = useCreateInvite()
@@ -56,15 +58,15 @@ function InviteDialog() {
   const save = async () => {
     try {
       await createInvite.mutateAsync({ email, roleIds: pickedRoles, scopeTags: picked })
-      toast.success(`Invite sent to ${email}`, {
-        description: "The accept link was emailed (check the API console in dev).",
+      toast.success(t("toast.sent", { email }), {
+        description: t("toast.sentDescription"),
       })
       setEmail("")
       setPickedRoles([])
       setPicked([])
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create invite")
+      toast.error(err instanceof Error ? err.message : t("toast.sendError"))
     }
   }
 
@@ -72,29 +74,27 @@ function InviteDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <MailPlus className="size-4" /> Invite leader
+          <MailPlus className="size-4" /> {t("dialog.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Invite a leader</DialogTitle>
-          <DialogDescription>
-            They'll get a link to set their password. Scope tags decide what they can see.
-          </DialogDescription>
+          <DialogTitle>{t("dialog.title")}</DialogTitle>
+          <DialogDescription>{t("dialog.description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="invite-email">Email</Label>
+            <Label htmlFor="invite-email">{t("dialog.emailLabel")}</Label>
             <Input
               id="invite-email"
               type="email"
-              placeholder="leader@example.com"
+              placeholder={t("dialog.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
-            <Label>Roles</Label>
+            <Label>{t("dialog.rolesLabel")}</Label>
             <div className="space-y-1.5 rounded-md border p-3">
               {assignableRoles.map((r) => (
                 <label key={r.id} className="flex cursor-pointer items-center gap-2">
@@ -108,7 +108,7 @@ function InviteDialog() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Scope tags</Label>
+            <Label>{t("dialog.scopeTagsLabel")}</Label>
             <div className="space-y-2.5 rounded-md border p-3">
               {rootTags(tags).map((root) => {
                 const kids = childrenOf(tags, root.name)
@@ -122,20 +122,18 @@ function InviteDialog() {
                 )
               })}
             </div>
-            <p className="text-muted-foreground text-xs">
-              A parent tag grants its whole subtree (e.g. #youth includes #teen and #college).
-            </p>
+            <p className="text-muted-foreground text-xs">{t("dialog.scopeTagsHint")}</p>
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button
             onClick={save}
             disabled={!email || pickedRoles.length === 0 || picked.length === 0 || createInvite.isPending}
           >
-            {createInvite.isPending ? "Sending…" : "Send invite"}
+            {createInvite.isPending ? t("dialog.sending") : t("dialog.send")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -144,6 +142,7 @@ function InviteDialog() {
 }
 
 export function InvitesPage() {
+  const { t } = useTranslation("invites")
   const { hasPermission } = useAuth()
   const { data: invites = [], isLoading } = useInvites()
   const revoke = useRevokeInvite()
@@ -151,8 +150,8 @@ export function InvitesPage() {
   return (
     <div>
       <PageHeader
-        title="Invites"
-        subtitle="Bring leaders into your organization with scoped access."
+        title={t("page.title")}
+        subtitle={t("page.subtitle")}
         action={hasPermission("invites", "create") ? <InviteDialog /> : undefined}
       />
 
@@ -160,11 +159,11 @@ export function InvitesPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40">
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="hidden md:table-cell">Scope</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden lg:table-cell">Expires</TableHead>
+              <TableHead>{t("table.email")}</TableHead>
+              <TableHead>{t("table.role")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("table.scope")}</TableHead>
+              <TableHead>{t("table.status")}</TableHead>
+              <TableHead className="hidden lg:table-cell">{t("table.expires")}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -185,7 +184,7 @@ export function InvitesPage() {
                   <TagList tags={inv.scopeTags} />
                 </TableCell>
                 <TableCell>
-                  <Badge variant={statusVariant[inv.status]}>{inv.status}</Badge>
+                  <Badge variant={statusVariant[inv.status]}>{t(`status.${inv.status}`)}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
                   {formatDate(inv.expiresAt.slice(0, 10))}
@@ -197,10 +196,10 @@ export function InvitesPage() {
                       size="sm"
                       onClick={async () => {
                         await revoke.mutateAsync(inv.id)
-                        toast(`Invite for ${inv.email} revoked`)
+                        toast(t("toast.revoked", { email: inv.email }))
                       }}
                     >
-                      Revoke
+                      {t("actions.revoke")}
                     </Button>
                   )}
                 </TableCell>
@@ -209,7 +208,7 @@ export function InvitesPage() {
             {!isLoading && invites.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-muted-foreground py-10 text-center">
-                  No invites yet. Invite a leader to give them scoped access.
+                  {t("empty")}
                 </TableCell>
               </TableRow>
             )}

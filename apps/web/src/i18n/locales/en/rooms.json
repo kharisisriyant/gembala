@@ -1,0 +1,49 @@
+{
+  "title": "Rooms",
+  "subtitle": "Physical spaces events can be booked into.",
+  "table": {
+    "name": "Name",
+    "capacity": "Capacity",
+    "description": "Description",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "empty": "No rooms yet.",
+  "menu": {
+    "edit": "Edit room",
+    "delete": "Delete room"
+  },
+  "toast": {
+    "removed": "{{name}} removed",
+    "deleteError": "Could not delete room"
+  },
+  "add": {
+    "trigger": "New room",
+    "title": "New room",
+    "description": "A physical space events can be booked into.",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Main Hall",
+    "capacityLabel": "Capacity",
+    "capacityPlaceholder": "e.g. 200",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "e.g. 2nd floor, has projector",
+    "adding": "Adding…",
+    "submit": "Add room",
+    "success": "{{name}} added",
+    "error": "Could not add room"
+  },
+  "edit": {
+    "title": "Edit room",
+    "description": "Update details for this room.",
+    "nameLabel": "Name",
+    "capacityLabel": "Capacity",
+    "descriptionLabel": "Description",
+    "activeLabel": "Active (bookable)",
+    "saveChanges": "Save changes",
+    "success": "{{name}} updated",
+    "error": "Could not update room"
+  }
+}

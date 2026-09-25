@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { Plus } from "lucide-react"
 import {
   Dialog,
@@ -26,6 +27,7 @@ import { MemberAvatar } from "@/components/member-avatar"
 import { useCreateGroup, useMembers, useTags } from "@/lib/queries"
 
 export function AddGroupDialog() {
+  const { t } = useTranslation("groups")
   const { data: members = [] } = useMembers()
   const { data: tags = [] } = useTags()
   const createGroup = useCreateGroup()
@@ -43,7 +45,7 @@ export function AddGroupDialog() {
   const save = async () => {
     try {
       await createGroup.mutateAsync({ name, leaderId, scopeTag, memberIds, schedule, location })
-      toast.success(`${name} created`)
+      toast.success(t("addGroupDialog.successToast", { name }))
       setName("")
       setLeaderId("")
       setScopeTag("")
@@ -52,7 +54,7 @@ export function AddGroupDialog() {
       setLocation("")
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create group")
+      toast.error(err instanceof Error ? err.message : t("addGroupDialog.errorToast"))
     }
   }
 
@@ -60,32 +62,30 @@ export function AddGroupDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="size-4" /> New group
+          <Plus className="size-4" /> {t("addGroupDialog.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>New small group</DialogTitle>
-          <DialogDescription>
-            The scope tag decides which leaders can see this group.
-          </DialogDescription>
+          <DialogTitle>{t("addGroupDialog.title")}</DialogTitle>
+          <DialogDescription>{t("addGroupDialog.description")}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2">
           <div className="grid gap-2">
-            <Label htmlFor="group-name">Name</Label>
+            <Label htmlFor="group-name">{t("addGroupDialog.name")}</Label>
             <Input
               id="group-name"
-              placeholder="e.g. Youth Komsel — East"
+              placeholder={t("addGroupDialog.namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Leader</Label>
+              <Label>{t("addGroupDialog.leader")}</Label>
               <Select value={leaderId} onValueChange={setLeaderId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pick a leader" />
+                  <SelectValue placeholder={t("addGroupDialog.leaderPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
@@ -97,15 +97,15 @@ export function AddGroupDialog() {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Scope tag</Label>
+              <Label>{t("addGroupDialog.scopeTag")}</Label>
               <Select value={scopeTag} onValueChange={setScopeTag}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pick a tag" />
+                  <SelectValue placeholder={t("addGroupDialog.scopeTagPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {tags.map((t) => (
-                    <SelectItem key={t.name} value={t.name}>
-                      #{t.name}
+                  {tags.map((tg) => (
+                    <SelectItem key={tg.name} value={tg.name}>
+                      #{tg.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -114,19 +114,19 @@ export function AddGroupDialog() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="group-schedule">Schedule</Label>
+              <Label htmlFor="group-schedule">{t("addGroupDialog.schedule")}</Label>
               <Input
                 id="group-schedule"
-                placeholder="e.g. Fri · 7:00 PM"
+                placeholder={t("addGroupDialog.schedulePlaceholder")}
                 value={schedule}
                 onChange={(e) => setSchedule(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="group-location">Location</Label>
+              <Label htmlFor="group-location">{t("addGroupDialog.location")}</Label>
               <Input
                 id="group-location"
-                placeholder="e.g. Church Room 201"
+                placeholder={t("addGroupDialog.locationPlaceholder")}
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />
@@ -134,8 +134,10 @@ export function AddGroupDialog() {
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label>Members</Label>
-              <span className="text-muted-foreground text-xs">{memberIds.length} selected</span>
+              <Label>{t("addGroupDialog.members")}</Label>
+              <span className="text-muted-foreground text-xs">
+                {t("addGroupDialog.selected", { count: memberIds.length })}
+              </span>
             </div>
             <div className="grid gap-1.5 rounded-md border p-2 sm:grid-cols-2">
               {members.map((m) => (
@@ -149,15 +151,15 @@ export function AddGroupDialog() {
                 </label>
               ))}
             </div>
-            <p className="text-muted-foreground text-xs">The leader is always included.</p>
+            <p className="text-muted-foreground text-xs">{t("addGroupDialog.leaderIncluded")}</p>
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button onClick={save} disabled={!name || !leaderId || !scopeTag || createGroup.isPending}>
-            {createGroup.isPending ? "Creating…" : "Create group"}
+            {createGroup.isPending ? t("addGroupDialog.creating") : t("addGroupDialog.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

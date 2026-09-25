@@ -1,0 +1,20 @@
+{
+  "title": "Team",
+  "subtitle": "Everyone with access to this organization, and their roles.",
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "roles": "Roles",
+    "scope": "Scope"
+  },
+  "scope": {
+    "fullAccess": "Full access",
+    "none": "None"
+  },
+  "empty": "No team members yet.",
+  "dialog": {
+    "title": "Edit {{name}}'s roles",
+    "rolesUpdated": "{{name}}'s roles updated",
+    "updateError": "Could not update roles"
+  }
+}

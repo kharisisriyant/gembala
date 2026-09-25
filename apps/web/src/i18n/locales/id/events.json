@@ -1,0 +1,58 @@
+{
+  "page": {
+    "title": "Acara",
+    "subtitle": "Acara yang akan datang dan yang sudah lewat, dapat dipesan ke sebuah ruangan."
+  },
+  "table": {
+    "event": "Acara",
+    "starts": "Mulai",
+    "ends": "Selesai",
+    "room": "Ruangan",
+    "visibility": "Visibilitas"
+  },
+  "visibility": {
+    "public": "Publik",
+    "internal": "Internal"
+  },
+  "empty": "Belum ada acara.",
+  "actions": {
+    "editEvent": "Ubah acara",
+    "deleteEvent": "Hapus acara"
+  },
+  "toast": {
+    "removed": "{{title}} dihapus",
+    "deleteError": "Acara tidak dapat dihapus",
+    "created": "{{title}} dibuat",
+    "createError": "Acara tidak dapat dibuat",
+    "updated": "{{title}} diperbarui",
+    "updateError": "Acara tidak dapat diperbarui"
+  },
+  "addDialog": {
+    "trigger": "Acara baru",
+    "title": "Acara baru",
+    "description": "Jadwalkan acara dan pesan ruangan bila perlu.",
+    "titleLabel": "Judul",
+    "titlePlaceholder": "cth. Ibadah Minggu",
+    "startsLabel": "Mulai",
+    "endsLabel": "Selesai",
+    "roomLabel": "Ruangan",
+    "noRoom": "Tanpa ruangan",
+    "descriptionLabel": "Deskripsi",
+    "publicLabel": "Publik — aman ditampilkan di situs publik nanti",
+    "creating": "Membuat…",
+    "create": "Buat acara"
+  },
+  "editDialog": {
+    "title": "Ubah acara",
+    "description": "Perbarui detail atau ruangan acara ini.",
+    "titleLabel": "Judul",
+    "startsLabel": "Mulai",
+    "endsLabel": "Selesai",
+    "roomLabel": "Ruangan",
+    "noRoom": "Tanpa ruangan",
+    "descriptionLabel": "Deskripsi",
+    "publicLabel": "Publik — aman ditampilkan di situs publik nanti",
+    "saving": "Menyimpan…",
+    "save": "Simpan perubahan"
+  }
+}

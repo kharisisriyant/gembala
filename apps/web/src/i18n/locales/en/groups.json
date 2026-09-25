@@ -1,0 +1,99 @@
+{
+  "smallGroups": {
+    "title": "Small Groups",
+    "subtitleScoped": "Groups scoped to #{{tags}}.",
+    "subtitleAll": "Every komsel and connect group in the church.",
+    "ledBy": "Led by {{name}}",
+    "editGroup": "Edit group",
+    "memberCount": "{{count}} members",
+    "lastMet": "Last met {{date}} · {{count}} came",
+    "noMeetingsYet": "No meetings yet",
+    "open": "Open",
+    "empty": "No groups in your scope yet."
+  },
+  "groupDetail": {
+    "loading": "Loading…",
+    "restrictedOutsideAccess": "This group is outside your access.",
+    "restrictedNotFound": "This group doesn't exist.",
+    "backLink": "Small Groups",
+    "memberCount": "{{count}} members",
+    "stats": {
+      "meetingsLogged": "Meetings logged",
+      "avgAttendance": "Avg. attendance",
+      "members": "Members"
+    },
+    "tabs": {
+      "attendance": "Attendance history",
+      "members": "Members"
+    },
+    "noMeetingsLogged": "No meetings logged yet. Use “Log attendance” to record one.",
+    "presentCount": "{{present}}/{{total}} present",
+    "attendanceLabel": "Attendance",
+    "prayerNotesLabel": "Prayer notes",
+    "leaderBadge": "leader",
+    "restrictedTitle": "Restricted",
+    "backToGroups": "Back to Small Groups"
+  },
+  "addGroupDialog": {
+    "trigger": "New group",
+    "title": "New small group",
+    "description": "The scope tag decides which leaders can see this group.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Youth Komsel — East",
+    "leader": "Leader",
+    "leaderPlaceholder": "Pick a leader",
+    "scopeTag": "Scope tag",
+    "scopeTagPlaceholder": "Pick a tag",
+    "schedule": "Schedule",
+    "schedulePlaceholder": "e.g. Fri · 7:00 PM",
+    "location": "Location",
+    "locationPlaceholder": "e.g. Church Room 201",
+    "members": "Members",
+    "selected": "{{count}} selected",
+    "leaderIncluded": "The leader is always included.",
+    "creating": "Creating…",
+    "create": "Create group",
+    "successToast": "{{name}} created",
+    "errorToast": "Could not create group"
+  },
+  "editGroupDialog": {
+    "title": "Edit small group",
+    "description": "The scope tag decides which leaders can see this group.",
+    "name": "Name",
+    "leader": "Leader",
+    "leaderPlaceholder": "Pick a leader",
+    "scopeTag": "Scope tag",
+    "scopeTagPlaceholder": "Pick a tag",
+    "schedule": "Schedule",
+    "location": "Location",
+    "members": "Members",
+    "selected": "{{count}} selected",
+    "leaderIncluded": "The leader is always included.",
+    "save": "Save changes",
+    "successToast": "{{name}} updated",
+    "errorToast": "Could not update group"
+  },
+  "logAttendanceDialog": {
+    "trigger": "Log attendance",
+    "title": "Log meeting — {{name}}",
+    "description": "Record who came, the topic, and prayer notes.",
+    "date": "Date",
+    "topic": "Topic",
+    "topicPlaceholder": "e.g. Romans 8",
+    "whoCame": "Who came?",
+    "selected": "{{count}} selected",
+    "prayerNotes": "Prayer notes",
+    "prayerNotesPlaceholder": "Requests, praise reports, follow-ups…",
+    "save": "Save meeting",
+    "successToast": "Attendance logged",
+    "successDescription": "{{count}} present · {{topic}}",
+    "noTopic": "no topic",
+    "errorToast": "Could not log attendance"
+  },
+  "attendanceHeatmap": {
+    "title": "Weekly attendance",
+    "subtitle": "Attendance rate per group, Mon–Sun weeks over the past year",
+    "noMeeting": "No meeting",
+    "presentStat": "{{present}}/{{total}} present · {{rate}}%"
+  }
+}

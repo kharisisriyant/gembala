@@ -1,0 +1,121 @@
+{
+  "page": {
+    "title": "Jemaat",
+    "subtitleAll": "Semua orang di direktori gereja.",
+    "subtitleScoped": "Anda dapat melihat jemaat yang diberi tag #{{tags}}."
+  },
+  "search": {
+    "placeholder": "Cari nama atau email…"
+  },
+  "filter": {
+    "label": "Filter:"
+  },
+  "actions": {
+    "importCsv": "Impor CSV",
+    "addMember": "Tambah jemaat"
+  },
+  "table": {
+    "member": "Jemaat",
+    "tags": "Tag",
+    "groups": "Komsel",
+    "status": "Status",
+    "joined": "Bergabung",
+    "empty": "Tidak ada jemaat yang cocok dengan filter Anda."
+  },
+  "summary": "Menampilkan {{filtered}} dari {{total}} jemaat",
+  "status": {
+    "active": "Aktif",
+    "newcomer": "Jemaat baru",
+    "inactive": "Tidak aktif",
+    "moved": "Pindah"
+  },
+  "detail": {
+    "memberSince": "Jemaat sejak {{date}}",
+    "tags": "Tag",
+    "dateOfBirth": "Tanggal lahir",
+    "gender": "Jenis kelamin",
+    "maritalStatus": "Status pernikahan",
+    "occupation": "Pekerjaan",
+    "baptism": "Baptisan",
+    "address": "Alamat",
+    "notes": "Catatan",
+    "smallGroups": "Komsel",
+    "noGroups": "Belum tergabung dalam komsel mana pun."
+  },
+  "options": {
+    "gender": {
+      "male": "Laki-laki",
+      "female": "Perempuan"
+    },
+    "maritalStatus": {
+      "single": "Lajang",
+      "married": "Menikah",
+      "widowed": "Janda/Duda",
+      "divorced": "Bercerai"
+    },
+    "baptismStatus": {
+      "notBaptized": "Belum dibaptis",
+      "baptized": "Sudah dibaptis"
+    }
+  },
+  "form": {
+    "fullName": "Nama lengkap",
+    "fullNamePlaceholder": "cth. Sarah Wijaya",
+    "email": "Email",
+    "emailPlaceholder": "sarah@gmail.com",
+    "phone": "Telepon",
+    "phonePlaceholder": "0812-…",
+    "tags": "Tag",
+    "dateOfBirth": "Tanggal lahir",
+    "gender": "Jenis kelamin",
+    "maritalStatus": "Status pernikahan",
+    "membershipStatus": "Status keanggotaan",
+    "occupation": "Pekerjaan",
+    "occupationPlaceholder": "cth. Guru",
+    "address": "Alamat",
+    "addressPlaceholder": "Jalan, kota…",
+    "photoUrl": "URL foto",
+    "photoUrlPlaceholder": "https://…",
+    "baptismStatus": "Status baptisan",
+    "baptismDate": "Tanggal baptisan",
+    "notes": "Catatan",
+    "notesPlaceholder": "Hal-hal yang perlu diingat…"
+  },
+  "add": {
+    "title": "Tambah jemaat",
+    "description": "Tag menentukan pemimpin mana yang dapat melihat orang ini dan komsel mana yang cocok.",
+    "save": "Simpan jemaat",
+    "toastAdded": "{{name}} ditambahkan",
+    "toastAddedDescription": "Ditandai {{tags}}",
+    "toastError": "Tidak dapat menambahkan jemaat"
+  },
+  "edit": {
+    "title": "Ubah jemaat",
+    "description": "Tag menentukan pemimpin mana yang dapat melihat orang ini dan komsel mana yang cocok.",
+    "save": "Simpan perubahan",
+    "toastUpdated": "{{name}} diperbarui",
+    "toastError": "Tidak dapat memperbarui jemaat"
+  },
+  "import": {
+    "title": "Impor jemaat dari CSV",
+    "description": "Baris header wajib ada. Pisahkan beberapa tag dalam satu sel dengan <code>;</code>, cth. <code>members;youth</code>. Hanya <code>name</code> dan <code>tags</code> yang wajib diisi.",
+    "chooseFile": "Pilih file CSV",
+    "downloadTemplate": "Unduh templat",
+    "validSummary": "{{valid}} dari {{total}} baris terlihat valid.",
+    "skippedSummary": "{{count}} akan dilewati.",
+    "ready": "Siap",
+    "resultImported": "{{count}} jemaat berhasil diimpor",
+    "resultFailed": "{{count}} gagal",
+    "importing": "Mengimpor…",
+    "submit": "Impor {{count}} jemaat",
+    "toastImported": "{{count}} jemaat berhasil diimpor",
+    "toastPartial": "Berhasil impor {{created}} dari {{total}}, {{failed}} gagal",
+    "toastError": "Impor gagal",
+    "table": {
+      "row": "Baris",
+      "name": "Nama",
+      "status": "Status",
+      "error": "Kesalahan"
+    }
+  }
+}

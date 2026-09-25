@@ -1,4 +1,5 @@
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { MoreHorizontal, Pencil, Trash2, MapPin, Globe } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ import { useDeleteEvent, useEvents } from "@/lib/queries"
 import { formatDateTime } from "@/lib/helpers"
 
 export function EventsPage() {
+  const { t } = useTranslation("events")
   const { hasPermission } = useAuth()
   const canCreate = hasPermission("events", "create")
   const canManage = hasPermission("events", "update") || hasPermission("events", "delete")
@@ -34,17 +36,17 @@ export function EventsPage() {
   const remove = async (id: string, title: string) => {
     try {
       await deleteEvent.mutateAsync(id)
-      toast(`${title} removed`)
+      toast(t("toast.removed", { title }))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not delete event")
+      toast.error(err instanceof Error ? err.message : t("toast.deleteError"))
     }
   }
 
   return (
     <div>
       <PageHeader
-        title="Events"
-        subtitle="Upcoming and past events, optionally booked into a room."
+        title={t("page.title")}
+        subtitle={t("page.subtitle")}
         action={canCreate ? <AddEventDialog /> : undefined}
       />
 
@@ -53,11 +55,11 @@ export function EventsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event</TableHead>
-                <TableHead>Starts</TableHead>
-                <TableHead>Ends</TableHead>
-                <TableHead>Room</TableHead>
-                <TableHead>Visibility</TableHead>
+                <TableHead>{t("table.event")}</TableHead>
+                <TableHead>{t("table.starts")}</TableHead>
+                <TableHead>{t("table.ends")}</TableHead>
+                <TableHead>{t("table.room")}</TableHead>
+                <TableHead>{t("table.visibility")}</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -79,10 +81,10 @@ export function EventsPage() {
                   <TableCell>
                     {e.isPublic ? (
                       <Badge variant="info" className="gap-1">
-                        <Globe className="size-3" /> Public
+                        <Globe className="size-3" /> {t("visibility.public")}
                       </Badge>
                     ) : (
-                      <Badge variant="muted">Internal</Badge>
+                      <Badge variant="muted">{t("visibility.internal")}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -98,12 +100,12 @@ export function EventsPage() {
                             event={e}
                             trigger={
                               <DropdownMenuItem onSelect={(ev) => ev.preventDefault()}>
-                                <Pencil className="size-4" /> Edit event
+                                <Pencil className="size-4" /> {t("actions.editEvent")}
                               </DropdownMenuItem>
                             }
                           />
                           <DropdownMenuItem variant="destructive" onClick={() => remove(e.id, e.title)}>
-                            <Trash2 className="size-4" /> Delete event
+                            <Trash2 className="size-4" /> {t("actions.deleteEvent")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -114,7 +116,7 @@ export function EventsPage() {
             </TableBody>
           </Table>
           {!isLoading && events.length === 0 && (
-            <div className="text-muted-foreground py-12 text-center">No events yet.</div>
+            <div className="text-muted-foreground py-12 text-center">{t("empty")}</div>
           )}
         </CardContent>
       </Card>

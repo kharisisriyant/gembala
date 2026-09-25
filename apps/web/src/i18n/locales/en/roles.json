@@ -1,0 +1,46 @@
+{
+  "title": "Roles",
+  "subtitle": "Define what each role can do. Assign roles to people from the Team page.",
+  "table": {
+    "name": "Name",
+    "description": "Description",
+    "permissions": "Permissions",
+    "members": "Members"
+  },
+  "allPermissions": "All",
+  "empty": "No roles yet.",
+  "menu": {
+    "edit": "Edit role",
+    "delete": "Delete role"
+  },
+  "toast": {
+    "removed": "{{name}} removed",
+    "deleteError": "Could not delete role"
+  },
+  "dialog": {
+    "trigger": "New role",
+    "title": "New role",
+    "editTitle": "Edit role",
+    "description": "Pick which actions this role can take on each resource.",
+    "nameLabel": "Name",
+    "descriptionLabel": "Description",
+    "permissionsLabel": "Permissions",
+    "resourceHeader": "Resource",
+    "saveChanges": "Save changes",
+    "createRole": "Create role",
+    "successUpdated": "{{name}} updated",
+    "successCreated": "{{name}} created",
+    "error": "Could not save role"
+  },
+  "permissions": {
+    "resources": {
+      "households": "Households"
+    },
+    "actions": {
+      "create": "create",
+      "read": "read",
+      "update": "update",
+      "delete": "delete"
+    }
+  }
+}

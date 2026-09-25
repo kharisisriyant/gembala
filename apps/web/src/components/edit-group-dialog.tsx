@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ export function EditGroupDialog({
   trigger: React.ReactNode
   group: EditableGroup
 }) {
+  const { t } = useTranslation("groups")
   const { data: members = [] } = useMembers()
   const { data: tags = [] } = useTags()
   const updateGroup = useUpdateGroup()
@@ -76,10 +78,10 @@ export function EditGroupDialog({
         schedule,
         location,
       })
-      toast.success(`${name} updated`)
+      toast.success(t("editGroupDialog.successToast", { name }))
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update group")
+      toast.error(err instanceof Error ? err.message : t("editGroupDialog.errorToast"))
     }
   }
 
@@ -88,14 +90,12 @@ export function EditGroupDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit small group</DialogTitle>
-          <DialogDescription>
-            The scope tag decides which leaders can see this group.
-          </DialogDescription>
+          <DialogTitle>{t("editGroupDialog.title")}</DialogTitle>
+          <DialogDescription>{t("editGroupDialog.description")}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2">
           <div className="grid gap-2">
-            <Label htmlFor="edit-group-name">Name</Label>
+            <Label htmlFor="edit-group-name">{t("editGroupDialog.name")}</Label>
             <Input
               id="edit-group-name"
               value={name}
@@ -104,10 +104,10 @@ export function EditGroupDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label>Leader</Label>
+              <Label>{t("editGroupDialog.leader")}</Label>
               <Select value={leaderId} onValueChange={setLeaderId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pick a leader" />
+                  <SelectValue placeholder={t("editGroupDialog.leaderPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
@@ -119,15 +119,15 @@ export function EditGroupDialog({
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Scope tag</Label>
+              <Label>{t("editGroupDialog.scopeTag")}</Label>
               <Select value={scopeTag} onValueChange={setScopeTag}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pick a tag" />
+                  <SelectValue placeholder={t("editGroupDialog.scopeTagPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {tags.map((t) => (
-                    <SelectItem key={t.name} value={t.name}>
-                      #{t.name}
+                  {tags.map((tg) => (
+                    <SelectItem key={tg.name} value={tg.name}>
+                      #{tg.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -136,7 +136,7 @@ export function EditGroupDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="edit-group-schedule">Schedule</Label>
+              <Label htmlFor="edit-group-schedule">{t("editGroupDialog.schedule")}</Label>
               <Input
                 id="edit-group-schedule"
                 value={schedule}
@@ -144,7 +144,7 @@ export function EditGroupDialog({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-group-location">Location</Label>
+              <Label htmlFor="edit-group-location">{t("editGroupDialog.location")}</Label>
               <Input
                 id="edit-group-location"
                 value={location}
@@ -154,8 +154,10 @@ export function EditGroupDialog({
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label>Members</Label>
-              <span className="text-muted-foreground text-xs">{memberIds.length} selected</span>
+              <Label>{t("editGroupDialog.members")}</Label>
+              <span className="text-muted-foreground text-xs">
+                {t("editGroupDialog.selected", { count: memberIds.length })}
+              </span>
             </div>
             <div className="grid gap-1.5 rounded-md border p-2 sm:grid-cols-2">
               {members.map((m) => (
@@ -169,15 +171,15 @@ export function EditGroupDialog({
                 </label>
               ))}
             </div>
-            <p className="text-muted-foreground text-xs">The leader is always included.</p>
+            <p className="text-muted-foreground text-xs">{t("editGroupDialog.leaderIncluded")}</p>
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
           </DialogClose>
           <Button onClick={save} disabled={!name || !leaderId || !scopeTag || updateGroup.isPending}>
-            {updateGroup.isPending ? "Saving…" : "Save changes"}
+            {updateGroup.isPending ? t("common:actions.saving") : t("editGroupDialog.save")}
           </Button>
         </DialogFooter>
       </DialogContent>
