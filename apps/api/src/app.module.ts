@@ -18,6 +18,7 @@ import { RoomsModule } from "./rooms/rooms.module"
 import { EventsModule } from "./events/events.module"
 import { DashboardModule } from "./dashboard/dashboard.module"
 import { InvitesModule } from "./invites/invites.module"
+import { RolesModule } from "./roles/roles.module"
 import { TelegramModule } from "./telegram/telegram.module"
 
 @Module({
@@ -45,6 +46,7 @@ import { TelegramModule } from "./telegram/telegram.module"
     EventsModule,
     DashboardModule,
     InvitesModule,
+    RolesModule,
     TelegramModule,
   ],
   providers: [
