@@ -15,25 +15,11 @@ import type {
 } from "@gembala/shared"
 import * as argon2 from "argon2"
 import { createHash, randomBytes } from "node:crypto"
-import { and, eq, gt, isNull } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import {
-  invites,
-  inviteRoles,
-  inviteScopeTags,
-  membershipRoles,
-  membershipScopeTags,
-  organizations,
-  orgMemberships,
-  passwordResetTokens,
-  roles,
-  rolePermissions,
-  tags,
-  users,
-} from "../db/schema"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthContextService } from "../authz/auth-context.service"
 import { MailService } from "../mail/mail.service"
+import { AuthRepository } from "./auth.repository"
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex")
 
@@ -49,6 +35,7 @@ const LEADER_BASELINE_PERMISSIONS = [
 export class AuthService {
   constructor(
     @InjectDb() private readonly db: Db,
+    private readonly auth: AuthRepository,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly mail: MailService,
@@ -68,38 +55,31 @@ export class AuthService {
 
   async register(input: RegisterInput): Promise<AuthResponse> {
     const email = input.email.toLowerCase()
-    const existing = await this.db.select({ id: users.id }).from(users).where(eq(users.email, email))
-    if (existing.length > 0) throw new ConflictException("an account with this email already exists")
+    const existing = await this.auth.findUserIdByEmail(email)
+    if (existing) throw new ConflictException("an account with this email already exists")
 
     const passwordHash = await argon2.hash(input.password)
 
     const created = await this.db.transaction(async (tx) => {
-      const [user] = await tx
-        .insert(users)
-        .values({ email, name: input.name, passwordHash })
-        .returning()
-      const [org] = await tx
-        .insert(organizations)
-        .values({ name: input.organizationName })
-        .returning()
-      const [membership] = await tx
-        .insert(orgMemberships)
-        .values({ orgId: org.id, userId: user.id })
-        .returning()
-      const [adminRole] = await tx
-        .insert(roles)
-        .values({ orgId: org.id, name: "Admin", description: "Full access to everything.", isSystemAdmin: true })
-        .returning()
-      const [leaderRole] = await tx
-        .insert(roles)
-        .values({ orgId: org.id, name: "Leader", description: "Read/write members and groups; read-only elsewhere." })
-        .returning()
-      await tx.insert(rolePermissions).values(
-        LEADER_BASELINE_PERMISSIONS.map((permission) => ({ roleId: leaderRole.id, permission })),
+      const user = await this.auth.insertUser({ email, name: input.name, passwordHash }, tx)
+      const org = await this.auth.insertOrganization(input.organizationName, tx)
+      const membership = await this.auth.insertMembership(org.id, user.id, tx)
+      const adminRole = await this.auth.insertRole(
+        { orgId: org.id, name: "Admin", description: "Full access to everything.", isSystemAdmin: true },
+        tx,
       )
-      await tx.insert(membershipRoles).values({ membershipId: membership.id, roleId: adminRole.id })
+      const leaderRole = await this.auth.insertRole(
+        {
+          orgId: org.id,
+          name: "Leader",
+          description: "Read/write members and groups; read-only elsewhere.",
+        },
+        tx,
+      )
+      await this.auth.insertRolePermissions(leaderRole.id, LEADER_BASELINE_PERMISSIONS, tx)
+      await this.auth.insertMembershipRole(membership.id, adminRole.id, tx)
       // every org starts with the root directory tag the UI expects
-      await tx.insert(tags).values({ orgId: org.id, name: "members", description: "Everyone in the church directory" })
+      await this.auth.insertRootDirectoryTag(org.id, tx)
       return { user, org, membership }
     })
 
@@ -108,7 +88,7 @@ export class AuthService {
 
   async login(input: LoginInput): Promise<AuthResponse> {
     const email = input.email.toLowerCase()
-    const [user] = await this.db.select().from(users).where(eq(users.email, email))
+    const user = await this.auth.findUserByEmail(email)
     if (!user || !(await argon2.verify(user.passwordHash, input.password))) {
       throw new UnauthorizedException("invalid email or password")
     }
@@ -116,15 +96,12 @@ export class AuthService {
   }
 
   async forgotPassword(email: string): Promise<void> {
-    const [user] = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.email, email.toLowerCase()))
+    const user = await this.auth.findUserByEmail(email.toLowerCase())
     // Always resolve silently — never reveal whether the email exists.
     if (!user) return
 
     const token = randomBytes(32).toString("hex")
-    await this.db.insert(passwordResetTokens).values({
+    await this.auth.insertPasswordResetToken({
       userId: user.id,
       tokenHash: sha256(token),
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
@@ -135,74 +112,47 @@ export class AuthService {
   }
 
   async resetPassword(input: ResetPasswordInput): Promise<void> {
-    const [row] = await this.db
-      .select()
-      .from(passwordResetTokens)
-      .where(
-        and(
-          eq(passwordResetTokens.tokenHash, sha256(input.token)),
-          isNull(passwordResetTokens.usedAt),
-          gt(passwordResetTokens.expiresAt, new Date()),
-        ),
-      )
+    const row = await this.auth.findValidPasswordResetToken(sha256(input.token))
     if (!row) throw new UnauthorizedException("invalid or expired reset link")
 
     const passwordHash = await argon2.hash(input.password)
     await this.db.transaction(async (tx) => {
-      await tx.update(users).set({ passwordHash }).where(eq(users.id, row.userId))
+      await this.auth.updateUserPasswordHash(row.userId, passwordHash, tx)
       // burn every outstanding token for this user, not just the one used
-      await tx
-        .update(passwordResetTokens)
-        .set({ usedAt: new Date() })
-        .where(and(eq(passwordResetTokens.userId, row.userId), isNull(passwordResetTokens.usedAt)))
+      await this.auth.burnPasswordResetTokensForUser(row.userId, tx)
     })
   }
 
   async acceptInvite(input: AcceptInviteInput): Promise<AuthResponse> {
-    const [invite] = await this.db
-      .select()
-      .from(invites)
-      .where(eq(invites.tokenHash, sha256(input.token)))
+    const invite = await this.auth.findInviteByTokenHash(sha256(input.token))
     if (!invite || invite.revokedAt || invite.acceptedAt || invite.expiresAt < new Date()) {
       throw new UnauthorizedException("invalid or expired invite")
     }
 
     const email = invite.email.toLowerCase()
-    const existing = await this.db.select({ id: users.id }).from(users).where(eq(users.email, email))
-    if (existing.length > 0) {
+    const existing = await this.auth.findUserIdByEmail(email)
+    if (existing) {
       throw new ConflictException("this email already has an account")
     }
 
     const passwordHash = await argon2.hash(input.password)
 
     const userId = await this.db.transaction(async (tx) => {
-      const [user] = await tx
-        .insert(users)
-        .values({ email, name: input.name, passwordHash })
-        .returning()
-      const [membership] = await tx
-        .insert(orgMemberships)
-        .values({ orgId: invite.orgId, userId: user.id })
-        .returning()
-      const scopeRows = await tx
-        .select({ tagId: inviteScopeTags.tagId })
-        .from(inviteScopeTags)
-        .where(eq(inviteScopeTags.inviteId, invite.id))
-      if (scopeRows.length > 0) {
-        await tx.insert(membershipScopeTags).values(
-          scopeRows.map((r) => ({ membershipId: membership.id, tagId: r.tagId })),
-        )
-      }
-      const roleRows = await tx
-        .select({ roleId: inviteRoles.roleId })
-        .from(inviteRoles)
-        .where(eq(inviteRoles.inviteId, invite.id))
-      if (roleRows.length > 0) {
-        await tx.insert(membershipRoles).values(
-          roleRows.map((r) => ({ membershipId: membership.id, roleId: r.roleId })),
-        )
-      }
-      await tx.update(invites).set({ acceptedAt: new Date() }).where(eq(invites.id, invite.id))
+      const user = await this.auth.insertUser({ email, name: input.name, passwordHash }, tx)
+      const membership = await this.auth.insertMembership(invite.orgId, user.id, tx)
+      const scopeRows = await this.auth.inviteScopeTagIds(invite.id, tx)
+      await this.auth.insertMembershipScopeTags(
+        membership.id,
+        scopeRows.map((r) => r.tagId),
+        tx,
+      )
+      const roleRows = await this.auth.inviteRoleIds(invite.id, tx)
+      await this.auth.insertMembershipRoles(
+        membership.id,
+        roleRows.map((r) => r.roleId),
+        tx,
+      )
+      await this.auth.markInviteAccepted(invite.id, tx)
       return user.id
     })
 
