@@ -31,8 +31,7 @@ export type SeedSession = {
 export type SeedUser = {
   name: string
   email: string
-  role: "admin" | "leader"
-  roleLabel: string
+  roleNames: string[]
   scopeTags: string[] | null
 }
 
@@ -95,8 +94,8 @@ export const seedSessions: SeedSession[] = [
 ]
 
 export const seedUsers: SeedUser[] = [
-  { name: "Pastor David", email: "pastor.david@gembala.dev", role: "admin", roleLabel: "Super Admin", scopeTags: null },
-  { name: "Andrew Tanu", email: "andrew@gembala.dev", role: "leader", roleLabel: "Youth Leader", scopeTags: ["youth"] },
-  { name: "Hana Kusuma", email: "hana@gembala.dev", role: "leader", roleLabel: "Worship Coordinator", scopeTags: ["worship"] },
-  { name: "Gerald Manik", email: "gerald@gembala.dev", role: "leader", roleLabel: "Couples Coordinator", scopeTags: ["married"] },
+  { name: "Pastor David", email: "pastor.david@gembala.dev", roleNames: ["Admin"], scopeTags: null },
+  { name: "Andrew Tanu", email: "andrew@gembala.dev", roleNames: ["Leader"], scopeTags: ["youth"] },
+  { name: "Hana Kusuma", email: "hana@gembala.dev", roleNames: ["Leader"], scopeTags: ["worship"] },
+  { name: "Gerald Manik", email: "gerald@gembala.dev", roleNames: ["Leader"], scopeTags: ["married"] },
 ]

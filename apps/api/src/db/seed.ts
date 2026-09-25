@@ -33,6 +33,25 @@ async function main() {
   await db.transaction(async (tx) => {
     const [org] = await tx.insert(schema.organizations).values({ name: ORG_NAME }).returning()
 
+    const LEADER_BASELINE_PERMISSIONS = [
+      "members:read", "members:create", "members:update",
+      "groups:read", "groups:create", "groups:update",
+      "households:read", "tags:read", "rooms:read", "events:read",
+    ]
+
+    const [adminRole] = await tx
+      .insert(schema.roles)
+      .values({ orgId: org.id, name: "Admin", description: "Full access to everything.", isSystemAdmin: true })
+      .returning()
+    const [leaderRole] = await tx
+      .insert(schema.roles)
+      .values({ orgId: org.id, name: "Leader", description: "Read/write members and groups; read-only elsewhere." })
+      .returning()
+    await tx.insert(schema.rolePermissions).values(
+      LEADER_BASELINE_PERMISSIONS.map((permission) => ({ roleId: leaderRole.id, permission })),
+    )
+    const roleIdByName = new Map([["Admin", adminRole.id], ["Leader", leaderRole.id]])
+
     // tags: roots first, then children (parent ids must exist)
     const tagIdByName = new Map<string, string>()
     for (const pass of [seedTags.filter((t) => !t.parent), seedTags.filter((t) => t.parent)]) {
@@ -111,8 +130,11 @@ async function main() {
         .returning()
       const [membership] = await tx
         .insert(schema.orgMemberships)
-        .values({ orgId: org.id, userId: user.id, role: u.role, roleLabel: u.roleLabel })
+        .values({ orgId: org.id, userId: user.id })
         .returning()
+      await tx.insert(schema.membershipRoles).values(
+        u.roleNames.map((name) => ({ membershipId: membership.id, roleId: roleIdByName.get(name)! })),
+      )
       if (u.scopeTags) {
         await tx.insert(schema.membershipScopeTags).values(
           u.scopeTags.map((t) => ({ membershipId: membership.id, tagId: tagIdByName.get(t)! })),
@@ -123,7 +145,7 @@ async function main() {
 
   console.log(`Seeded "${ORG_NAME}".`)
   console.log(`Logins (password: ${SEED_PASSWORD}):`)
-  for (const u of seedUsers) console.log(`  ${u.email} — ${u.roleLabel}`)
+  for (const u of seedUsers) console.log(`  ${u.email} — ${u.roleNames.join(", ")}`)
   await pool.end()
 }
 
