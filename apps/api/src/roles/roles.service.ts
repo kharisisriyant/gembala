@@ -1,31 +1,22 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
-import { and, eq, inArray } from "drizzle-orm"
 import type { RoleCreateInput, RoleResponse, RoleUpdateInput, TeamMemberResponse } from "@gembala/shared"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import {
-  membershipRoles,
-  membershipScopeTags,
-  orgMemberships,
-  rolePermissions,
-  roles,
-  tags,
-  users,
-} from "../db/schema"
 import type { AuthContext } from "../authz/auth-context"
+import { RolesRepository } from "./roles.repository"
 
 @Injectable()
 export class RolesService {
-  constructor(@InjectDb() private readonly db: Db) {}
+  constructor(
+    @InjectDb() private readonly db: Db,
+    private readonly roles: RolesRepository,
+  ) {}
 
   async list(orgId: string): Promise<RoleResponse[]> {
-    const roleRows = await this.db.select().from(roles).where(eq(roles.orgId, orgId))
+    const roleRows = await this.roles.listByOrg(orgId)
     if (roleRows.length === 0) return []
     const roleIds = roleRows.map((r) => r.id)
 
-    const permRows = await this.db
-      .select()
-      .from(rolePermissions)
-      .where(inArray(rolePermissions.roleId, roleIds))
+    const permRows = await this.roles.permissionsByRoleIds(roleIds)
     const permsByRole = new Map<string, string[]>()
     for (const p of permRows) {
       const list = permsByRole.get(p.roleId) ?? []
@@ -33,10 +24,7 @@ export class RolesService {
       permsByRole.set(p.roleId, list)
     }
 
-    const memberRows = await this.db
-      .select()
-      .from(membershipRoles)
-      .where(inArray(membershipRoles.roleId, roleIds))
+    const memberRows = await this.roles.membershipRolesByRoleIds(roleIds)
     const countByRole = new Map<string, number>()
     for (const m of memberRows) {
       countByRole.set(m.roleId, (countByRole.get(m.roleId) ?? 0) + 1)
@@ -61,22 +49,12 @@ export class RolesService {
   }
 
   async create(orgId: string, input: RoleCreateInput): Promise<RoleResponse> {
-    const [existing] = await this.db
-      .select({ id: roles.id })
-      .from(roles)
-      .where(and(eq(roles.orgId, orgId), eq(roles.name, input.name)))
+    const existing = await this.roles.findByOrgAndName(orgId, input.name)
     if (existing) throw new ConflictException("a role with this name already exists")
 
     const created = await this.db.transaction(async (tx) => {
-      const [role] = await tx
-        .insert(roles)
-        .values({ orgId, name: input.name, description: input.description })
-        .returning()
-      if (input.permissions.length > 0) {
-        await tx.insert(rolePermissions).values(
-          input.permissions.map((permission) => ({ roleId: role.id, permission })),
-        )
-      }
+      const role = await this.roles.insert({ orgId, name: input.name, description: input.description }, tx)
+      await this.roles.insertPermissions(role.id, input.permissions, tx)
       return role
     })
 
@@ -91,30 +69,18 @@ export class RolesService {
   }
 
   async update(orgId: string, id: string, input: RoleUpdateInput): Promise<RoleResponse> {
-    const [role] = await this.db
-      .select()
-      .from(roles)
-      .where(and(eq(roles.id, id), eq(roles.orgId, orgId)))
+    const role = await this.roles.findByIdInOrg(orgId, id)
     if (!role) throw new NotFoundException("role not found")
     if (role.isSystemAdmin) throw new ForbiddenException("the Admin role can't be edited")
 
     await this.db.transaction(async (tx) => {
-      if (input.name !== undefined || input.description !== undefined) {
-        await tx
-          .update(roles)
-          .set({
-            ...(input.name !== undefined ? { name: input.name } : {}),
-            ...(input.description !== undefined ? { description: input.description } : {}),
-          })
-          .where(eq(roles.id, id))
-      }
+      const patch: Partial<{ name: string; description: string }> = {}
+      if (input.name !== undefined) patch.name = input.name
+      if (input.description !== undefined) patch.description = input.description
+      await this.roles.update(id, patch, tx)
+
       if (input.permissions !== undefined) {
-        await tx.delete(rolePermissions).where(eq(rolePermissions.roleId, id))
-        if (input.permissions.length > 0) {
-          await tx.insert(rolePermissions).values(
-            input.permissions.map((permission) => ({ roleId: id, permission })),
-          )
-        }
+        await this.roles.replacePermissions(id, input.permissions, tx)
       }
     })
 
@@ -123,39 +89,18 @@ export class RolesService {
   }
 
   async remove(orgId: string, id: string): Promise<void> {
-    const [role] = await this.db
-      .select()
-      .from(roles)
-      .where(and(eq(roles.id, id), eq(roles.orgId, orgId)))
+    const role = await this.roles.findByIdInOrg(orgId, id)
     if (!role) throw new NotFoundException("role not found")
     if (role.isSystemAdmin) throw new ForbiddenException("the Admin role can't be deleted")
-    await this.db.delete(roles).where(eq(roles.id, id))
+    await this.roles.delete(id)
   }
 
   async team(orgId: string): Promise<TeamMemberResponse[]> {
-    const memberships = await this.db
-      .select({
-        membershipId: orgMemberships.id,
-        userId: users.id,
-        userName: users.name,
-        userEmail: users.email,
-      })
-      .from(orgMemberships)
-      .innerJoin(users, eq(users.id, orgMemberships.userId))
-      .where(eq(orgMemberships.orgId, orgId))
+    const memberships = await this.roles.membershipsWithUserByOrg(orgId)
     if (memberships.length === 0) return []
     const membershipIds = memberships.map((m) => m.membershipId)
 
-    const roleRows = await this.db
-      .select({
-        membershipId: membershipRoles.membershipId,
-        roleId: roles.id,
-        roleName: roles.name,
-        isSystemAdmin: roles.isSystemAdmin,
-      })
-      .from(membershipRoles)
-      .innerJoin(roles, eq(roles.id, membershipRoles.roleId))
-      .where(inArray(membershipRoles.membershipId, membershipIds))
+    const roleRows = await this.roles.rolesByMembershipIds(membershipIds)
     const rolesByMembership = new Map<string, { id: string; name: string }[]>()
     const isSystemAdminByMembership = new Map<string, boolean>()
     for (const r of roleRows) {
@@ -165,11 +110,7 @@ export class RolesService {
       if (r.isSystemAdmin) isSystemAdminByMembership.set(r.membershipId, true)
     }
 
-    const scopeRows = await this.db
-      .select({ membershipId: membershipScopeTags.membershipId, name: tags.name })
-      .from(membershipScopeTags)
-      .innerJoin(tags, eq(tags.id, membershipScopeTags.tagId))
-      .where(inArray(membershipScopeTags.membershipId, membershipIds))
+    const scopeRows = await this.roles.scopeTagsByMembershipIds(membershipIds)
     const scopeByMembership = new Map<string, string[]>()
     for (const r of scopeRows) {
       const list = scopeByMembership.get(r.membershipId) ?? []
@@ -188,10 +129,7 @@ export class RolesService {
   }
 
   async assignRoles(auth: AuthContext, membershipId: string, roleIds: string[]): Promise<void> {
-    const [membership] = await this.db
-      .select({ id: orgMemberships.id })
-      .from(orgMemberships)
-      .where(and(eq(orgMemberships.id, membershipId), eq(orgMemberships.orgId, auth.orgId)))
+    const membership = await this.roles.findMembershipInOrg(auth.orgId, membershipId)
     if (!membership) throw new NotFoundException("team member not found")
 
     if (roleIds.length > 0) {
@@ -210,22 +148,10 @@ export class RolesService {
     const systemAdminRoleIds = new Set(allRoles.filter((r) => r.isSystemAdmin).map((r) => r.id))
     const keepsAdmin = roleIds.some((id) => systemAdminRoleIds.has(id))
     if (!keepsAdmin && systemAdminRoleIds.size > 0) {
-      const currentRoleRows = await this.db
-        .select({ roleId: membershipRoles.roleId })
-        .from(membershipRoles)
-        .where(eq(membershipRoles.membershipId, membershipId))
+      const currentRoleRows = await this.roles.membershipRoleIds(membershipId)
       const currentlyHoldsAdmin = currentRoleRows.some((r) => systemAdminRoleIds.has(r.roleId))
       if (currentlyHoldsAdmin) {
-        const adminHolders = await this.db
-          .select({ membershipId: membershipRoles.membershipId })
-          .from(membershipRoles)
-          .innerJoin(orgMemberships, eq(orgMemberships.id, membershipRoles.membershipId))
-          .where(
-            and(
-              eq(orgMemberships.orgId, auth.orgId),
-              inArray(membershipRoles.roleId, [...systemAdminRoleIds]),
-            ),
-          )
+        const adminHolders = await this.roles.membershipsHoldingRoles(auth.orgId, [...systemAdminRoleIds])
         const remaining = new Set(adminHolders.map((r) => r.membershipId))
         remaining.delete(membershipId)
         if (remaining.size === 0) {
@@ -234,11 +160,6 @@ export class RolesService {
       }
     }
 
-    await this.db.transaction(async (tx) => {
-      await tx.delete(membershipRoles).where(eq(membershipRoles.membershipId, membershipId))
-      if (roleIds.length > 0) {
-        await tx.insert(membershipRoles).values(roleIds.map((roleId) => ({ membershipId, roleId })))
-      }
-    })
+    await this.db.transaction((tx) => this.roles.replaceMembershipRoles(membershipId, roleIds, tx))
   }
 }
