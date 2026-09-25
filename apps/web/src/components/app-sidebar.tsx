@@ -8,6 +8,7 @@ import {
   MailPlus,
   Send,
   CalendarDays,
+  CalendarClock,
   DoorOpen,
   ShieldCheck,
 } from "lucide-react"
@@ -41,6 +42,7 @@ const nav: NavItem[] = [
   { titleKey: "nav.groups", to: "/groups", icon: Sprout, permission: { resource: "groups", action: "read" } },
   { titleKey: "nav.members", to: "/members", icon: Users, permission: { resource: "members", action: "read" } },
   { titleKey: "nav.events", to: "/events", icon: CalendarDays, permission: { resource: "events", action: "read" } },
+  { titleKey: "nav.scheduling", to: "/scheduling", icon: CalendarClock, permission: { resource: "scheduling", action: "read" } },
   { titleKey: "nav.rooms", to: "/rooms", icon: DoorOpen, permission: { resource: "rooms", action: "read" } },
   { titleKey: "nav.tags", to: "/tags", icon: Tags, permission: { resource: "tags", action: "read" } },
 ]

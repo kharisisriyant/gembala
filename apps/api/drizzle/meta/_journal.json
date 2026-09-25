@@ -43,6 +43,13 @@
       "when": 1790312187150,
       "tag": "0005_faithful_jack_murdock",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790352955585,
+      "tag": "0006_vengeful_blade",
+      "breakpoints": true
     }
   ]
 }

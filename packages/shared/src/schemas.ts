@@ -30,6 +30,7 @@ export const permissionResourceSchema = z.enum([
   "invites",
   "rooms",
   "events",
+  "scheduling",
 ])
 export type PermissionResource = z.infer<typeof permissionResourceSchema>
 
@@ -390,6 +391,105 @@ export type EventResponse = {
   endAt: string
   isPublic: boolean
   room: { id: string; name: string } | null
+}
+
+// ---------------------------------------------------------------------------
+// Scheduling
+// ---------------------------------------------------------------------------
+
+export const instanceTypeCreateSchema = z.object({
+  name: z.string().min(1).max(50),
+  sortOrder: z.number().int().default(0),
+})
+export type InstanceTypeCreateInput = z.infer<typeof instanceTypeCreateSchema>
+
+export const instanceTypeUpdateSchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+})
+export type InstanceTypeUpdateInput = z.infer<typeof instanceTypeUpdateSchema>
+
+export type InstanceTypeResponse = {
+  id: string
+  name: string
+  sortOrder: number
+  isActive: boolean
+}
+
+export const roleTemplateCreateSchema = z.object({
+  name: z.string().min(1).max(50),
+  sortOrder: z.number().int().default(0),
+})
+export type RoleTemplateCreateInput = z.infer<typeof roleTemplateCreateSchema>
+
+export const roleTemplateUpdateSchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+})
+export type RoleTemplateUpdateInput = z.infer<typeof roleTemplateUpdateSchema>
+
+export type RoleTemplateResponse = {
+  id: string
+  name: string
+  sortOrder: number
+  isActive: boolean
+}
+
+export const scheduleEventCreateSchema = z.object({
+  date: isoDate,
+  scriptureRef: z.string().max(300).or(z.literal("")),
+  theme: z.string().max(500).or(z.literal("")),
+})
+export type ScheduleEventCreateInput = z.infer<typeof scheduleEventCreateSchema>
+
+export const scheduleEventUpdateSchema = scheduleEventCreateSchema.partial()
+export type ScheduleEventUpdateInput = z.infer<typeof scheduleEventUpdateSchema>
+
+export type ScheduleEventResponse = {
+  id: string
+  date: string
+  scriptureRef: string
+  theme: string
+}
+
+export const serviceInstanceCreateSchema = z.object({
+  instanceTypeId: z.string().uuid(),
+  sortOrder: z.number().int().default(0),
+})
+export type ServiceInstanceCreateInput = z.infer<typeof serviceInstanceCreateSchema>
+
+export type ServiceInstanceResponse = {
+  id: string
+  eventId: string
+  instanceType: { id: string; name: string }
+  sortOrder: number
+}
+
+export const roleAssignmentCreateSchema = z
+  .object({
+    roleTemplateId: z.string().uuid(),
+    memberId: z.string().uuid().nullable().optional(),
+    freeText: z.string().max(200).optional(),
+    sortOrder: z.number().int().default(0),
+  })
+  .refine((v) => Boolean(v.memberId) !== Boolean(v.freeText && v.freeText.trim().length > 0), {
+    message: "provide exactly one of memberId or freeText",
+    path: ["freeText"],
+  })
+export type RoleAssignmentCreateInput = z.infer<typeof roleAssignmentCreateSchema>
+
+export type RoleAssignmentResponse = {
+  id: string
+  roleTemplateId: string
+  member: { id: string; name: string } | null
+  freeText: string
+  sortOrder: number
+}
+
+export type ScheduleEventDetailResponse = ScheduleEventResponse & {
+  instances: (ServiceInstanceResponse & { assignments: RoleAssignmentResponse[] })[]
 }
 
 // ---------------------------------------------------------------------------

@@ -9,6 +9,9 @@ import type {
   GroupDetailResponse,
   GroupSummaryResponse,
   GroupUpdateInput,
+  InstanceTypeCreateInput,
+  InstanceTypeResponse,
+  InstanceTypeUpdateInput,
   InviteCreateInput,
   InviteResponse,
   MemberCreateInput,
@@ -17,12 +20,22 @@ import type {
   MemberImportResult,
   MemberResponse,
   MemberUpdateInput,
+  RoleAssignmentCreateInput,
+  RoleAssignmentResponse,
   RoleCreateInput,
   RoleResponse,
+  RoleTemplateCreateInput,
+  RoleTemplateResponse,
+  RoleTemplateUpdateInput,
   RoleUpdateInput,
   RoomCreateInput,
   RoomResponse,
   RoomUpdateInput,
+  ScheduleEventCreateInput,
+  ScheduleEventDetailResponse,
+  ScheduleEventUpdateInput,
+  ServiceInstanceCreateInput,
+  ServiceInstanceResponse,
   SessionCreateInput,
   SessionResponse,
   TagCreateInput,
@@ -99,6 +112,27 @@ export function useEvents() {
   return useQuery({
     queryKey: ["events"],
     queryFn: () => apiFetch<EventResponse[]>("/events"),
+  })
+}
+
+export function useInstanceTypes() {
+  return useQuery({
+    queryKey: ["instance-types"],
+    queryFn: () => apiFetch<InstanceTypeResponse[]>("/scheduling/instance-types"),
+  })
+}
+
+export function useRoleTemplates() {
+  return useQuery({
+    queryKey: ["role-templates"],
+    queryFn: () => apiFetch<RoleTemplateResponse[]>("/scheduling/role-templates"),
+  })
+}
+
+export function useScheduleEvents() {
+  return useQuery({
+    queryKey: ["schedule-events"],
+    queryFn: () => apiFetch<ScheduleEventDetailResponse[]>("/scheduling/events"),
   })
 }
 
@@ -250,6 +284,159 @@ export function useDeleteEvent() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/events/${id}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["events"] }),
+  })
+}
+
+export function useCreateInstanceType() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: InstanceTypeCreateInput) =>
+      apiFetch<InstanceTypeResponse>("/scheduling/instance-types", { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["instance-types"] }),
+  })
+}
+
+export function useUpdateInstanceType() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: InstanceTypeUpdateInput & { id: string }) =>
+      apiFetch<InstanceTypeResponse>(`/scheduling/instance-types/${id}`, {
+        method: "PATCH",
+        body: input,
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["instance-types"] })
+      void qc.invalidateQueries({ queryKey: ["schedule-events"] })
+    },
+  })
+}
+
+export function useDeleteInstanceType() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/scheduling/instance-types/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["instance-types"] })
+      void qc.invalidateQueries({ queryKey: ["schedule-events"] })
+    },
+  })
+}
+
+export function useCreateRoleTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RoleTemplateCreateInput) =>
+      apiFetch<RoleTemplateResponse>("/scheduling/role-templates", { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["role-templates"] }),
+  })
+}
+
+export function useUpdateRoleTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: RoleTemplateUpdateInput & { id: string }) =>
+      apiFetch<RoleTemplateResponse>(`/scheduling/role-templates/${id}`, {
+        method: "PATCH",
+        body: input,
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["role-templates"] })
+      void qc.invalidateQueries({ queryKey: ["schedule-events"] })
+    },
+  })
+}
+
+export function useDeleteRoleTemplate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/scheduling/role-templates/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["role-templates"] })
+      void qc.invalidateQueries({ queryKey: ["schedule-events"] })
+    },
+  })
+}
+
+export function useCreateScheduleEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ScheduleEventCreateInput) =>
+      apiFetch<ScheduleEventDetailResponse>("/scheduling/events", { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useUpdateScheduleEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: ScheduleEventUpdateInput & { id: string }) =>
+      apiFetch<ScheduleEventDetailResponse>(`/scheduling/events/${id}`, {
+        method: "PATCH",
+        body: input,
+      }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useDeleteScheduleEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/scheduling/events/${id}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useCreateServiceInstance() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ eventId, ...input }: ServiceInstanceCreateInput & { eventId: string }) =>
+      apiFetch<ServiceInstanceResponse>(`/scheduling/events/${eventId}/instances`, {
+        method: "POST",
+        body: input,
+      }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useDeleteServiceInstance() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (instanceId: string) =>
+      apiFetch<void>(`/scheduling/instances/${instanceId}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useCreateRoleAssignment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ instanceId, ...input }: RoleAssignmentCreateInput & { instanceId: string }) =>
+      apiFetch<RoleAssignmentResponse>(`/scheduling/instances/${instanceId}/assignments`, {
+        method: "POST",
+        body: input,
+      }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useUpdateRoleAssignment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ assignmentId, ...input }: RoleAssignmentCreateInput & { assignmentId: string }) =>
+      apiFetch<RoleAssignmentResponse>(`/scheduling/assignments/${assignmentId}`, {
+        method: "PATCH",
+        body: input,
+      }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useDeleteRoleAssignment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (assignmentId: string) =>
+      apiFetch<void>(`/scheduling/assignments/${assignmentId}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
   })
 }
 

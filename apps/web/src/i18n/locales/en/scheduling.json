@@ -1,0 +1,104 @@
+{
+  "page": {
+    "title": "Scheduling",
+    "subtitle": "Weekly service rosters and volunteer assignments.",
+    "manageTemplates": "Manage roles & instance types"
+  },
+  "empty": "No scheduled events yet.",
+  "event": {
+    "scriptureLabel": "Scripture",
+    "addInstance": "Add instance",
+    "noInstances": "No service instances yet."
+  },
+  "table": {
+    "role": "Role",
+    "name": "Name"
+  },
+  "assignment": {
+    "add": "Add",
+    "empty": "—"
+  },
+  "menu": {
+    "edit": "Edit event",
+    "delete": "Delete event"
+  },
+  "toast": {
+    "eventCreated": "Event added",
+    "eventUpdated": "Event updated",
+    "eventRemoved": "Event removed",
+    "eventError": "Could not save event",
+    "eventDeleteError": "Could not delete event",
+    "instanceAdded": "Instance added",
+    "instanceRemoved": "Instance removed",
+    "instanceError": "Could not add instance",
+    "assignmentSaved": "Assignment saved",
+    "assignmentRemoved": "Assignment removed",
+    "assignmentError": "Could not save assignment"
+  },
+  "addEventDialog": {
+    "trigger": "New event",
+    "title": "New scheduled event",
+    "description": "A weekly service date with its theme.",
+    "dateLabel": "Date",
+    "scriptureLabel": "Scripture reference",
+    "scripturePlaceholder": "e.g. Yesaya 48:1-22",
+    "themeLabel": "Theme",
+    "themePlaceholder": "e.g. Teguran atas Ketegaran Tengkuk Israel",
+    "creating": "Creating…",
+    "create": "Create event"
+  },
+  "editEventDialog": {
+    "title": "Edit event",
+    "description": "Update this event's date, scripture, and theme.",
+    "saveChanges": "Save changes"
+  },
+  "addInstanceDialog": {
+    "trigger": "Add instance",
+    "title": "Add service instance",
+    "description": "Add a service (e.g. KU1) to this event.",
+    "typeLabel": "Instance type",
+    "adding": "Adding…",
+    "add": "Add"
+  },
+  "assignmentDialog": {
+    "title": "Edit assignment",
+    "description": "Assign a member, or enter a name/team, for {{role}} in {{instance}}.",
+    "modeLabel": "Assignee",
+    "modeMember": "Registered member",
+    "modeText": "Name / team",
+    "memberLabel": "Member",
+    "memberPlaceholder": "Select member",
+    "textLabel": "Name or team",
+    "textPlaceholder": "e.g. VG Pasutri Indah",
+    "saveChanges": "Save",
+    "saving": "Saving…",
+    "remove": "Remove assignment"
+  },
+  "settings": {
+    "title": "Scheduling settings",
+    "subtitle": "Manage the role template and instance types used across scheduled events.",
+    "back": "Back to scheduling",
+    "roleTemplates": {
+      "title": "Roles (petugas)",
+      "subtitle": "The roster rows shown on every event.",
+      "addPlaceholder": "New role name",
+      "add": "Add role",
+      "empty": "No roles yet.",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "instanceTypes": {
+      "title": "Instance types",
+      "subtitle": "The service columns (e.g. KU1, KU2, EWS) available when adding instances to an event.",
+      "addPlaceholder": "New instance type name",
+      "add": "Add type",
+      "empty": "No instance types yet.",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    }
+  }
+}

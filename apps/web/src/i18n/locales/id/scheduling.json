@@ -1,0 +1,104 @@
+{
+  "page": {
+    "title": "Jadwal Ibadah",
+    "subtitle": "Jadwal petugas ibadah mingguan.",
+    "manageTemplates": "Kelola petugas & jenis ibadah"
+  },
+  "empty": "Belum ada jadwal ibadah.",
+  "event": {
+    "scriptureLabel": "Bacaan",
+    "addInstance": "Tambah ibadah",
+    "noInstances": "Belum ada ibadah pada tanggal ini."
+  },
+  "table": {
+    "role": "Petugas",
+    "name": "Nama"
+  },
+  "assignment": {
+    "add": "Tambah",
+    "empty": "—"
+  },
+  "menu": {
+    "edit": "Ubah jadwal",
+    "delete": "Hapus jadwal"
+  },
+  "toast": {
+    "eventCreated": "Jadwal ditambahkan",
+    "eventUpdated": "Jadwal diperbarui",
+    "eventRemoved": "Jadwal dihapus",
+    "eventError": "Gagal menyimpan jadwal",
+    "eventDeleteError": "Gagal menghapus jadwal",
+    "instanceAdded": "Ibadah ditambahkan",
+    "instanceRemoved": "Ibadah dihapus",
+    "instanceError": "Gagal menambah ibadah",
+    "assignmentSaved": "Petugas disimpan",
+    "assignmentRemoved": "Petugas dihapus",
+    "assignmentError": "Gagal menyimpan petugas"
+  },
+  "addEventDialog": {
+    "trigger": "Jadwal baru",
+    "title": "Jadwal ibadah baru",
+    "description": "Tanggal ibadah mingguan beserta temanya.",
+    "dateLabel": "Tanggal",
+    "scriptureLabel": "Bacaan Alkitab",
+    "scripturePlaceholder": "cth. Yesaya 48:1-22",
+    "themeLabel": "Tema",
+    "themePlaceholder": "cth. Teguran atas Ketegaran Tengkuk Israel",
+    "creating": "Menyimpan…",
+    "create": "Buat jadwal"
+  },
+  "editEventDialog": {
+    "title": "Ubah jadwal",
+    "description": "Perbarui tanggal, bacaan, dan tema ibadah ini.",
+    "saveChanges": "Simpan perubahan"
+  },
+  "addInstanceDialog": {
+    "trigger": "Tambah ibadah",
+    "title": "Tambah ibadah",
+    "description": "Tambahkan satu ibadah (cth. KU1) ke jadwal ini.",
+    "typeLabel": "Jenis ibadah",
+    "adding": "Menambahkan…",
+    "add": "Tambah"
+  },
+  "assignmentDialog": {
+    "title": "Ubah petugas",
+    "description": "Tetapkan jemaat, atau isi nama/tim, untuk {{role}} pada {{instance}}.",
+    "modeLabel": "Petugas",
+    "modeMember": "Jemaat terdaftar",
+    "modeText": "Nama / tim",
+    "memberLabel": "Jemaat",
+    "memberPlaceholder": "Pilih jemaat",
+    "textLabel": "Nama atau tim",
+    "textPlaceholder": "cth. VG Pasutri Indah",
+    "saveChanges": "Simpan",
+    "saving": "Menyimpan…",
+    "remove": "Hapus petugas"
+  },
+  "settings": {
+    "title": "Pengaturan Jadwal Ibadah",
+    "subtitle": "Kelola daftar petugas dan jenis ibadah yang dipakai di semua jadwal.",
+    "back": "Kembali ke jadwal ibadah",
+    "roleTemplates": {
+      "title": "Petugas",
+      "subtitle": "Baris petugas yang tampil di setiap jadwal ibadah.",
+      "addPlaceholder": "Nama petugas baru",
+      "add": "Tambah petugas",
+      "empty": "Belum ada petugas.",
+      "deactivate": "Nonaktifkan",
+      "activate": "Aktifkan",
+      "statusActive": "Aktif",
+      "statusInactive": "Nonaktif"
+    },
+    "instanceTypes": {
+      "title": "Jenis ibadah",
+      "subtitle": "Kolom ibadah (cth. KU1, KU2, EWS) yang tersedia saat menambah ibadah ke jadwal.",
+      "addPlaceholder": "Nama jenis ibadah baru",
+      "add": "Tambah jenis",
+      "empty": "Belum ada jenis ibadah.",
+      "deactivate": "Nonaktifkan",
+      "activate": "Aktifkan",
+      "statusActive": "Aktif",
+      "statusInactive": "Nonaktif"
+    }
+  }
+}

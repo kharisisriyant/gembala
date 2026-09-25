@@ -11,6 +11,8 @@ import membersEn from "./locales/en/members.json"
 import membersId from "./locales/id/members.json"
 import eventsEn from "./locales/en/events.json"
 import eventsId from "./locales/id/events.json"
+import schedulingEn from "./locales/en/scheduling.json"
+import schedulingId from "./locales/id/scheduling.json"
 import groupsEn from "./locales/en/groups.json"
 import groupsId from "./locales/id/groups.json"
 import roomsEn from "./locales/en/rooms.json"
@@ -37,6 +39,7 @@ void i18n
         dashboard: dashboardEn,
         members: membersEn,
         events: eventsEn,
+        scheduling: schedulingEn,
         groups: groupsEn,
         rooms: roomsEn,
         tags: tagsEn,
@@ -50,6 +53,7 @@ void i18n
         dashboard: dashboardId,
         members: membersId,
         events: eventsId,
+        scheduling: schedulingId,
         groups: groupsId,
         rooms: roomsId,
         tags: tagsId,

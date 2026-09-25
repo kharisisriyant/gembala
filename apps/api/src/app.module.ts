@@ -16,6 +16,7 @@ import { GroupsModule } from "./groups/groups.module"
 import { HouseholdsModule } from "./households/households.module"
 import { RoomsModule } from "./rooms/rooms.module"
 import { EventsModule } from "./events/events.module"
+import { SchedulingModule } from "./scheduling/scheduling.module"
 import { DashboardModule } from "./dashboard/dashboard.module"
 import { InvitesModule } from "./invites/invites.module"
 import { RolesModule } from "./roles/roles.module"
@@ -44,6 +45,7 @@ import { TelegramModule } from "./telegram/telegram.module"
     HouseholdsModule,
     RoomsModule,
     EventsModule,
+    SchedulingModule,
     DashboardModule,
     InvitesModule,
     RolesModule,

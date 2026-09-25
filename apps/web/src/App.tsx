@@ -10,6 +10,8 @@ import { MembersPage } from "@/pages/members"
 import { TagsPage } from "@/pages/tags"
 import { RoomsPage } from "@/pages/rooms"
 import { EventsPage } from "@/pages/events"
+import { SchedulingPage } from "@/pages/scheduling"
+import { SchedulingSettingsPage } from "@/pages/scheduling-settings"
 import { InvitesPage } from "@/pages/invites"
 import { RolesPage } from "@/pages/roles"
 import { TeamPage } from "@/pages/team"
@@ -75,6 +77,22 @@ export default function App() {
             element={
               <RequirePermission resource="events" action="read">
                 <EventsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/scheduling"
+            element={
+              <RequirePermission resource="scheduling" action="read">
+                <SchedulingPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/scheduling/settings"
+            element={
+              <RequirePermission resource="scheduling" action="read">
+                <SchedulingSettingsPage />
               </RequirePermission>
             }
           />
