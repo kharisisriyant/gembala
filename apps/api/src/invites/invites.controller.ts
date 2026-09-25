@@ -5,7 +5,7 @@ import {
   type InvitePreviewResponse,
   type InviteResponse,
 } from "@gembala/shared"
-import { CurrentAuth, Public, Roles } from "../authz/decorators"
+import { CurrentAuth, Public, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { InvitesService } from "./invites.service"
 
@@ -15,19 +15,19 @@ class InviteCreateDto extends createZodDto(inviteCreateSchema) {}
 export class InvitesController {
   constructor(private readonly invites: InvitesService) {}
 
-  @Roles("admin")
+  @RequirePermission("invites", "read")
   @Get()
   list(@CurrentAuth() auth: AuthContext): Promise<InviteResponse[]> {
     return this.invites.list(auth)
   }
 
-  @Roles("admin")
+  @RequirePermission("invites", "create")
   @Post()
   create(@CurrentAuth() auth: AuthContext, @Body() dto: InviteCreateDto): Promise<InviteResponse> {
     return this.invites.create(auth, dto)
   }
 
-  @Roles("admin")
+  @RequirePermission("invites", "delete")
   @HttpCode(204)
   @Delete(":id")
   async revoke(

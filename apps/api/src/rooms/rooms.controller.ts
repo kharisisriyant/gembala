@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common"
 import { createZodDto } from "nestjs-zod"
 import { roomCreateSchema, roomUpdateSchema, type RoomResponse } from "@gembala/shared"
-import { CurrentAuth, Roles } from "../authz/decorators"
+import { CurrentAuth, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { RoomsService } from "./rooms.service"
 
@@ -12,11 +12,13 @@ class RoomUpdateDto extends createZodDto(roomUpdateSchema) {}
 export class RoomsController {
   constructor(private readonly rooms: RoomsService) {}
 
+  @RequirePermission("rooms", "read")
   @Get()
   list(@CurrentAuth() auth: AuthContext): Promise<RoomResponse[]> {
     return this.rooms.list(auth.orgId)
   }
 
+  @RequirePermission("rooms", "read")
   @Get(":id")
   detail(
     @CurrentAuth() auth: AuthContext,
@@ -25,13 +27,13 @@ export class RoomsController {
     return this.rooms.detail(auth.orgId, id)
   }
 
-  @Roles("admin")
+  @RequirePermission("rooms", "create")
   @Post()
   create(@CurrentAuth() auth: AuthContext, @Body() dto: RoomCreateDto): Promise<RoomResponse> {
     return this.rooms.create(auth.orgId, dto)
   }
 
-  @Roles("admin")
+  @RequirePermission("rooms", "update")
   @Patch(":id")
   update(
     @CurrentAuth() auth: AuthContext,
@@ -41,7 +43,7 @@ export class RoomsController {
     return this.rooms.update(auth.orgId, id, dto)
   }
 
-  @Roles("admin")
+  @RequirePermission("rooms", "delete")
   @HttpCode(204)
   @Delete(":id")
   async remove(@CurrentAuth() auth: AuthContext, @Param("id", ParseUUIDPipe) id: string): Promise<void> {

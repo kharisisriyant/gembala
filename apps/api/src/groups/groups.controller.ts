@@ -9,7 +9,7 @@ import {
   type GroupSummaryResponse,
   type SessionResponse,
 } from "@gembala/shared"
-import { CurrentAuth } from "../authz/decorators"
+import { CurrentAuth, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { GroupsService } from "./groups.service"
 import { AttendanceService } from "./attendance.service"
@@ -25,21 +25,25 @@ export class GroupsController {
     private readonly attendance: AttendanceService,
   ) {}
 
+  @RequirePermission("groups", "read")
   @Get()
   list(@CurrentAuth() auth: AuthContext): Promise<GroupSummaryResponse[]> {
     return this.groups.list(auth)
   }
 
+  @RequirePermission("groups", "create")
   @Post()
   create(@CurrentAuth() auth: AuthContext, @Body() dto: GroupCreateDto): Promise<GroupSummaryResponse> {
     return this.groups.create(auth, dto)
   }
 
+  @RequirePermission("groups", "read")
   @Get("attendance-heatmap")
   attendanceHeatmap(@CurrentAuth() auth: AuthContext): Promise<AttendanceHeatmapResponse> {
     return this.groups.attendanceHeatmap(auth)
   }
 
+  @RequirePermission("groups", "read")
   @Get(":id")
   detail(
     @CurrentAuth() auth: AuthContext,
@@ -48,6 +52,7 @@ export class GroupsController {
     return this.groups.detail(auth, id)
   }
 
+  @RequirePermission("groups", "update")
   @Patch(":id")
   update(
     @CurrentAuth() auth: AuthContext,
@@ -57,6 +62,7 @@ export class GroupsController {
     return this.groups.update(auth, id, dto)
   }
 
+  @RequirePermission("groups", "update")
   @Post(":id/sessions")
   logSession(
     @CurrentAuth() auth: AuthContext,

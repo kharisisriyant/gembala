@@ -23,7 +23,7 @@ import {
   type MemberRelationType,
   type MemberResponse,
 } from "@gembala/shared"
-import { CurrentAuth } from "../authz/decorators"
+import { CurrentAuth, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { MembersService } from "./members.service"
 import { MemberRelationshipsService } from "./member-relationships.service"
@@ -40,6 +40,7 @@ export class MembersController {
     private readonly relationships: MemberRelationshipsService,
   ) {}
 
+  @RequirePermission("members", "read")
   @Get()
   list(
     @CurrentAuth() auth: AuthContext,
@@ -49,11 +50,13 @@ export class MembersController {
     return this.members.list(auth, search, tag)
   }
 
+  @RequirePermission("members", "create")
   @Post()
   create(@CurrentAuth() auth: AuthContext, @Body() dto: MemberCreateDto): Promise<MemberResponse> {
     return this.members.create(auth, dto)
   }
 
+  @RequirePermission("members", "create")
   @Post("import")
   importMany(
     @CurrentAuth() auth: AuthContext,
@@ -62,6 +65,7 @@ export class MembersController {
     return this.members.importMany(auth, dto.members)
   }
 
+  @RequirePermission("members", "read")
   @Get(":id")
   detail(
     @CurrentAuth() auth: AuthContext,
@@ -70,6 +74,7 @@ export class MembersController {
     return this.members.detail(auth, id)
   }
 
+  @RequirePermission("members", "update")
   @Patch(":id")
   update(
     @CurrentAuth() auth: AuthContext,
@@ -79,6 +84,7 @@ export class MembersController {
     return this.members.update(auth, id, dto)
   }
 
+  @RequirePermission("members", "read")
   @Get(":id/relationships")
   listRelationships(
     @CurrentAuth() auth: AuthContext,
@@ -87,6 +93,7 @@ export class MembersController {
     return this.relationships.list(auth, id)
   }
 
+  @RequirePermission("members", "update")
   @Post(":id/relationships")
   createRelationship(
     @CurrentAuth() auth: AuthContext,
@@ -96,6 +103,7 @@ export class MembersController {
     return this.relationships.create(auth, id, dto)
   }
 
+  @RequirePermission("members", "update")
   @Delete(":id/relationships/:relatedMemberId/:relationType")
   removeRelationship(
     @CurrentAuth() auth: AuthContext,
