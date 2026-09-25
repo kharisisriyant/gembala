@@ -22,8 +22,27 @@ export type MemberMaritalStatus = z.infer<typeof memberMaritalStatusSchema>
 export const memberBaptismStatusSchema = z.enum(["not_baptized", "baptized"])
 export type MemberBaptismStatus = z.infer<typeof memberBaptismStatusSchema>
 
-export const membershipRoleSchema = z.enum(["admin", "leader"])
-export type MembershipRole = z.infer<typeof membershipRoleSchema>
+export const permissionResourceSchema = z.enum([
+  "members",
+  "groups",
+  "households",
+  "tags",
+  "invites",
+  "rooms",
+  "events",
+])
+export type PermissionResource = z.infer<typeof permissionResourceSchema>
+
+export const permissionActionSchema = z.enum(["create", "read", "update", "delete"])
+export type PermissionAction = z.infer<typeof permissionActionSchema>
+
+export function permissionKey(resource: PermissionResource, action: PermissionAction): string {
+  return `${resource}:${action}`
+}
+
+export const ALL_PERMISSIONS: string[] = permissionResourceSchema.options.flatMap((resource) =>
+  permissionActionSchema.options.map((action) => permissionKey(resource, action)),
+)
 
 export const memberRelationTypeSchema = z.enum([
   "spouse",
@@ -77,15 +96,56 @@ export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>
 export type MeResponse = {
   user: { id: string; name: string; email: string }
   org: { id: string; name: string }
-  role: MembershipRole
-  roleLabel: string
-  // null = admin / full access, mirrors the prototype's Viewer.scopeTags
+  roles: { id: string; name: string }[]
+  isSystemAdmin: boolean
+  // full resolved "resource:action" set; irrelevant (and empty) when isSystemAdmin is true
+  permissions: string[]
+  // null = full access (isSystemAdmin), mirrors the prototype's Viewer.scopeTags
   scopeTags: string[] | null
 }
 
 export type AuthResponse = {
   token: string
   me: MeResponse
+}
+
+// ---------------------------------------------------------------------------
+// Roles
+// ---------------------------------------------------------------------------
+
+export const roleCreateSchema = z.object({
+  name: z.string().min(1).max(60),
+  description: z.string().max(300).or(z.literal("")),
+  permissions: z
+    .array(z.string())
+    .refine((perms) => perms.every((p) => (ALL_PERMISSIONS as string[]).includes(p)), {
+      message: "invalid permission key",
+    }),
+})
+export type RoleCreateInput = z.infer<typeof roleCreateSchema>
+
+export const roleUpdateSchema = roleCreateSchema.partial()
+export type RoleUpdateInput = z.infer<typeof roleUpdateSchema>
+
+export type RoleResponse = {
+  id: string
+  name: string
+  description: string
+  isSystemAdmin: boolean
+  permissions: string[]
+  memberCount: number
+}
+
+export const membershipRoleAssignSchema = z.object({
+  roleIds: z.array(z.string().uuid()),
+})
+export type MembershipRoleAssignInput = z.infer<typeof membershipRoleAssignSchema>
+
+export type TeamMemberResponse = {
+  membershipId: string
+  user: { id: string; name: string; email: string }
+  roles: { id: string; name: string }[]
+  scopeTags: string[] | null
 }
 
 // ---------------------------------------------------------------------------
@@ -360,7 +420,7 @@ export type AttendanceHeatmapResponse = {
 
 export const inviteCreateSchema = z.object({
   email: z.string().email().max(255),
-  roleLabel: z.string().min(1).max(100),
+  roleIds: z.array(z.string().uuid()).min(1, "pick at least one role"),
   scopeTags: z.array(tagNameSchema).min(1, "pick at least one scope tag"),
 })
 export type InviteCreateInput = z.infer<typeof inviteCreateSchema>
@@ -368,7 +428,7 @@ export type InviteCreateInput = z.infer<typeof inviteCreateSchema>
 export type InviteResponse = {
   id: string
   email: string
-  roleLabel: string
+  roles: { id: string; name: string }[]
   scopeTags: string[]
   status: "pending" | "accepted" | "revoked" | "expired"
   createdAt: string
@@ -378,7 +438,7 @@ export type InviteResponse = {
 export type InvitePreviewResponse = {
   orgName: string
   email: string
-  roleLabel: string
+  roles: { id: string; name: string }[]
   scopeTags: string[]
 }
 
