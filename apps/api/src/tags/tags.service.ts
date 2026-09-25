@@ -1,19 +1,15 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common"
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common"
 import type { TagCreateInput, TagResponse, TagUpdateInput } from "@gembala/shared"
 import { descendantsOf } from "@gembala/shared"
-import { and, eq, inArray } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import { groups, members, memberTags, tags } from "../db/schema"
-import { ScopeService, type TagRow } from "../authz/scope.service"
+import { ScopeService } from "../authz/scope.service"
+import { TagsRepository } from "./tags.repository"
 
 @Injectable()
 export class TagsService {
   constructor(
     @InjectDb() private readonly db: Db,
+    private readonly tags: TagsRepository,
     private readonly scope: ScopeService,
   ) {}
 
@@ -21,10 +17,7 @@ export class TagsService {
   // on unknown names. Used by every module that accepts tag names.
   async resolveTagIds(orgId: string, names: string[]): Promise<Map<string, string>> {
     if (names.length === 0) return new Map()
-    const rows = await this.db
-      .select({ id: tags.id, name: tags.name })
-      .from(tags)
-      .where(and(eq(tags.orgId, orgId), inArray(tags.name, names)))
+    const rows = await this.tags.findIdsByNames(orgId, names)
     const map = new Map(rows.map((r) => [r.name, r.id]))
     const missing = names.filter((n) => !map.has(n))
     if (missing.length > 0) {
@@ -38,12 +31,7 @@ export class TagsService {
     const defs = this.scope.toTagDefs(tagRows)
 
     // memberId -> tag names, for direct + subtree counts
-    const mtRows = await this.db
-      .select({ memberId: memberTags.memberId, name: tags.name })
-      .from(memberTags)
-      .innerJoin(tags, eq(tags.id, memberTags.tagId))
-      .innerJoin(members, eq(members.id, memberTags.memberId))
-      .where(eq(members.orgId, orgId))
+    const mtRows = await this.tags.memberTagsByOrg(orgId)
 
     const tagsByMember = new Map<string, Set<string>>()
     for (const r of mtRows) {
@@ -70,18 +58,15 @@ export class TagsService {
   }
 
   async create(orgId: string, input: TagCreateInput): Promise<TagResponse> {
-    const existing = await this.db
-      .select({ id: tags.id })
-      .from(tags)
-      .where(and(eq(tags.orgId, orgId), eq(tags.name, input.name)))
-    if (existing.length > 0) throw new ConflictException(`tag "${input.name}" already exists`)
+    const existing = await this.tags.findByOrgAndName(orgId, input.name)
+    if (existing) throw new ConflictException(`tag "${input.name}" already exists`)
 
     let parentId: string | null = null
     if (input.parent) {
       parentId = (await this.resolveTagIds(orgId, [input.parent])).get(input.parent)!
     }
 
-    await this.db.insert(tags).values({
+    await this.tags.insert({
       orgId,
       name: input.name,
       parentId,
@@ -120,9 +105,7 @@ export class TagsService {
     }
     if (input.description !== undefined) patch.description = input.description
 
-    if (Object.keys(patch).length > 0) {
-      await this.db.update(tags).set(patch).where(eq(tags.id, tag.id))
-    }
+    await this.tags.update(tag.id, patch)
   }
 
   // Matches the prototype's removeTag: children are re-parented one level up.
@@ -132,20 +115,13 @@ export class TagsService {
     const tag = rows.find((r) => r.name === name)
     if (!tag) throw new NotFoundException(`unknown tag: ${name}`)
 
-    const [scopedGroup] = await this.db
-      .select({ id: groups.id, name: groups.name })
-      .from(groups)
-      .where(eq(groups.scopeTagId, tag.id))
-      .limit(1)
+    const scopedGroup = await this.tags.findGroupScopedToTag(tag.id)
     if (scopedGroup) {
       throw new ConflictException(
         `tag "${name}" is the scope tag of group "${scopedGroup.name}" — reassign the group first`,
       )
     }
 
-    await this.db.transaction(async (tx) => {
-      await tx.update(tags).set({ parentId: tag.parentId }).where(eq(tags.parentId, tag.id))
-      await tx.delete(tags).where(eq(tags.id, tag.id))
-    })
+    await this.db.transaction((tx) => this.tags.reparentChildrenAndDelete(tag.id, tag.parentId, tx))
   }
 }
