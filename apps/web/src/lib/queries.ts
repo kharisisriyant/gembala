@@ -17,6 +17,9 @@ import type {
   MemberImportResult,
   MemberResponse,
   MemberUpdateInput,
+  RoleCreateInput,
+  RoleResponse,
+  RoleUpdateInput,
   RoomCreateInput,
   RoomResponse,
   RoomUpdateInput,
@@ -275,6 +278,39 @@ export function useDeleteTag() {
       void qc.invalidateQueries({ queryKey: ["tags"] })
       void qc.invalidateQueries({ queryKey: ["members"] })
     },
+  })
+}
+
+export function useRoles() {
+  return useQuery({
+    queryKey: ["roles"],
+    queryFn: () => apiFetch<RoleResponse[]>("/roles"),
+  })
+}
+
+export function useCreateRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RoleCreateInput) =>
+      apiFetch<RoleResponse>("/roles", { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["roles"] }),
+  })
+}
+
+export function useUpdateRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: RoleUpdateInput & { id: string }) =>
+      apiFetch<RoleResponse>(`/roles/${id}`, { method: "PATCH", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["roles"] }),
+  })
+}
+
+export function useDeleteRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/roles/${id}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["roles"] }),
   })
 }
 
