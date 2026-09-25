@@ -4,9 +4,8 @@ import type {
   RoleTemplateResponse,
   RoleTemplateUpdateInput,
 } from "@gembala/shared"
-import { and, eq } from "drizzle-orm"
-import { InjectDb, type Db } from "../db/drizzle.module"
 import { roleTemplates } from "../db/schema"
+import { RoleTemplatesRepository } from "./role-templates.repository"
 
 function toResponse(row: typeof roleTemplates.$inferSelect): RoleTemplateResponse {
   return {
@@ -19,27 +18,21 @@ function toResponse(row: typeof roleTemplates.$inferSelect): RoleTemplateRespons
 
 @Injectable()
 export class RoleTemplatesService {
-  constructor(@InjectDb() private readonly db: Db) {}
+  constructor(private readonly roleTemplates: RoleTemplatesRepository) {}
 
   async list(orgId: string): Promise<RoleTemplateResponse[]> {
-    const rows = await this.db.select().from(roleTemplates).where(eq(roleTemplates.orgId, orgId))
+    const rows = await this.roleTemplates.listByOrg(orgId)
     return rows.map(toResponse).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
   async detail(orgId: string, id: string): Promise<RoleTemplateResponse> {
-    const [row] = await this.db
-      .select()
-      .from(roleTemplates)
-      .where(and(eq(roleTemplates.id, id), eq(roleTemplates.orgId, orgId)))
+    const row = await this.roleTemplates.findByIdInOrg(orgId, id)
     if (!row) throw new NotFoundException("role template not found")
     return toResponse(row)
   }
 
   async create(orgId: string, input: RoleTemplateCreateInput): Promise<RoleTemplateResponse> {
-    const [row] = await this.db
-      .insert(roleTemplates)
-      .values({ orgId, name: input.name, sortOrder: input.sortOrder })
-      .returning()
+    const row = await this.roleTemplates.insert(orgId, input.name, input.sortOrder)
     return toResponse(row)
   }
 
@@ -55,11 +48,7 @@ export class RoleTemplatesService {
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder
     if (input.isActive !== undefined) patch.isActive = input.isActive
 
-    const [row] = await this.db
-      .update(roleTemplates)
-      .set(patch)
-      .where(and(eq(roleTemplates.id, id), eq(roleTemplates.orgId, orgId)))
-      .returning()
+    const row = await this.roleTemplates.update(orgId, id, patch)
     return toResponse(row)
   }
 
@@ -67,9 +56,6 @@ export class RoleTemplatesService {
   // assignments even after an org retires a role
   async remove(orgId: string, id: string): Promise<void> {
     await this.detail(orgId, id)
-    await this.db
-      .update(roleTemplates)
-      .set({ isActive: false })
-      .where(and(eq(roleTemplates.id, id), eq(roleTemplates.orgId, orgId)))
+    await this.roleTemplates.update(orgId, id, { isActive: false })
   }
 }

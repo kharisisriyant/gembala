@@ -4,9 +4,8 @@ import type {
   InstanceTypeResponse,
   InstanceTypeUpdateInput,
 } from "@gembala/shared"
-import { and, eq } from "drizzle-orm"
-import { InjectDb, type Db } from "../db/drizzle.module"
 import { instanceTypes } from "../db/schema"
+import { InstanceTypesRepository } from "./instance-types.repository"
 
 function toResponse(row: typeof instanceTypes.$inferSelect): InstanceTypeResponse {
   return {
@@ -19,27 +18,21 @@ function toResponse(row: typeof instanceTypes.$inferSelect): InstanceTypeRespons
 
 @Injectable()
 export class InstanceTypesService {
-  constructor(@InjectDb() private readonly db: Db) {}
+  constructor(private readonly instanceTypes: InstanceTypesRepository) {}
 
   async list(orgId: string): Promise<InstanceTypeResponse[]> {
-    const rows = await this.db.select().from(instanceTypes).where(eq(instanceTypes.orgId, orgId))
+    const rows = await this.instanceTypes.listByOrg(orgId)
     return rows.map(toResponse).sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
   async detail(orgId: string, id: string): Promise<InstanceTypeResponse> {
-    const [row] = await this.db
-      .select()
-      .from(instanceTypes)
-      .where(and(eq(instanceTypes.id, id), eq(instanceTypes.orgId, orgId)))
+    const row = await this.instanceTypes.findByIdInOrg(orgId, id)
     if (!row) throw new NotFoundException("instance type not found")
     return toResponse(row)
   }
 
   async create(orgId: string, input: InstanceTypeCreateInput): Promise<InstanceTypeResponse> {
-    const [row] = await this.db
-      .insert(instanceTypes)
-      .values({ orgId, name: input.name, sortOrder: input.sortOrder })
-      .returning()
+    const row = await this.instanceTypes.insert(orgId, input.name, input.sortOrder)
     return toResponse(row)
   }
 
@@ -55,11 +48,7 @@ export class InstanceTypesService {
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder
     if (input.isActive !== undefined) patch.isActive = input.isActive
 
-    const [row] = await this.db
-      .update(instanceTypes)
-      .set(patch)
-      .where(and(eq(instanceTypes.id, id), eq(instanceTypes.orgId, orgId)))
-      .returning()
+    const row = await this.instanceTypes.update(orgId, id, patch)
     return toResponse(row)
   }
 
@@ -67,9 +56,6 @@ export class InstanceTypesService {
   // assignments even after an org retires an instance type
   async remove(orgId: string, id: string): Promise<void> {
     await this.detail(orgId, id)
-    await this.db
-      .update(instanceTypes)
-      .set({ isActive: false })
-      .where(and(eq(instanceTypes.id, id), eq(instanceTypes.orgId, orgId)))
+    await this.instanceTypes.update(orgId, id, { isActive: false })
   }
 }

@@ -7,15 +7,8 @@ import type {
   ScheduleEventUpdateInput,
   ServiceInstanceResponse,
 } from "@gembala/shared"
-import { and, eq, inArray } from "drizzle-orm"
-import { InjectDb, type Db } from "../db/drizzle.module"
-import {
-  instanceTypes,
-  members,
-  roleAssignments,
-  scheduleEvents,
-  serviceInstances,
-} from "../db/schema"
+import { scheduleEvents } from "../db/schema"
+import { ScheduleEventsRepository } from "./schedule-events.repository"
 
 type EventRow = typeof scheduleEvents.$inferSelect
 
@@ -30,13 +23,10 @@ function toEventResponse(row: EventRow): ScheduleEventResponse {
 
 @Injectable()
 export class ScheduleEventsService {
-  constructor(@InjectDb() private readonly db: Db) {}
+  constructor(private readonly events: ScheduleEventsRepository) {}
 
   private async loadEvent(orgId: string, id: string): Promise<EventRow> {
-    const [row] = await this.db
-      .select()
-      .from(scheduleEvents)
-      .where(and(eq(scheduleEvents.id, id), eq(scheduleEvents.orgId, orgId)))
+    const row = await this.events.findByIdInOrg(orgId, id)
     if (!row) throw new NotFoundException("schedule event not found")
     return row
   }
@@ -47,20 +37,10 @@ export class ScheduleEventsService {
     if (events.length === 0) return []
     const eventIds = events.map((e) => e.id)
 
-    const instanceRows = await this.db
-      .select({ instance: serviceInstances, instanceType: instanceTypes })
-      .from(serviceInstances)
-      .innerJoin(instanceTypes, eq(instanceTypes.id, serviceInstances.instanceTypeId))
-      .where(inArray(serviceInstances.eventId, eventIds))
+    const instanceRows = await this.events.instancesWithTypeByEventIds(eventIds)
 
     const instanceIds = instanceRows.map((r) => r.instance.id)
-    const assignmentRows = instanceIds.length
-      ? await this.db
-          .select({ assignment: roleAssignments, member: members })
-          .from(roleAssignments)
-          .leftJoin(members, eq(members.id, roleAssignments.memberId))
-          .where(inArray(roleAssignments.serviceInstanceId, instanceIds))
-      : []
+    const assignmentRows = await this.events.assignmentsWithMemberByInstanceIds(instanceIds)
 
     const assignmentsByInstance = new Map<string, RoleAssignmentResponse[]>()
     for (const { assignment, member } of assignmentRows) {
@@ -97,7 +77,7 @@ export class ScheduleEventsService {
   }
 
   async list(orgId: string): Promise<ScheduleEventDetailResponse[]> {
-    const rows = await this.db.select().from(scheduleEvents).where(eq(scheduleEvents.orgId, orgId))
+    const rows = await this.events.listByOrg(orgId)
     const detailed = await this.attachDetail(rows)
     return detailed.sort((a, b) => a.date.localeCompare(b.date))
   }
@@ -109,10 +89,12 @@ export class ScheduleEventsService {
   }
 
   async create(orgId: string, input: ScheduleEventCreateInput): Promise<ScheduleEventDetailResponse> {
-    const [row] = await this.db
-      .insert(scheduleEvents)
-      .values({ orgId, date: input.date, scriptureRef: input.scriptureRef, theme: input.theme })
-      .returning()
+    const row = await this.events.insert({
+      orgId,
+      date: input.date,
+      scriptureRef: input.scriptureRef,
+      theme: input.theme,
+    })
     const [detailed] = await this.attachDetail([row])
     return detailed
   }
@@ -129,17 +111,13 @@ export class ScheduleEventsService {
     if (input.scriptureRef !== undefined) patch.scriptureRef = input.scriptureRef
     if (input.theme !== undefined) patch.theme = input.theme
 
-    const [row] = await this.db
-      .update(scheduleEvents)
-      .set(patch)
-      .where(and(eq(scheduleEvents.id, id), eq(scheduleEvents.orgId, orgId)))
-      .returning()
+    const row = await this.events.update(orgId, id, patch)
     const [detailed] = await this.attachDetail([row])
     return detailed
   }
 
   async remove(orgId: string, id: string): Promise<void> {
     await this.loadEvent(orgId, id)
-    await this.db.delete(scheduleEvents).where(and(eq(scheduleEvents.id, id), eq(scheduleEvents.orgId, orgId)))
+    await this.events.delete(orgId, id)
   }
 }

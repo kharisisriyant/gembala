@@ -4,10 +4,9 @@ import type {
   ServiceInstanceCreateInput,
   ServiceInstanceResponse,
 } from "@gembala/shared"
-import { and, eq } from "drizzle-orm"
-import { InjectDb, type Db } from "../db/drizzle.module"
-import { scheduleEvents, serviceInstances } from "../db/schema"
+import { serviceInstances } from "../db/schema"
 import { InstanceTypesService } from "./instance-types.service"
+import { ServiceInstancesRepository } from "./service-instances.repository"
 
 type ServiceInstanceRow = typeof serviceInstances.$inferSelect
 
@@ -23,30 +22,23 @@ function toResponse(row: ServiceInstanceRow, instanceType: InstanceTypeResponse)
 @Injectable()
 export class ServiceInstancesService {
   constructor(
-    @InjectDb() private readonly db: Db,
+    private readonly instances: ServiceInstancesRepository,
     private readonly instanceTypes: InstanceTypesService,
   ) {}
 
   // scopes an event to the org, so nested instance routes can't be used to
   // reach another org's event by id
   async loadEventScoped(orgId: string, eventId: string) {
-    const [row] = await this.db
-      .select()
-      .from(scheduleEvents)
-      .where(and(eq(scheduleEvents.id, eventId), eq(scheduleEvents.orgId, orgId)))
+    const row = await this.instances.findEventInOrg(orgId, eventId)
     if (!row) throw new NotFoundException("schedule event not found")
     return row
   }
 
   // scopes an instance to the org via its parent event
   async loadInstanceScoped(orgId: string, instanceId: string): Promise<ServiceInstanceRow> {
-    const [row] = await this.db
-      .select({ instance: serviceInstances })
-      .from(serviceInstances)
-      .innerJoin(scheduleEvents, eq(scheduleEvents.id, serviceInstances.eventId))
-      .where(and(eq(serviceInstances.id, instanceId), eq(scheduleEvents.orgId, orgId)))
+    const row = await this.instances.findInstanceInOrg(orgId, instanceId)
     if (!row) throw new NotFoundException("service instance not found")
-    return row.instance
+    return row
   }
 
   async create(
@@ -58,15 +50,16 @@ export class ServiceInstancesService {
     const instanceType = await this.instanceTypes.detail(orgId, input.instanceTypeId)
     if (!instanceType.isActive) throw new ConflictException("instance type is not active")
 
-    const [row] = await this.db
-      .insert(serviceInstances)
-      .values({ eventId, instanceTypeId: input.instanceTypeId, sortOrder: input.sortOrder })
-      .returning()
+    const row = await this.instances.insert({
+      eventId,
+      instanceTypeId: input.instanceTypeId,
+      sortOrder: input.sortOrder,
+    })
     return toResponse(row, instanceType)
   }
 
   async remove(orgId: string, instanceId: string): Promise<void> {
     await this.loadInstanceScoped(orgId, instanceId)
-    await this.db.delete(serviceInstances).where(eq(serviceInstances.id, instanceId))
+    await this.instances.delete(instanceId)
   }
 }
