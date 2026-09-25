@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogClose,
@@ -26,7 +27,7 @@ import {
 } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
 import { Tag, TagList } from "@/components/tag"
-import { useCreateInvite, useInvites, useRevokeInvite, useTags } from "@/lib/queries"
+import { useAssignableRoles, useCreateInvite, useInvites, useRevokeInvite, useTags } from "@/lib/queries"
 import { rootTags, childrenOf } from "@/lib/tag-tree"
 import { formatDate } from "@/lib/helpers"
 
@@ -39,23 +40,26 @@ const statusVariant: Record<string, "success" | "warning" | "muted"> = {
 
 function InviteDialog() {
   const { data: tags = [] } = useTags()
+  const { data: assignableRoles = [] } = useAssignableRoles()
   const createInvite = useCreateInvite()
   const [email, setEmail] = useState("")
-  const [roleLabel, setRoleLabel] = useState("")
+  const [pickedRoles, setPickedRoles] = useState<string[]>([])
   const [picked, setPicked] = useState<string[]>([])
   const [open, setOpen] = useState(false)
 
   const toggle = (t: string) =>
     setPicked((p) => (p.includes(t) ? p.filter((x) => x !== t) : [...p, t]))
+  const toggleRole = (id: string) =>
+    setPickedRoles((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
 
   const save = async () => {
     try {
-      await createInvite.mutateAsync({ email, roleLabel, scopeTags: picked })
+      await createInvite.mutateAsync({ email, roleIds: pickedRoles, scopeTags: picked })
       toast.success(`Invite sent to ${email}`, {
         description: "The accept link was emailed (check the API console in dev).",
       })
       setEmail("")
-      setRoleLabel("")
+      setPickedRoles([])
       setPicked([])
       setOpen(false)
     } catch (err) {
@@ -89,13 +93,18 @@ function InviteDialog() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="invite-role">Role label</Label>
-            <Input
-              id="invite-role"
-              placeholder="e.g. Youth Leader"
-              value={roleLabel}
-              onChange={(e) => setRoleLabel(e.target.value)}
-            />
+            <Label>Roles</Label>
+            <div className="space-y-1.5 rounded-md border p-3">
+              {assignableRoles.map((r) => (
+                <label key={r.id} className="flex cursor-pointer items-center gap-2">
+                  <Checkbox
+                    checked={pickedRoles.includes(r.id)}
+                    onCheckedChange={() => toggleRole(r.id)}
+                  />
+                  <span className="text-sm">{r.name}</span>
+                </label>
+              ))}
+            </div>
           </div>
           <div className="grid gap-2">
             <Label>Scope tags</Label>
@@ -123,7 +132,7 @@ function InviteDialog() {
           </DialogClose>
           <Button
             onClick={save}
-            disabled={!email || !roleLabel || picked.length === 0 || createInvite.isPending}
+            disabled={!email || pickedRoles.length === 0 || picked.length === 0 || createInvite.isPending}
           >
             {createInvite.isPending ? "Sending…" : "Send invite"}
           </Button>
@@ -161,7 +170,15 @@ export function InvitesPage() {
             {invites.map((inv) => (
               <TableRow key={inv.id}>
                 <TableCell className="font-medium">{inv.email}</TableCell>
-                <TableCell>{inv.roleLabel}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {inv.roles.map((r) => (
+                      <Badge key={r.id} variant="secondary">
+                        {r.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
                 <TableCell className="hidden md:table-cell">
                   <TagList tags={inv.scopeTags} />
                 </TableCell>

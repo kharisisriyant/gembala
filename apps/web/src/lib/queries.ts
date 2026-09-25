@@ -331,6 +331,13 @@ export function useUpdateMembershipRoles() {
   })
 }
 
+export function useAssignableRoles() {
+  return useQuery({
+    queryKey: ["roles", "assignable"],
+    queryFn: () => apiFetch<RoleResponse[]>("/roles/assignable"),
+  })
+}
+
 export function useCreateInvite() {
   const qc = useQueryClient()
   return useMutation({
