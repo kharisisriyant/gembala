@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from "react"
+import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import { Navigate, useLocation } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
@@ -6,14 +6,19 @@ import type {
   AuthResponse,
   LoginInput,
   MeResponse,
+  PermissionAction,
+  PermissionResource,
   RegisterInput,
 } from "@gembala/shared"
+import { permissionKey } from "@gembala/shared"
 import { apiFetch, clearToken, getToken, setToken } from "./api"
 
 type AuthContextValue = {
   me: MeResponse | null
   isLoading: boolean
-  isAdmin: boolean
+  isSystemAdmin: boolean
+  permissions: Set<string>
+  hasPermission: (resource: PermissionResource, action: PermissionAction) => boolean
   login: (input: LoginInput) => Promise<void>
   register: (input: RegisterInput) => Promise<void>
   acceptInvite: (input: AcceptInviteInput) => Promise<void>
@@ -72,12 +77,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.clear()
   }, [queryClient])
 
+  const permissions = useMemo(() => new Set(me?.permissions ?? []), [me])
+  const isSystemAdmin = me?.isSystemAdmin ?? false
+  const hasPermission = useCallback(
+    (resource: PermissionResource, action: PermissionAction) =>
+      isSystemAdmin || permissions.has(permissionKey(resource, action)),
+    [isSystemAdmin, permissions],
+  )
+
   return (
     <AuthContext.Provider
       value={{
         me,
         isLoading: hasToken && isLoading,
-        isAdmin: me?.role === "admin",
+        isSystemAdmin,
+        permissions,
+        hasPermission,
         login,
         register,
         acceptInvite,
@@ -113,4 +128,30 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   return <>{children}</>
+}
+
+function Forbidden() {
+  return (
+    <div className="text-muted-foreground flex h-64 items-center justify-center text-sm">
+      You don't have access to this page.
+    </div>
+  )
+}
+
+export function RequirePermission({
+  resource,
+  action,
+  children,
+}: {
+  resource: PermissionResource
+  action: PermissionAction
+  children: React.ReactNode
+}) {
+  const { hasPermission } = useAuth()
+  return hasPermission(resource, action) ? <>{children}</> : <Forbidden />
+}
+
+export function RequireSystemAdmin({ children }: { children: React.ReactNode }) {
+  const { isSystemAdmin } = useAuth()
+  return isSystemAdmin ? <>{children}</> : <Forbidden />
 }

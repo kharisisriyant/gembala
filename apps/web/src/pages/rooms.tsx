@@ -24,7 +24,9 @@ import { useAuth } from "@/lib/auth"
 import { useDeleteRoom, useRooms } from "@/lib/queries"
 
 export function RoomsPage() {
-  const { isAdmin } = useAuth()
+  const { hasPermission } = useAuth()
+  const canCreate = hasPermission("rooms", "create")
+  const canManage = hasPermission("rooms", "update") || hasPermission("rooms", "delete")
   const { data: rooms = [], isLoading } = useRooms()
   const deleteRoom = useDeleteRoom()
 
@@ -42,7 +44,7 @@ export function RoomsPage() {
       <PageHeader
         title="Rooms"
         subtitle="Physical spaces events can be booked into."
-        action={isAdmin ? <AddRoomDialog /> : undefined}
+        action={canCreate ? <AddRoomDialog /> : undefined}
       />
 
       <Card className="py-0">
@@ -54,7 +56,7 @@ export function RoomsPage() {
                 <TableHead>Capacity</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Status</TableHead>
-                {isAdmin && <TableHead className="w-10" />}
+                {canManage && <TableHead className="w-10" />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -78,7 +80,7 @@ export function RoomsPage() {
                       {r.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
-                  {isAdmin && (
+                  {canManage && (
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

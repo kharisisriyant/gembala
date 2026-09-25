@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Users,
+  Users2,
   Sprout,
   Leaf,
   Tags,
@@ -8,6 +9,7 @@ import {
   Send,
   CalendarDays,
   DoorOpen,
+  ShieldCheck,
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
 import {
@@ -36,7 +38,11 @@ const nav: NavItem[] = [
   { title: "Tags", to: "/tags", icon: Tags },
 ]
 
-const adminNav: NavItem[] = [{ title: "Invites", to: "/settings/invites", icon: MailPlus }]
+const adminNav: NavItem[] = [
+  { title: "Invites", to: "/settings/invites", icon: MailPlus },
+  { title: "Team", to: "/settings/team", icon: Users2 },
+  { title: "Roles", to: "/settings/roles", icon: ShieldCheck },
+]
 
 const personalNav: NavItem[] = [{ title: "Telegram", to: "/settings/telegram", icon: Send }]
 
@@ -60,8 +66,12 @@ function NavItems({ items }: { items: NavItem[] }) {
 }
 
 export function AppSidebar() {
-  const { me, isAdmin } = useAuth()
-  const manageItems = isAdmin ? [...nav, ...adminNav] : nav
+  const { me, isSystemAdmin, hasPermission } = useAuth()
+  const visibleAdminNav = adminNav.filter((item) => {
+    if (item.to === "/settings/invites") return hasPermission("invites", "read")
+    return isSystemAdmin // Team and Roles stay system-admin-only
+  })
+  const manageItems = [...nav, ...visibleAdminNav]
 
   return (
     <Sidebar>
@@ -96,7 +106,9 @@ export function AppSidebar() {
             <MemberAvatar name={me.user.name} />
             <div className="leading-tight">
               <div className="text-sm font-medium">{me.user.name}</div>
-              <div className="text-muted-foreground text-xs">{me.roleLabel}</div>
+              <div className="text-muted-foreground text-xs">
+                {me.isSystemAdmin ? "Admin" : me.roles.map((r) => r.name).join(", ") || "No roles"}
+              </div>
             </div>
           </div>
         )}

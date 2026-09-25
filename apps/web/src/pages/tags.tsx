@@ -20,11 +20,11 @@ import { buildForest, type TagNode } from "@/lib/tag-tree"
 function TagRow({
   node,
   byName,
-  isAdmin,
+  canManage,
 }: {
   node: TagNode
   byName: Map<string, TagResponse>
-  isAdmin: boolean
+  canManage: boolean
 }) {
   const deleteTag = useDeleteTag()
   const counts = byName.get(node.name)
@@ -66,7 +66,7 @@ function TagRow({
               <span className="text-muted-foreground">/ {subtree} w/ children</span>
             )}
           </Badge>
-          {isAdmin && (
+          {canManage && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-7">
@@ -91,14 +91,16 @@ function TagRow({
         </div>
       </div>
       {node.children.map((c) => (
-        <TagRow key={c.name} node={c} byName={byName} isAdmin={isAdmin} />
+        <TagRow key={c.name} node={c} byName={byName} canManage={canManage} />
       ))}
     </>
   )
 }
 
 export function TagsPage() {
-  const { isAdmin } = useAuth()
+  const { hasPermission } = useAuth()
+  const canCreate = hasPermission("tags", "create")
+  const canManage = hasPermission("tags", "update") || hasPermission("tags", "delete")
   const { data: defs = [] } = useTags()
   const forest = buildForest(defs)
   const byName = new Map(defs.map((d) => [d.name, d]))
@@ -109,7 +111,7 @@ export function TagsPage() {
         title="Tags"
         subtitle="Organize members with structured tags. Nest tags to build ministries and life-stages."
         action={
-          isAdmin ? (
+          canCreate ? (
             <AddTagDialog
               trigger={
                 <Button>
@@ -130,7 +132,7 @@ export function TagsPage() {
       <Card className="mt-6 py-2">
         <CardContent className="divide-y px-4">
           {forest.map((node) => (
-            <TagRow key={node.name} node={node} byName={byName} isAdmin={isAdmin} />
+            <TagRow key={node.name} node={node} byName={byName} canManage={canManage} />
           ))}
         </CardContent>
       </Card>
