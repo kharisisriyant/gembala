@@ -6,17 +6,17 @@ import type {
   MemberResponse,
   MemberUpdateInput,
 } from "@gembala/shared"
-import { and, eq, inArray } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import { groupMembers, groups, members, memberTags, tags } from "../db/schema"
 import { ScopeService } from "../authz/scope.service"
 import type { AuthContext } from "../authz/auth-context"
 import { TagsService } from "../tags/tags.service"
+import { MembersRepository, type MemberPatch } from "./members.repository"
 
 @Injectable()
 export class MembersService {
   constructor(
     @InjectDb() private readonly db: Db,
+    private readonly members: MembersRepository,
     private readonly scope: ScopeService,
     private readonly tags: TagsService,
   ) {}
@@ -25,13 +25,8 @@ export class MembersService {
   // this and then applies the caller's scope filter in memory (org sizes are
   // small; this matches the prototype's semantics exactly).
   async orgMembersWithTags(orgId: string): Promise<MemberResponse[]> {
-    const memberRows = await this.db.select().from(members).where(eq(members.orgId, orgId))
-    const tagRows = await this.db
-      .select({ memberId: memberTags.memberId, name: tags.name })
-      .from(memberTags)
-      .innerJoin(tags, eq(tags.id, memberTags.tagId))
-      .innerJoin(members, eq(members.id, memberTags.memberId))
-      .where(eq(members.orgId, orgId))
+    const memberRows = await this.members.listByOrg(orgId)
+    const tagRows = await this.members.tagsByOrg(orgId)
 
     const tagsByMember = new Map<string, string[]>()
     for (const r of tagRows) {
@@ -86,11 +81,7 @@ export class MembersService {
       throw new NotFoundException("member not found")
     }
 
-    const groupRows = await this.db
-      .select({ id: groups.id, name: groups.name })
-      .from(groupMembers)
-      .innerJoin(groups, eq(groups.id, groupMembers.groupId))
-      .where(eq(groupMembers.memberId, id))
+    const groupRows = await this.members.groupsByMemberId(id)
 
     return { ...member, groups: groupRows }
   }
@@ -101,9 +92,8 @@ export class MembersService {
     const tagIdsByName = await this.tags.resolveTagIds(auth.orgId, input.tags)
 
     const created = await this.db.transaction(async (tx) => {
-      const [row] = await tx
-        .insert(members)
-        .values({
+      const row = await this.members.insert(
+        {
           orgId: auth.orgId,
           name: input.name,
           email: input.email,
@@ -119,10 +109,13 @@ export class MembersService {
           photoUrl: input.photoUrl,
           baptismStatus: input.baptismStatus,
           baptismDate: input.baptismDate,
-        })
-        .returning()
-      await tx.insert(memberTags).values(
-        input.tags.map((name) => ({ memberId: row.id, tagId: tagIdsByName.get(name)! })),
+        },
+        tx,
+      )
+      await this.members.insertTags(
+        row.id,
+        input.tags.map((name) => tagIdsByName.get(name)!),
+        tx,
       )
       return row
     })
@@ -178,7 +171,7 @@ export class MembersService {
     }
 
     await this.db.transaction(async (tx) => {
-      const patch: Partial<typeof members.$inferInsert> = {}
+      const patch: MemberPatch = {}
       if (input.name !== undefined) patch.name = input.name
       if (input.email !== undefined) patch.email = input.email
       if (input.phone !== undefined) patch.phone = input.phone
@@ -193,14 +186,14 @@ export class MembersService {
       if (input.photoUrl !== undefined) patch.photoUrl = input.photoUrl
       if (input.baptismStatus !== undefined) patch.baptismStatus = input.baptismStatus
       if (input.baptismDate !== undefined) patch.baptismDate = input.baptismDate
-      if (Object.keys(patch).length > 0) {
-        await tx.update(members).set(patch).where(and(eq(members.id, id), eq(members.orgId, auth.orgId)))
-      }
+      await this.members.update(auth.orgId, id, patch, tx)
+
       if (input.tags) {
         const tagIdsByName = await this.tags.resolveTagIds(auth.orgId, input.tags)
-        await tx.delete(memberTags).where(eq(memberTags.memberId, id))
-        await tx.insert(memberTags).values(
-          input.tags.map((name) => ({ memberId: id, tagId: tagIdsByName.get(name)! })),
+        await this.members.replaceTags(
+          id,
+          input.tags.map((name) => tagIdsByName.get(name)!),
+          tx,
         )
       }
     })

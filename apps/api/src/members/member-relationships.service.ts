@@ -1,10 +1,8 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common"
 import type { MemberRelationshipResponse, MemberRelationType, RelationshipCreateInput } from "@gembala/shared"
-import { and, eq, or } from "drizzle-orm"
-import { InjectDb, type Db } from "../db/drizzle.module"
-import { memberRelationships } from "../db/schema"
 import type { AuthContext } from "../authz/auth-context"
 import { MembersService } from "./members.service"
+import { MemberRelationshipsRepository } from "./member-relationships.repository"
 
 // spouse/sibling are undirected facts: store once with the smaller uuid as
 // memberId so (A, B, spouse) and (B, A, spouse) never both exist.
@@ -61,7 +59,7 @@ function canonicalPair(
 @Injectable()
 export class MemberRelationshipsService {
   constructor(
-    @InjectDb() private readonly db: Db,
+    private readonly relationships: MemberRelationshipsRepository,
     private readonly members: MembersService,
   ) {}
 
@@ -71,10 +69,7 @@ export class MemberRelationshipsService {
     const orgMembers = await this.members.orgMembersWithTags(auth.orgId)
     const nameById = new Map(orgMembers.map((m) => [m.id, m.name]))
 
-    const rows = await this.db
-      .select()
-      .from(memberRelationships)
-      .where(or(eq(memberRelationships.memberId, memberId), eq(memberRelationships.relatedMemberId, memberId)))
+    const rows = await this.relationships.findAllInvolving(memberId)
 
     const result: MemberRelationshipResponse[] = []
     for (const r of rows) {
@@ -105,19 +100,14 @@ export class MemberRelationshipsService {
     await this.members.detail(auth, input.relatedMemberId)
 
     const canonical = canonicalPair(memberId, input.relatedMemberId, input.relationType)
-    const [existing] = await this.db
-      .select()
-      .from(memberRelationships)
-      .where(
-        and(
-          eq(memberRelationships.memberId, canonical.memberId),
-          eq(memberRelationships.relatedMemberId, canonical.relatedMemberId),
-          eq(memberRelationships.relationType, input.relationType),
-        ),
-      )
+    const existing = await this.relationships.findCanonical(
+      canonical.memberId,
+      canonical.relatedMemberId,
+      input.relationType,
+    )
     if (existing) throw new ConflictException("this relationship already exists")
 
-    await this.db.insert(memberRelationships).values({
+    await this.relationships.insert({
       memberId: canonical.memberId,
       relatedMemberId: canonical.relatedMemberId,
       relationType: input.relationType,
@@ -141,16 +131,11 @@ export class MemberRelationshipsService {
   ): Promise<void> {
     await this.members.detail(auth, memberId)
     const canonical = canonicalPair(memberId, relatedMemberId, relationType)
-    const result = await this.db
-      .delete(memberRelationships)
-      .where(
-        and(
-          eq(memberRelationships.memberId, canonical.memberId),
-          eq(memberRelationships.relatedMemberId, canonical.relatedMemberId),
-          eq(memberRelationships.relationType, relationType),
-        ),
-      )
-      .returning()
-    if (result.length === 0) throw new NotFoundException("relationship not found")
+    const deleted = await this.relationships.deleteCanonical(
+      canonical.memberId,
+      canonical.relatedMemberId,
+      relationType,
+    )
+    if (!deleted) throw new NotFoundException("relationship not found")
   }
 }
