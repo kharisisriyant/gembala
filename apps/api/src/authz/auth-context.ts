@@ -1,7 +1,3 @@
-import type { MembershipRole } from "@gembala/shared"
-
-// Attached to every authenticated request by JwtAuthGuard. scopeTagNames is
-// null for admins (full access) — mirrors the prototype's Viewer.scopeTags.
 export type AuthContext = {
   userId: string
   userName: string
@@ -9,7 +5,10 @@ export type AuthContext = {
   orgId: string
   orgName: string
   membershipId: string
-  role: MembershipRole
-  roleLabel: string
+  roles: { id: string; name: string }[]
+  isSystemAdmin: boolean
+  // union of every assigned role's permissions; irrelevant (and empty) when isSystemAdmin
+  permissions: Set<string>
+  // null = full access (isSystemAdmin), mirrors the prototype's Viewer.scopeTags
   scopeTagNames: string[] | null
 }

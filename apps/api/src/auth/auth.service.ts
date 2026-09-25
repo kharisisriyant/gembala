@@ -19,18 +19,31 @@ import { and, eq, gt, isNull } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
 import {
   invites,
+  inviteRoles,
   inviteScopeTags,
+  membershipRoles,
   membershipScopeTags,
   organizations,
   orgMemberships,
   passwordResetTokens,
+  roles,
+  rolePermissions,
   tags,
   users,
 } from "../db/schema"
 import type { AuthContext } from "../authz/auth-context"
+import { AuthContextService } from "../authz/auth-context.service"
 import { MailService } from "../mail/mail.service"
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex")
+
+// Keep byte-identical to the migration's data-migration SQL — see Global
+// Constraints in the RBAC implementation plan.
+const LEADER_BASELINE_PERMISSIONS = [
+  "members:read", "members:create", "members:update",
+  "groups:read", "groups:create", "groups:update",
+  "households:read", "tags:read", "rooms:read", "events:read",
+]
 
 @Injectable()
 export class AuthService {
@@ -39,14 +52,16 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly mail: MailService,
+    private readonly authContext: AuthContextService,
   ) {}
 
   meFromContext(auth: AuthContext): MeResponse {
     return {
       user: { id: auth.userId, name: auth.userName, email: auth.userEmail },
       org: { id: auth.orgId, name: auth.orgName },
-      role: auth.role,
-      roleLabel: auth.roleLabel,
+      roles: auth.roles,
+      isSystemAdmin: auth.isSystemAdmin,
+      permissions: [...auth.permissions],
       scopeTags: auth.scopeTagNames,
     }
   }
@@ -69,8 +84,20 @@ export class AuthService {
         .returning()
       const [membership] = await tx
         .insert(orgMemberships)
-        .values({ orgId: org.id, userId: user.id, role: "admin", roleLabel: "Admin" })
+        .values({ orgId: org.id, userId: user.id })
         .returning()
+      const [adminRole] = await tx
+        .insert(roles)
+        .values({ orgId: org.id, name: "Admin", description: "Full access to everything.", isSystemAdmin: true })
+        .returning()
+      const [leaderRole] = await tx
+        .insert(roles)
+        .values({ orgId: org.id, name: "Leader", description: "Read/write members and groups; read-only elsewhere." })
+        .returning()
+      await tx.insert(rolePermissions).values(
+        LEADER_BASELINE_PERMISSIONS.map((permission) => ({ roleId: leaderRole.id, permission })),
+      )
+      await tx.insert(membershipRoles).values({ membershipId: membership.id, roleId: adminRole.id })
       // every org starts with the root directory tag the UI expects
       await tx.insert(tags).values({ orgId: org.id, name: "members", description: "Everyone in the church directory" })
       return { user, org, membership }
@@ -155,12 +182,7 @@ export class AuthService {
         .returning()
       const [membership] = await tx
         .insert(orgMemberships)
-        .values({
-          orgId: invite.orgId,
-          userId: user.id,
-          role: "leader",
-          roleLabel: invite.roleLabel,
-        })
+        .values({ orgId: invite.orgId, userId: user.id })
         .returning()
       const scopeRows = await tx
         .select({ tagId: inviteScopeTags.tagId })
@@ -169,6 +191,15 @@ export class AuthService {
       if (scopeRows.length > 0) {
         await tx.insert(membershipScopeTags).values(
           scopeRows.map((r) => ({ membershipId: membership.id, tagId: r.tagId })),
+        )
+      }
+      const roleRows = await tx
+        .select({ roleId: inviteRoles.roleId })
+        .from(inviteRoles)
+        .where(eq(inviteRoles.inviteId, invite.id))
+      if (roleRows.length > 0) {
+        await tx.insert(membershipRoles).values(
+          roleRows.map((r) => ({ membershipId: membership.id, roleId: r.roleId })),
         )
       }
       await tx.update(invites).set({ acceptedAt: new Date() }).where(eq(invites.id, invite.id))
@@ -180,44 +211,8 @@ export class AuthService {
 
   private async buildAuthResponse(userId: string): Promise<AuthResponse> {
     const token = await this.jwt.signAsync({ sub: userId })
-    const me = await this.loadMe(userId)
-    return { token, me }
-  }
-
-  private async loadMe(userId: string): Promise<MeResponse> {
-    const [row] = await this.db
-      .select({
-        userId: users.id,
-        userName: users.name,
-        userEmail: users.email,
-        membershipId: orgMemberships.id,
-        role: orgMemberships.role,
-        roleLabel: orgMemberships.roleLabel,
-        orgId: organizations.id,
-        orgName: organizations.name,
-      })
-      .from(users)
-      .innerJoin(orgMemberships, eq(orgMemberships.userId, users.id))
-      .innerJoin(organizations, eq(organizations.id, orgMemberships.orgId))
-      .where(eq(users.id, userId))
-      .limit(1)
-
-    let scopeTagNames: string[] | null = null
-    if (row.role !== "admin") {
-      const scopeRows = await this.db
-        .select({ name: tags.name })
-        .from(membershipScopeTags)
-        .innerJoin(tags, eq(tags.id, membershipScopeTags.tagId))
-        .where(eq(membershipScopeTags.membershipId, row.membershipId))
-      scopeTagNames = scopeRows.map((r) => r.name)
-    }
-
-    return {
-      user: { id: row.userId, name: row.userName, email: row.userEmail },
-      org: { id: row.orgId, name: row.orgName },
-      role: row.role,
-      roleLabel: row.roleLabel,
-      scopeTags: scopeTagNames,
-    }
+    const auth = await this.authContext.load(userId)
+    if (!auth) throw new UnauthorizedException("user no longer exists")
+    return { token, me: this.meFromContext(auth) }
   }
 }

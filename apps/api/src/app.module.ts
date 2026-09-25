@@ -7,7 +7,7 @@ import { validateEnv } from "./config/env"
 import { DrizzleModule } from "./db/drizzle.module"
 import { AuthzModule } from "./authz/authz.module"
 import { JwtAuthGuard } from "./authz/jwt-auth.guard"
-import { RolesGuard } from "./authz/roles.guard"
+import { PermissionsGuard } from "./authz/permissions.guard"
 import { MailModule } from "./mail/mail.module"
 import { AuthModule } from "./auth/auth.module"
 import { TagsModule } from "./tags/tags.module"
@@ -50,7 +50,7 @@ import { TelegramModule } from "./telegram/telegram.module"
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
   ],
 })
 export class AppModule {}
