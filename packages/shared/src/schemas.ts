@@ -274,6 +274,65 @@ export type GroupDetailResponse = {
 }
 
 // ---------------------------------------------------------------------------
+// Rooms
+// ---------------------------------------------------------------------------
+
+export const roomCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  capacity: z.number().int().positive().nullable().optional(),
+  description: z.string().max(500).or(z.literal("")),
+  isActive: z.boolean().default(true),
+})
+export type RoomCreateInput = z.infer<typeof roomCreateSchema>
+
+export const roomUpdateSchema = roomCreateSchema.partial()
+export type RoomUpdateInput = z.infer<typeof roomUpdateSchema>
+
+export type RoomResponse = {
+  id: string
+  name: string
+  capacity: number | null
+  description: string
+  isActive: boolean
+}
+
+// ---------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------
+
+export const eventCreateSchema = z
+  .object({
+    title: z.string().min(1).max(100),
+    description: z.string().max(2000).or(z.literal("")),
+    roomId: z.string().uuid().nullable().optional(),
+    startAt: z.coerce.date(),
+    endAt: z.coerce.date(),
+    isPublic: z.boolean().default(false),
+  })
+  .refine((v) => v.endAt > v.startAt, { message: "end must be after start", path: ["endAt"] })
+export type EventCreateInput = z.infer<typeof eventCreateSchema>
+
+export const eventUpdateSchema = z.object({
+  title: z.string().min(1).max(100).optional(),
+  description: z.string().max(2000).or(z.literal("")).optional(),
+  roomId: z.string().uuid().nullable().optional(),
+  startAt: z.coerce.date().optional(),
+  endAt: z.coerce.date().optional(),
+  isPublic: z.boolean().optional(),
+})
+export type EventUpdateInput = z.infer<typeof eventUpdateSchema>
+
+export type EventResponse = {
+  id: string
+  title: string
+  description: string
+  startAt: string
+  endAt: string
+  isPublic: boolean
+  room: { id: string; name: string } | null
+}
+
+// ---------------------------------------------------------------------------
 // Attendance
 // ---------------------------------------------------------------------------
 

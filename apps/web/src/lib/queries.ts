@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
   AttendanceHeatmapResponse,
   DashboardResponse,
+  EventCreateInput,
+  EventResponse,
+  EventUpdateInput,
   GroupCreateInput,
   GroupDetailResponse,
   GroupSummaryResponse,
@@ -14,6 +17,9 @@ import type {
   MemberImportResult,
   MemberResponse,
   MemberUpdateInput,
+  RoomCreateInput,
+  RoomResponse,
+  RoomUpdateInput,
   SessionCreateInput,
   SessionResponse,
   TagCreateInput,
@@ -75,6 +81,20 @@ export function useTags() {
   return useQuery({
     queryKey: ["tags"],
     queryFn: () => apiFetch<TagResponse[]>("/tags"),
+  })
+}
+
+export function useRooms() {
+  return useQuery({
+    queryKey: ["rooms"],
+    queryFn: () => apiFetch<RoomResponse[]>("/rooms"),
+  })
+}
+
+export function useEvents() {
+  return useQuery({
+    queryKey: ["events"],
+    queryFn: () => apiFetch<EventResponse[]>("/events"),
   })
 }
 
@@ -168,6 +188,64 @@ export function useLogAttendance(groupId: string) {
       void qc.invalidateQueries({ queryKey: ["groups"] })
       void qc.invalidateQueries({ queryKey: ["dashboard"] })
     },
+  })
+}
+
+export function useCreateRoom() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RoomCreateInput) =>
+      apiFetch<RoomResponse>("/rooms", { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["rooms"] }),
+  })
+}
+
+export function useUpdateRoom() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: RoomUpdateInput & { id: string }) =>
+      apiFetch<RoomResponse>(`/rooms/${id}`, { method: "PATCH", body: input }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["rooms"] })
+      void qc.invalidateQueries({ queryKey: ["events"] })
+    },
+  })
+}
+
+export function useDeleteRoom() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/rooms/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["rooms"] })
+      void qc.invalidateQueries({ queryKey: ["events"] })
+    },
+  })
+}
+
+export function useCreateEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: EventCreateInput) =>
+      apiFetch<EventResponse>("/events", { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["events"] }),
+  })
+}
+
+export function useUpdateEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: EventUpdateInput & { id: string }) =>
+      apiFetch<EventResponse>(`/events/${id}`, { method: "PATCH", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["events"] }),
+  })
+}
+
+export function useDeleteEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/events/${id}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["events"] }),
   })
 }
 

@@ -1,4 +1,14 @@
-import { LayoutDashboard, Users, Sprout, Leaf, Tags, MailPlus, Send } from "lucide-react"
+import {
+  LayoutDashboard,
+  Users,
+  Sprout,
+  Leaf,
+  Tags,
+  MailPlus,
+  Send,
+  CalendarDays,
+  DoorOpen,
+} from "lucide-react"
 import { NavLink } from "react-router-dom"
 import {
   Sidebar,
@@ -21,6 +31,8 @@ const nav: NavItem[] = [
   { title: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { title: "Small Groups", to: "/groups", icon: Sprout },
   { title: "Members", to: "/members", icon: Users },
+  { title: "Events", to: "/events", icon: CalendarDays },
+  { title: "Rooms", to: "/rooms", icon: DoorOpen },
   { title: "Tags", to: "/tags", icon: Tags },
 ]
 

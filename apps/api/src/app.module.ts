@@ -14,6 +14,8 @@ import { TagsModule } from "./tags/tags.module"
 import { MembersModule } from "./members/members.module"
 import { GroupsModule } from "./groups/groups.module"
 import { HouseholdsModule } from "./households/households.module"
+import { RoomsModule } from "./rooms/rooms.module"
+import { EventsModule } from "./events/events.module"
 import { DashboardModule } from "./dashboard/dashboard.module"
 import { InvitesModule } from "./invites/invites.module"
 import { TelegramModule } from "./telegram/telegram.module"
@@ -39,6 +41,8 @@ import { TelegramModule } from "./telegram/telegram.module"
     MembersModule,
     GroupsModule,
     HouseholdsModule,
+    RoomsModule,
+    EventsModule,
     DashboardModule,
     InvitesModule,
     TelegramModule,

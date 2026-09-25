@@ -8,6 +8,8 @@ import { SmallGroupsPage } from "@/pages/small-groups"
 import { GroupDetailPage } from "@/pages/group-detail"
 import { MembersPage } from "@/pages/members"
 import { TagsPage } from "@/pages/tags"
+import { RoomsPage } from "@/pages/rooms"
+import { EventsPage } from "@/pages/events"
 import { InvitesPage } from "@/pages/invites"
 import { TelegramPage } from "@/pages/telegram"
 import { LoginPage } from "@/pages/auth/login"
@@ -38,6 +40,8 @@ export default function App() {
           <Route path="/groups/:id" element={<GroupDetailPage />} />
           <Route path="/members" element={<MembersPage />} />
           <Route path="/tags" element={<TagsPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/rooms" element={<RoomsPage />} />
           <Route path="/settings/invites" element={<InvitesPage />} />
           <Route path="/settings/telegram" element={<TelegramPage />} />
         </Route>
