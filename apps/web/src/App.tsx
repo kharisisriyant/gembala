@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom"
 import { Toaster } from "@/components/ui/sonner"
-import { AuthProvider, RequireAuth } from "@/lib/auth"
+import { AuthProvider, RequireAuth, RequirePermission, RequireSystemAdmin } from "@/lib/auth"
 import { Layout } from "@/components/layout"
 import { DashboardPage } from "@/pages/dashboard"
 import { LandingPage } from "@/pages/landing"
@@ -11,6 +11,8 @@ import { TagsPage } from "@/pages/tags"
 import { RoomsPage } from "@/pages/rooms"
 import { EventsPage } from "@/pages/events"
 import { InvitesPage } from "@/pages/invites"
+import { RolesPage } from "@/pages/roles"
+import { TeamPage } from "@/pages/team"
 import { TelegramPage } from "@/pages/telegram"
 import { LoginPage } from "@/pages/auth/login"
 import { RegisterPage } from "@/pages/auth/register"
@@ -42,7 +44,30 @@ export default function App() {
           <Route path="/tags" element={<TagsPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/rooms" element={<RoomsPage />} />
-          <Route path="/settings/invites" element={<InvitesPage />} />
+          <Route
+            path="/settings/invites"
+            element={
+              <RequirePermission resource="invites" action="read">
+                <InvitesPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/settings/team"
+            element={
+              <RequireSystemAdmin>
+                <TeamPage />
+              </RequireSystemAdmin>
+            }
+          />
+          <Route
+            path="/settings/roles"
+            element={
+              <RequireSystemAdmin>
+                <RolesPage />
+              </RequireSystemAdmin>
+            }
+          />
           <Route path="/settings/telegram" element={<TelegramPage />} />
         </Route>
       </Routes>

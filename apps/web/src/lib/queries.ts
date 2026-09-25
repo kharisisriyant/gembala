@@ -28,6 +28,7 @@ import type {
   TagCreateInput,
   TagResponse,
   TagUpdateInput,
+  TeamMemberResponse,
   TelegramLinkStatusResponse,
 } from "@gembala/shared"
 import { apiFetch } from "./api"
@@ -311,6 +312,22 @@ export function useDeleteRole() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/roles/${id}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["roles"] }),
+  })
+}
+
+export function useTeam() {
+  return useQuery({
+    queryKey: ["team"],
+    queryFn: () => apiFetch<TeamMemberResponse[]>("/team"),
+  })
+}
+
+export function useUpdateMembershipRoles() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ membershipId, roleIds }: { membershipId: string; roleIds: string[] }) =>
+      apiFetch<void>(`/team/${membershipId}/roles`, { method: "PUT", body: { roleIds } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["team"] }),
   })
 }
 
