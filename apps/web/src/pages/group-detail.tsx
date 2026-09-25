@@ -17,12 +17,15 @@ import { MemberAvatar } from "@/components/member-avatar"
 import { Tag, TagList } from "@/components/tag"
 import { LogAttendanceDialog } from "@/components/log-attendance-dialog"
 import { EditGroupDialog } from "@/components/edit-group-dialog"
+import { useAuth } from "@/lib/auth"
 import { useGroup } from "@/lib/queries"
 import { ApiError } from "@/lib/api"
 import { formatDate } from "@/lib/helpers"
 
 export function GroupDetailPage() {
   const { id } = useParams()
+  const { hasPermission } = useAuth()
+  const canUpdate = hasPermission("groups", "update")
   const { data: group, isLoading, error } = useGroup(id)
 
   if (isLoading) {
@@ -61,25 +64,27 @@ export function GroupDetailPage() {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <EditGroupDialog
-            group={{
-              id: group.id,
-              name: group.name,
-              leaderId: group.leader?.id ?? "",
-              scopeTag: group.scopeTag,
-              memberIds: group.members.map((m) => m.id),
-              schedule: group.schedule,
-              location: group.location,
-            }}
-            trigger={
-              <Button variant="outline">
-                <Pencil className="size-4" /> Edit
-              </Button>
-            }
-          />
-          <LogAttendanceDialog group={group} />
-        </div>
+        {canUpdate && (
+          <div className="flex items-center gap-2">
+            <EditGroupDialog
+              group={{
+                id: group.id,
+                name: group.name,
+                leaderId: group.leader?.id ?? "",
+                scopeTag: group.scopeTag,
+                memberIds: group.members.map((m) => m.id),
+                schedule: group.schedule,
+                location: group.location,
+              }}
+              trigger={
+                <Button variant="outline">
+                  <Pencil className="size-4" /> Edit
+                </Button>
+              }
+            />
+            <LogAttendanceDialog group={group} />
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

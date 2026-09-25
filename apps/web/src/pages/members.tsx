@@ -41,7 +41,9 @@ const statusVariant: Record<
 }
 
 export function MembersPage() {
-  const { me } = useAuth()
+  const { me, hasPermission } = useAuth()
+  const canCreate = hasPermission("members", "create")
+  const canUpdate = hasPermission("members", "update")
   const { data: visibleMembers = [], isLoading } = useMembers()
   const { data: groups = [] } = useGroups()
   const [query, setQuery] = useState("")
@@ -76,16 +78,18 @@ export function MembersPage() {
             : "Everyone in the church directory."
         }
         action={
-          <div className="flex items-center gap-2">
-            <ImportMembersDialog
-              trigger={
-                <Button variant="outline">
-                  <Upload className="size-4" /> Import CSV
-                </Button>
-              }
-            />
-            <AddMemberDialog trigger={<Button><UserPlus className="size-4" /> Add member</Button>} />
-          </div>
+          canCreate ? (
+            <div className="flex items-center gap-2">
+              <ImportMembersDialog
+                trigger={
+                  <Button variant="outline">
+                    <Upload className="size-4" /> Import CSV
+                  </Button>
+                }
+              />
+              <AddMemberDialog trigger={<Button><UserPlus className="size-4" /> Add member</Button>} />
+            </div>
+          ) : undefined
         }
       />
 
@@ -186,14 +190,16 @@ export function MembersPage() {
                       </SheetDescription>
                     </div>
                   </div>
-                  <EditMemberDialog
-                    member={selected}
-                    trigger={
-                      <Button variant="outline" size="sm">
-                        <Pencil className="size-4" /> Edit
-                      </Button>
-                    }
-                  />
+                  {canUpdate && (
+                    <EditMemberDialog
+                      member={selected}
+                      trigger={
+                        <Button variant="outline" size="sm">
+                          <Pencil className="size-4" /> Edit
+                        </Button>
+                      }
+                    />
+                  )}
                 </div>
               </SheetHeader>
               <div className="space-y-6 px-4">

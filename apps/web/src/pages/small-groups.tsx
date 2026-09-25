@@ -19,7 +19,9 @@ import { useGroups } from "@/lib/queries"
 import { formatShort } from "@/lib/helpers"
 
 export function SmallGroupsPage() {
-  const { me } = useAuth()
+  const { me, hasPermission } = useAuth()
+  const canCreate = hasPermission("groups", "create")
+  const canUpdate = hasPermission("groups", "update")
   const { data: visibleGroups = [], isLoading } = useGroups()
 
   return (
@@ -31,7 +33,7 @@ export function SmallGroupsPage() {
             ? `Groups scoped to #${me.scopeTags.join(" #")}.`
             : "Every komsel and connect group in the church."
         }
-        action={<AddGroupDialog />}
+        action={canCreate ? <AddGroupDialog /> : undefined}
       />
 
       <AttendanceHeatmap />
@@ -51,31 +53,33 @@ export function SmallGroupsPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Tag name={g.scopeTag} />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="size-7">
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <EditGroupDialog
-                        group={{
-                          id: g.id,
-                          name: g.name,
-                          leaderId: g.leader?.id ?? "",
-                          scopeTag: g.scopeTag,
-                          memberIds: g.members.map((m) => m.id),
-                          schedule: g.schedule,
-                          location: g.location,
-                        }}
-                        trigger={
-                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            <Pencil className="size-4" /> Edit group
-                          </DropdownMenuItem>
-                        }
-                      />
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {canUpdate && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-7">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <EditGroupDialog
+                          group={{
+                            id: g.id,
+                            name: g.name,
+                            leaderId: g.leader?.id ?? "",
+                            scopeTag: g.scopeTag,
+                            memberIds: g.members.map((m) => m.id),
+                            schedule: g.schedule,
+                            location: g.location,
+                          }}
+                          trigger={
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Pencil className="size-4" /> Edit group
+                            </DropdownMenuItem>
+                          }
+                        />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
             </CardHeader>
