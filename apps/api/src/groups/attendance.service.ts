@@ -1,15 +1,15 @@
 import { BadRequestException, Injectable } from "@nestjs/common"
 import type { SessionCreateInput, SessionResponse } from "@gembala/shared"
-import { eq } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import { attendanceSessions, groupMembers, sessionAttendance } from "../db/schema"
 import type { AuthContext } from "../authz/auth-context"
 import { GroupsService } from "./groups.service"
+import { AttendanceRepository } from "./attendance.repository"
 
 @Injectable()
 export class AttendanceService {
   constructor(
     @InjectDb() private readonly db: Db,
+    private readonly attendance: AttendanceRepository,
     private readonly groups: GroupsService,
   ) {}
 
@@ -20,10 +20,7 @@ export class AttendanceService {
   ): Promise<SessionResponse> {
     await this.groups.requireVisibleGroup(auth, groupId)
 
-    const rosterRows = await this.db
-      .select({ memberId: groupMembers.memberId })
-      .from(groupMembers)
-      .where(eq(groupMembers.groupId, groupId))
+    const rosterRows = await this.attendance.groupMemberIds(groupId)
     const roster = new Set(rosterRows.map((r) => r.memberId))
     const outsiders = input.presentIds.filter((id) => !roster.has(id))
     if (outsiders.length > 0) {
@@ -31,21 +28,17 @@ export class AttendanceService {
     }
 
     const created = await this.db.transaction(async (tx) => {
-      const [row] = await tx
-        .insert(attendanceSessions)
-        .values({
+      const row = await this.attendance.insertSession(
+        {
           orgId: auth.orgId,
           groupId,
           date: input.date,
           topic: input.topic,
           prayerNotes: input.prayerNotes,
-        })
-        .returning()
-      if (input.presentIds.length > 0) {
-        await tx.insert(sessionAttendance).values(
-          input.presentIds.map((memberId) => ({ sessionId: row.id, memberId })),
-        )
-      }
+        },
+        tx,
+      )
+      await this.attendance.insertAttendance(row.id, input.presentIds, tx)
       return row
     })
 

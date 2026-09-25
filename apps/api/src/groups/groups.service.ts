@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common"
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import type {
   AttendanceHeatmapResponse,
   GroupCreateInput,
@@ -11,20 +7,12 @@ import type {
   GroupUpdateInput,
   SessionResponse,
 } from "@gembala/shared"
-import { and, eq, gte, inArray } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import {
-  attendanceSessions,
-  groupMembers,
-  groups,
-  members,
-  sessionAttendance,
-  tags,
-} from "../db/schema"
 import { ScopeService } from "../authz/scope.service"
 import type { AuthContext } from "../authz/auth-context"
 import { TagsService } from "../tags/tags.service"
 import { MembersService } from "../members/members.service"
+import { GroupsRepository } from "./groups.repository"
 
 type GroupRow = {
   id: string
@@ -39,25 +27,14 @@ type GroupRow = {
 export class GroupsService {
   constructor(
     @InjectDb() private readonly db: Db,
+    private readonly groups: GroupsRepository,
     private readonly scope: ScopeService,
     private readonly tags: TagsService,
     private readonly members: MembersService,
   ) {}
 
   private async orgGroups(orgId: string): Promise<GroupRow[]> {
-    const rows = await this.db
-      .select({
-        id: groups.id,
-        name: groups.name,
-        leaderMemberId: groups.leaderMemberId,
-        scopeTagName: tags.name,
-        schedule: groups.schedule,
-        location: groups.location,
-      })
-      .from(groups)
-      .innerJoin(tags, eq(tags.id, groups.scopeTagId))
-      .where(eq(groups.orgId, orgId))
-    return rows
+    return this.groups.orgGroupsWithScopeTag(orgId)
   }
 
   async list(auth: AuthContext): Promise<GroupSummaryResponse[]> {
@@ -68,11 +45,7 @@ export class GroupsService {
     if (visible.length === 0) return []
     const ids = visible.map((g) => g.id)
 
-    const memberRows = await this.db
-      .select({ groupId: groupMembers.groupId, memberId: members.id, name: members.name })
-      .from(groupMembers)
-      .innerJoin(members, eq(members.id, groupMembers.memberId))
-      .where(inArray(groupMembers.groupId, ids))
+    const memberRows = await this.groups.membersByGroupIds(ids)
     const membersByGroup = new Map<string, { id: string; name: string }[]>()
     for (const r of memberRows) {
       const list = membersByGroup.get(r.groupId) ?? []
@@ -81,16 +54,10 @@ export class GroupsService {
     }
 
     const leaderIds = [...new Set(visible.map((g) => g.leaderMemberId))]
-    const leaderRows = await this.db
-      .select({ id: members.id, name: members.name })
-      .from(members)
-      .where(inArray(members.id, leaderIds))
+    const leaderRows = await this.groups.membersByIds(leaderIds)
     const leaderById = new Map(leaderRows.map((r) => [r.id, r]))
 
-    const sessionRows = await this.db
-      .select({ id: attendanceSessions.id, groupId: attendanceSessions.groupId, date: attendanceSessions.date })
-      .from(attendanceSessions)
-      .where(inArray(attendanceSessions.groupId, ids))
+    const sessionRows = await this.groups.lastSessionsByGroupIds(ids)
     const lastSessionByGroup = new Map<string, { id: string; date: string }>()
     for (const r of sessionRows) {
       const prev = lastSessionByGroup.get(r.groupId)
@@ -98,15 +65,10 @@ export class GroupsService {
     }
 
     const lastSessionIds = [...lastSessionByGroup.values()].map((s) => s.id)
+    const presentRows = await this.groups.presentCountsBySessionIds(lastSessionIds)
     const presentCountBySession = new Map<string, number>()
-    if (lastSessionIds.length > 0) {
-      const presentRows = await this.db
-        .select({ sessionId: sessionAttendance.sessionId })
-        .from(sessionAttendance)
-        .where(inArray(sessionAttendance.sessionId, lastSessionIds))
-      for (const r of presentRows) {
-        presentCountBySession.set(r.sessionId, (presentCountBySession.get(r.sessionId) ?? 0) + 1)
-      }
+    for (const r of presentRows) {
+      presentCountBySession.set(r.sessionId, (presentCountBySession.get(r.sessionId) ?? 0) + 1)
     }
 
     return visible
@@ -139,27 +101,24 @@ export class GroupsService {
 
     // leader is always part of the roster, matching the prototype's data
     const memberIds = [...new Set([input.leaderId, ...input.memberIds])]
-    const memberRows = await this.db
-      .select({ id: members.id, name: members.name })
-      .from(members)
-      .where(and(eq(members.orgId, auth.orgId), inArray(members.id, memberIds)))
+    const memberRows = await this.groups.membersInOrgByIds(auth.orgId, memberIds)
     if (memberRows.length !== memberIds.length) {
       throw new BadRequestException("one or more member ids do not exist in this organization")
     }
 
     const created = await this.db.transaction(async (tx) => {
-      const [row] = await tx
-        .insert(groups)
-        .values({
+      const row = await this.groups.insert(
+        {
           orgId: auth.orgId,
           name: input.name,
           leaderMemberId: input.leaderId,
           scopeTagId,
           schedule: input.schedule,
           location: input.location,
-        })
-        .returning()
-      await tx.insert(groupMembers).values(memberIds.map((memberId) => ({ groupId: row.id, memberId })))
+        },
+        tx,
+      )
+      await this.groups.insertGroupMembers(row.id, memberIds, tx)
       return row
     })
 
@@ -193,38 +152,26 @@ export class GroupsService {
     const rosterChanged = input.memberIds !== undefined || input.leaderId !== undefined
     let finalMemberIds: string[] = []
     if (rosterChanged) {
-      const base =
-        input.memberIds ??
-        (
-          await this.db
-            .select({ memberId: groupMembers.memberId })
-            .from(groupMembers)
-            .where(eq(groupMembers.groupId, groupId))
-        ).map((r) => r.memberId)
+      const base = input.memberIds ?? (await this.groups.groupMemberIds(groupId)).map((r) => r.memberId)
       // leader is always part of the roster, matching create()
       finalMemberIds = [...new Set([finalLeaderId, ...base])]
-      const memberRows = await this.db
-        .select({ id: members.id })
-        .from(members)
-        .where(and(eq(members.orgId, auth.orgId), inArray(members.id, finalMemberIds)))
+      const memberRows = await this.groups.membersInOrgByIds(auth.orgId, finalMemberIds)
       if (memberRows.length !== finalMemberIds.length) {
         throw new BadRequestException("one or more member ids do not exist in this organization")
       }
     }
 
     await this.db.transaction(async (tx) => {
-      const patch: Partial<typeof groups.$inferInsert> = {}
+      const patch: Partial<{ name: string; leaderMemberId: string; scopeTagId: string; schedule: string; location: string }> = {}
       if (input.name !== undefined) patch.name = input.name
       if (input.leaderId !== undefined) patch.leaderMemberId = input.leaderId
       if (scopeTagId !== undefined) patch.scopeTagId = scopeTagId
       if (input.schedule !== undefined) patch.schedule = input.schedule
       if (input.location !== undefined) patch.location = input.location
-      if (Object.keys(patch).length > 0) {
-        await tx.update(groups).set(patch).where(and(eq(groups.id, groupId), eq(groups.orgId, auth.orgId)))
-      }
+      await this.groups.update(auth.orgId, groupId, patch, tx)
+
       if (rosterChanged) {
-        await tx.delete(groupMembers).where(eq(groupMembers.groupId, groupId))
-        await tx.insert(groupMembers).values(finalMemberIds.map((memberId) => ({ groupId, memberId })))
+        await this.groups.replaceGroupMembers(groupId, finalMemberIds, tx)
       }
     })
 
@@ -245,10 +192,7 @@ export class GroupsService {
   async detail(auth: AuthContext, groupId: string): Promise<GroupDetailResponse> {
     const group = await this.requireVisibleGroup(auth, groupId)
 
-    const rosterRows = await this.db
-      .select({ memberId: groupMembers.memberId })
-      .from(groupMembers)
-      .where(eq(groupMembers.groupId, groupId))
+    const rosterRows = await this.groups.groupMemberIds(groupId)
     const rosterIds = new Set(rosterRows.map((r) => r.memberId))
     const orgMembers = await this.members.orgMembersWithTags(auth.orgId)
     const roster = orgMembers.filter((m) => rosterIds.has(m.id))
@@ -279,21 +223,10 @@ export class GroupsService {
   }
 
   async sessionsForGroup(groupId: string): Promise<SessionResponse[]> {
-    const sessionRows = await this.db
-      .select()
-      .from(attendanceSessions)
-      .where(eq(attendanceSessions.groupId, groupId))
+    const sessionRows = await this.groups.sessionsByGroupId(groupId)
     if (sessionRows.length === 0) return []
 
-    const presentRows = await this.db
-      .select({ sessionId: sessionAttendance.sessionId, memberId: sessionAttendance.memberId })
-      .from(sessionAttendance)
-      .where(
-        inArray(
-          sessionAttendance.sessionId,
-          sessionRows.map((s) => s.id),
-        ),
-      )
+    const presentRows = await this.groups.presentRowsBySessionIds(sessionRows.map((s) => s.id))
     const presentBySession = new Map<string, string[]>()
     for (const r of presentRows) {
       const list = presentBySession.get(r.sessionId) ?? []
@@ -323,34 +256,18 @@ export class GroupsService {
     if (visible.length === 0) return { weeks, groups: [] }
     const ids = visible.map((g) => g.id)
 
-    const rosterRows = await this.db
-      .select({ groupId: groupMembers.groupId })
-      .from(groupMembers)
-      .where(inArray(groupMembers.groupId, ids))
+    const rosterRows = await this.groups.rosterRowsByGroupIds(ids)
     const memberCountByGroup = new Map<string, number>()
     for (const r of rosterRows) {
       memberCountByGroup.set(r.groupId, (memberCountByGroup.get(r.groupId) ?? 0) + 1)
     }
 
-    const sessionRows = await this.db
-      .select({ id: attendanceSessions.id, groupId: attendanceSessions.groupId, date: attendanceSessions.date })
-      .from(attendanceSessions)
-      .where(and(inArray(attendanceSessions.groupId, ids), gte(attendanceSessions.date, weeks[0].start)))
+    const sessionRows = await this.groups.sessionRowsSince(ids, weeks[0].start)
 
+    const presentRows = await this.groups.presentCountsBySessionIds(sessionRows.map((s) => s.id))
     const presentCountBySession = new Map<string, number>()
-    if (sessionRows.length > 0) {
-      const presentRows = await this.db
-        .select({ sessionId: sessionAttendance.sessionId })
-        .from(sessionAttendance)
-        .where(
-          inArray(
-            sessionAttendance.sessionId,
-            sessionRows.map((s) => s.id),
-          ),
-        )
-      for (const r of presentRows) {
-        presentCountBySession.set(r.sessionId, (presentCountBySession.get(r.sessionId) ?? 0) + 1)
-      }
+    for (const r of presentRows) {
+      presentCountBySession.set(r.sessionId, (presentCountBySession.get(r.sessionId) ?? 0) + 1)
     }
 
     type WeekAcc = { present: number; sessions: number }
