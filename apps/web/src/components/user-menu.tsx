@@ -16,6 +16,7 @@ export function UserMenu() {
   const { me, logout } = useAuth()
   const navigate = useNavigate()
   if (!me) return null
+  const roleSummary = me.isSystemAdmin ? "Admin" : me.roles.map((r) => r.name).join(", ") || "No roles"
 
   return (
     <DropdownMenu>
@@ -24,7 +25,7 @@ export function UserMenu() {
           <MemberAvatar name={me.user.name} className="size-7" />
           <div className="hidden text-left leading-tight sm:block">
             <div className="text-sm font-medium">{me.user.name}</div>
-            <div className="text-muted-foreground text-xs">{me.roleLabel}</div>
+            <div className="text-muted-foreground text-xs">{roleSummary}</div>
           </div>
           <ChevronsUpDown className="text-muted-foreground size-4" />
         </Button>
@@ -35,7 +36,7 @@ export function UserMenu() {
           <div className="text-muted-foreground text-xs">{me.user.email}</div>
           <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
             <ShieldCheck className="size-3.5" />
-            {me.org.name} · {me.roleLabel}
+            {me.org.name} · {roleSummary}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

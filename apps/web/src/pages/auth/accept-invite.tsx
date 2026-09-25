@@ -62,7 +62,7 @@ export function AcceptInvitePage() {
   return (
     <AuthShell
       title={`Join ${invite.orgName}`}
-      description={`You've been invited as ${invite.roleLabel} (${invite.email}).`}
+      description={`You've been invited as ${invite.roles.map((r) => r.name).join(", ")} (${invite.email}).`}
     >
       <form onSubmit={submit} className="space-y-4">
         <div>
