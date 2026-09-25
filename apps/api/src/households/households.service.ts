@@ -5,39 +5,20 @@ import type {
   HouseholdResponse,
   HouseholdUpdateInput,
 } from "@gembala/shared"
-import { and, eq, inArray } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import { households, members } from "../db/schema"
 import { ScopeService } from "../authz/scope.service"
 import type { AuthContext } from "../authz/auth-context"
 import { MembersService } from "../members/members.service"
-
-type HouseholdRow = {
-  id: string
-  name: string
-  address: string
-  primaryContactMemberId: string | null
-}
+import { HouseholdsRepository, type HouseholdSummaryRow } from "./households.repository"
 
 @Injectable()
 export class HouseholdsService {
   constructor(
     @InjectDb() private readonly db: Db,
+    private readonly households: HouseholdsRepository,
     private readonly scope: ScopeService,
     private readonly members: MembersService,
   ) {}
-
-  private async orgHouseholds(orgId: string): Promise<HouseholdRow[]> {
-    return this.db
-      .select({
-        id: households.id,
-        name: households.name,
-        address: households.address,
-        primaryContactMemberId: households.primaryContactMemberId,
-      })
-      .from(households)
-      .where(eq(households.orgId, orgId))
-  }
 
   // Builds the response for every household in the org, with rosters
   // filtered to the caller's scope, plus the unfiltered member count so
@@ -47,15 +28,12 @@ export class HouseholdsService {
   private async responses(
     auth: AuthContext,
   ): Promise<{ response: HouseholdResponse; totalMemberCount: number }[]> {
-    const rows = await this.orgHouseholds(auth.orgId)
+    const rows = await this.households.listSummariesByOrg(auth.orgId)
     if (rows.length === 0) return []
 
     const scope = await this.scope.expandedScope(auth)
     const orgMembers = await this.members.orgMembersWithTags(auth.orgId)
-    const memberRows = await this.db
-      .select({ id: members.id, householdId: members.householdId })
-      .from(members)
-      .where(eq(members.orgId, auth.orgId))
+    const memberRows = await this.households.memberHouseholdIdsByOrg(auth.orgId)
     const visibleById = new Map(
       orgMembers
         .filter((m) => this.scope.memberVisible(scope, m.tags))
@@ -74,7 +52,7 @@ export class HouseholdsService {
       rosterByHousehold.set(m.householdId, list)
     }
 
-    return rows.map((h) => {
+    return rows.map((h: HouseholdSummaryRow) => {
       const roster = (rosterByHousehold.get(h.id) ?? []).sort((a, b) => a.name.localeCompare(b.name))
       const primaryContact = h.primaryContactMemberId
         ? (visibleById.get(h.primaryContactMemberId) ?? null)
@@ -146,32 +124,24 @@ export class HouseholdsService {
     await this.assertAssignable(auth, memberIds)
 
     const created = await this.db.transaction(async (tx) => {
-      const [row] = await tx
-        .insert(households)
-        .values({
+      const row = await this.households.insert(
+        {
           orgId: auth.orgId,
           name: input.name,
           address: input.address,
           primaryContactMemberId: input.primaryContactMemberId,
-        })
-        .returning()
-      if (memberIds.length > 0) {
-        await tx
-          .update(members)
-          .set({ householdId: row.id })
-          .where(and(eq(members.orgId, auth.orgId), inArray(members.id, memberIds)))
-      }
+        },
+        tx,
+      )
+      await this.households.assignMembersToHousehold(auth.orgId, memberIds, row.id, tx)
       return row
     })
 
     return this.detail(auth, created.id)
   }
 
-  private async requireHousehold(auth: AuthContext, id: string): Promise<HouseholdRow> {
-    const [row] = await this.db
-      .select()
-      .from(households)
-      .where(and(eq(households.id, id), eq(households.orgId, auth.orgId)))
+  private async requireHousehold(auth: AuthContext, id: string) {
+    const row = await this.households.findByIdInOrg(auth.orgId, id)
     if (!row) throw new NotFoundException("household not found")
     return row
   }
@@ -180,24 +150,19 @@ export class HouseholdsService {
     await this.requireHousehold(auth, id)
 
     if (input.primaryContactMemberId) {
-      const [member] = await this.db
-        .select({ householdId: members.householdId })
-        .from(members)
-        .where(and(eq(members.id, input.primaryContactMemberId), eq(members.orgId, auth.orgId)))
+      const member = await this.households.findMemberHouseholdId(auth.orgId, input.primaryContactMemberId)
       if (!member || member.householdId !== id) {
         throw new BadRequestException("primary contact must be a member of this household")
       }
     }
 
-    const patch: Partial<typeof households.$inferInsert> = {}
+    const patch: Parameters<HouseholdsRepository["update"]>[1] = {}
     if (input.name !== undefined) patch.name = input.name
     if (input.address !== undefined) patch.address = input.address
     if (input.primaryContactMemberId !== undefined) {
       patch.primaryContactMemberId = input.primaryContactMemberId
     }
-    if (Object.keys(patch).length > 0) {
-      await this.db.update(households).set(patch).where(eq(households.id, id))
-    }
+    await this.households.update(id, patch)
 
     return this.detail(auth, id)
   }
@@ -206,33 +171,21 @@ export class HouseholdsService {
     await this.requireHousehold(auth, householdId)
     await this.assertAssignable(auth, [memberId])
 
-    await this.db
-      .update(members)
-      .set({ householdId })
-      .where(and(eq(members.id, memberId), eq(members.orgId, auth.orgId)))
+    await this.households.setMemberHousehold(auth.orgId, memberId, householdId)
 
     return this.detail(auth, householdId)
   }
 
   async removeMember(auth: AuthContext, householdId: string, memberId: string): Promise<HouseholdResponse> {
     await this.requireHousehold(auth, householdId)
-    const [member] = await this.db
-      .select({ householdId: members.householdId })
-      .from(members)
-      .where(and(eq(members.id, memberId), eq(members.orgId, auth.orgId)))
+    const member = await this.households.findMemberHouseholdId(auth.orgId, memberId)
     if (!member || member.householdId !== householdId) {
       throw new NotFoundException("member not found in this household")
     }
 
-    await this.db
-      .update(members)
-      .set({ householdId: null })
-      .where(and(eq(members.id, memberId), eq(members.orgId, auth.orgId)))
+    await this.households.setMemberHousehold(auth.orgId, memberId, null)
     // clear primary contact if it pointed at the member we just removed
-    await this.db
-      .update(households)
-      .set({ primaryContactMemberId: null })
-      .where(and(eq(households.id, householdId), eq(households.primaryContactMemberId, memberId)))
+    await this.households.clearPrimaryContactIfMember(householdId, memberId)
 
     return this.detail(auth, householdId)
   }
