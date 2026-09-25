@@ -4,10 +4,11 @@ import { GroupsModule } from "../groups/groups.module"
 import { TelegramController } from "./telegram.controller"
 import { TelegramService } from "./telegram.service"
 import { TelegramAgentService } from "./telegram-agent.service"
+import { TelegramRepository } from "./telegram.repository"
 
 @Module({
   imports: [MembersModule, GroupsModule],
   controllers: [TelegramController],
-  providers: [TelegramService, TelegramAgentService],
+  providers: [TelegramService, TelegramAgentService, TelegramRepository],
 })
 export class TelegramModule {}

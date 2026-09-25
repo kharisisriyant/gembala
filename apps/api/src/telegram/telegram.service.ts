@@ -1,13 +1,11 @@
 import { Injectable, Logger, type OnModuleInit } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { randomBytes } from "node:crypto"
-import { and, eq, gt, isNull } from "drizzle-orm"
 import type { TelegramLinkStatusResponse } from "@gembala/shared"
-import { InjectDb, type Db } from "../db/drizzle.module"
-import { telegramLinkCodes, telegramLinks } from "../db/schema"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthContextService } from "../authz/auth-context.service"
 import { TelegramAgentService } from "./telegram-agent.service"
+import { TelegramRepository } from "./telegram.repository"
 
 const CODE_TTL_MS = 10 * 60 * 1000
 
@@ -28,7 +26,7 @@ export class TelegramService implements OnModuleInit {
   private readonly webhookUrl?: string
 
   constructor(
-    @InjectDb() private readonly db: Db,
+    private readonly links: TelegramRepository,
     private readonly config: ConfigService,
     private readonly authContext: AuthContextService,
     private readonly agent: TelegramAgentService,
@@ -66,21 +64,13 @@ export class TelegramService implements OnModuleInit {
   }
 
   async getStatus(auth: AuthContext): Promise<TelegramLinkStatusResponse> {
-    const [link] = await this.db
-      .select()
-      .from(telegramLinks)
-      .where(and(eq(telegramLinks.userId, auth.userId), isNull(telegramLinks.revokedAt)))
-      .limit(1)
+    const link = await this.links.findActiveLinkForUser(auth.userId)
 
     if (link) {
       return { linked: true, telegramUsername: link.telegramUsername }
     }
 
-    const [existing] = await this.db
-      .select()
-      .from(telegramLinkCodes)
-      .where(and(eq(telegramLinkCodes.userId, auth.userId), gt(telegramLinkCodes.expiresAt, new Date())))
-      .limit(1)
+    const existing = await this.links.findActiveCodeForUser(auth.userId)
 
     const codeRow = existing ?? (await this.createCode(auth.userId))
 
@@ -94,10 +84,7 @@ export class TelegramService implements OnModuleInit {
   }
 
   async revoke(auth: AuthContext): Promise<void> {
-    await this.db
-      .update(telegramLinks)
-      .set({ revokedAt: new Date() })
-      .where(and(eq(telegramLinks.userId, auth.userId), isNull(telegramLinks.revokedAt)))
+    await this.links.revokeActiveLinkForUser(auth.userId)
   }
 
   async handleUpdate(update: TelegramUpdate): Promise<void> {
@@ -126,11 +113,7 @@ export class TelegramService implements OnModuleInit {
   }
 
   private async handleFreeText(chatId: string, text: string): Promise<void> {
-    const [link] = await this.db
-      .select({ userId: telegramLinks.userId })
-      .from(telegramLinks)
-      .where(and(eq(telegramLinks.telegramChatId, chatId), isNull(telegramLinks.revokedAt)))
-      .limit(1)
+    const link = await this.links.findActiveLinkByChatId(chatId)
 
     if (!link) {
       await this.reply(
@@ -158,33 +141,24 @@ export class TelegramService implements OnModuleInit {
   private async createCode(userId: string) {
     const code = randomBytes(4).toString("hex").toUpperCase()
     const expiresAt = new Date(Date.now() + CODE_TTL_MS)
-    const [row] = await this.db.insert(telegramLinkCodes).values({ userId, code, expiresAt }).returning()
-    return row
+    return this.links.insertCode(userId, code, expiresAt)
   }
 
   private async consumeCode(chatId: string, username: string | null, code: string): Promise<void> {
-    const [alreadyLinked] = await this.db
-      .select()
-      .from(telegramLinks)
-      .where(and(eq(telegramLinks.telegramChatId, chatId), isNull(telegramLinks.revokedAt)))
-      .limit(1)
+    const alreadyLinked = await this.links.findActiveLinkRowByChatId(chatId)
     if (alreadyLinked) {
       await this.reply(chatId, "This Telegram account is already linked.")
       return
     }
 
-    const [codeRow] = await this.db
-      .select()
-      .from(telegramLinkCodes)
-      .where(and(eq(telegramLinkCodes.code, code), gt(telegramLinkCodes.expiresAt, new Date())))
-      .limit(1)
+    const codeRow = await this.links.findActiveCodeByCode(code)
     if (!codeRow) {
       await this.reply(chatId, "That code is invalid or expired. Generate a new one from the Integrations page.")
       return
     }
 
     try {
-      await this.db.insert(telegramLinks).values({
+      await this.links.insertLink({
         userId: codeRow.userId,
         telegramChatId: chatId,
         telegramUsername: username,
@@ -195,7 +169,7 @@ export class TelegramService implements OnModuleInit {
       return
     }
 
-    await this.db.delete(telegramLinkCodes).where(eq(telegramLinkCodes.id, codeRow.id))
+    await this.links.deleteCode(codeRow.id)
     await this.reply(chatId, "Connected! Your Gembala account is now linked.")
   }
 
