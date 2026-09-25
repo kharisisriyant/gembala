@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "groups": "Small Groups",
+    "members": "Members",
+    "events": "Events",
+    "rooms": "Rooms",
+    "tags": "Tags",
+    "invites": "Invites",
+    "team": "Team",
+    "roles": "Roles",
+    "telegram": "Telegram",
+    "manage": "Manage",
+    "personal": "Personal"
+  },
+  "sidebar": {
+    "tagline": "Shepherd your people"
+  },
+  "roles": {
+    "admin": "Admin",
+    "noRoles": "No roles"
+  },
+  "scope": {
+    "fullAccess": "Full access",
+    "scopedTo": "Scoped to",
+    "memberSuffix": "members",
+    "members": "{{count}} members"
+  },
+  "userMenu": {
+    "signOut": "Sign out"
+  },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
+  "language": {
+    "toggle": "Switch language"
+  }
+}

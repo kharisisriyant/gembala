@@ -1,0 +1,30 @@
+{
+  "welcome": "Selamat datang kembali, {{name}}",
+  "subtitle": "Begini kondisi jemaat Anda minggu ini.",
+  "loading": "Memuat…",
+  "stats": {
+    "members": "Jemaat",
+    "membersHint": "{{count}} aktif",
+    "groups": "Komsel",
+    "groupsHint": "dalam pengawasan Anda",
+    "avgAttendance": "Rata-rata kehadiran",
+    "avgAttendanceHint": "per pertemuan",
+    "newcomers": "Jemaat baru",
+    "newcomersHint": "60 hari terakhir"
+  },
+  "recentMeetings": {
+    "title": "Pertemuan komsel terbaru",
+    "subtitle": "Kehadiran & topik dari komsel Anda",
+    "viewAll": "Lihat semua",
+    "empty": "Belum ada pertemuan tercatat.",
+    "came": "{{count}} hadir"
+  },
+  "tagBreakdown": {
+    "title": "Rincian tag",
+    "subtitle": "Siapa yang ada dalam cakupan Anda"
+  },
+  "prayerNotes": {
+    "title": "Catatan doa terbaru",
+    "empty": "Belum ada catatan doa."
+  }
+}

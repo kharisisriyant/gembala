@@ -1,4 +1,5 @@
 import { Users, Sprout, CalendarCheck, UserPlus, TrendingUp, HeartHandshake } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,6 +40,7 @@ function Stat({
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation("dashboard")
   const { me } = useAuth()
   const { data, isLoading } = useDashboard()
 
@@ -47,11 +49,8 @@ export function DashboardPage() {
   if (isLoading || !data) {
     return (
       <div>
-        <PageHeader
-          title={`Welcome back, ${firstName}`}
-          subtitle="Here's how your people are doing this week."
-        />
-        <p className="text-muted-foreground text-sm">Loading…</p>
+        <PageHeader title={t("welcome", { name: firstName })} subtitle={t("subtitle")} />
+        <p className="text-muted-foreground text-sm">{t("loading")}</p>
       </div>
     )
   }
@@ -60,32 +59,49 @@ export function DashboardPage() {
 
   return (
     <div>
-      <PageHeader
-        title={`Welcome back, ${firstName}`}
-        subtitle="Here's how your people are doing this week."
-      />
+      <PageHeader title={t("welcome", { name: firstName })} subtitle={t("subtitle")} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat icon={Users} label="Members" value={data.memberCount} hint={`${data.activeCount} active`} />
-        <Stat icon={Sprout} label="Small Groups" value={data.groupCount} hint="in your care" />
-        <Stat icon={CalendarCheck} label="Avg. attendance" value={data.avgAttendance} hint="per meeting" />
-        <Stat icon={UserPlus} label="Newcomers" value={data.newcomerCount} hint="last 60 days" />
+        <Stat
+          icon={Users}
+          label={t("stats.members")}
+          value={data.memberCount}
+          hint={t("stats.membersHint", { count: data.activeCount })}
+        />
+        <Stat
+          icon={Sprout}
+          label={t("stats.groups")}
+          value={data.groupCount}
+          hint={t("stats.groupsHint")}
+        />
+        <Stat
+          icon={CalendarCheck}
+          label={t("stats.avgAttendance")}
+          value={data.avgAttendance}
+          hint={t("stats.avgAttendanceHint")}
+        />
+        <Stat
+          icon={UserPlus}
+          label={t("stats.newcomers")}
+          value={data.newcomerCount}
+          hint={t("stats.newcomersHint")}
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent group meetings</CardTitle>
-              <CardDescription>Attendance & topics from your groups</CardDescription>
+              <CardTitle>{t("recentMeetings.title")}</CardTitle>
+              <CardDescription>{t("recentMeetings.subtitle")}</CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/groups">View all</Link>
+              <Link to="/groups">{t("recentMeetings.viewAll")}</Link>
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.recentSessions.length === 0 && (
-              <p className="text-muted-foreground text-sm">No meetings logged yet.</p>
+              <p className="text-muted-foreground text-sm">{t("recentMeetings.empty")}</p>
             )}
             {data.recentSessions.map((s) => (
               <Link
@@ -114,7 +130,7 @@ export function DashboardPage() {
                   )}
                 </div>
                 <Badge variant="secondary" className="shrink-0">
-                  {s.presentCount} came
+                  {t("recentMeetings.came", { count: s.presentCount })}
                 </Badge>
               </Link>
             ))}
@@ -125,9 +141,9 @@ export function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <TrendingUp className="text-primary size-4" /> Tag breakdown
+                <TrendingUp className="text-primary size-4" /> {t("tagBreakdown.title")}
               </CardTitle>
-              <CardDescription>Who's in your scope</CardDescription>
+              <CardDescription>{t("tagBreakdown.subtitle")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {data.tagHistogram.map(({ tag, count }) => (
@@ -145,7 +161,7 @@ export function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <HeartHandshake className="text-primary size-4" /> Latest prayer notes
+                <HeartHandshake className="text-primary size-4" /> {t("prayerNotes.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -158,7 +174,7 @@ export function DashboardPage() {
                 </div>
               ))}
               {data.prayerNotes.length === 0 && (
-                <p className="text-muted-foreground text-sm">No prayer notes yet.</p>
+                <p className="text-muted-foreground text-sm">{t("prayerNotes.empty")}</p>
               )}
             </CardContent>
           </Card>

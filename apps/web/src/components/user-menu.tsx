@@ -1,5 +1,6 @@
 import { ChevronsUpDown, LogOut, ShieldCheck } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,10 +14,13 @@ import { MemberAvatar } from "@/components/member-avatar"
 import { useAuth } from "@/lib/auth"
 
 export function UserMenu() {
+  const { t } = useTranslation()
   const { me, logout } = useAuth()
   const navigate = useNavigate()
   if (!me) return null
-  const roleSummary = me.isSystemAdmin ? "Admin" : me.roles.map((r) => r.name).join(", ") || "No roles"
+  const roleSummary = me.isSystemAdmin
+    ? t("roles.admin")
+    : me.roles.map((r) => r.name).join(", ") || t("roles.noRoles")
 
   return (
     <DropdownMenu>
@@ -46,7 +50,7 @@ export function UserMenu() {
             navigate("/login")
           }}
         >
-          <LogOut className="size-4" /> Sign out
+          <LogOut className="size-4" /> {t("userMenu.signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

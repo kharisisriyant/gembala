@@ -1,0 +1,111 @@
+{
+  "nav": {
+    "fitur": "Fitur",
+    "telegram": "Asisten Telegram",
+    "privasi": "Privasi",
+    "openDashboard": "Buka dashboard",
+    "signIn": "Masuk",
+    "signUpFree": "Daftar gratis"
+  },
+  "hero": {
+    "badge": "Untuk gereja dan komsel di Indonesia",
+    "title": "Gembalakan jemaat, bukan spreadsheet.",
+    "body": "Gembala membantu pemimpin gereja mencatat kehadiran komsel, mengenal setiap jemaat, dan tahu siapa yang perlu dihubungi minggu ini — dari browser atau langsung lewat Telegram.",
+    "cta": "Daftarkan gereja Anda",
+    "ctaSecondary": "Lihat fitur",
+    "note": "Siap dipakai dalam 15 menit. Tanpa instalasi."
+  },
+  "preview": {
+    "groupName": "Komsel Pemuda · Jumat",
+    "dateTime": "Jumat, 25 September 2026 · 19.00",
+    "attendanceLabel": "kehadiran",
+    "status": {
+      "present": "Hadir",
+      "excused": "Izin",
+      "followup": "Perlu dihubungi"
+    }
+  },
+  "features": {
+    "title": "Semua yang dibutuhkan pemimpin untuk merawat jemaat",
+    "subtitle": "Dirancang bersama pemimpin komsel, bukan untuk akuntan.",
+    "items": {
+      "members": {
+        "title": "Data jemaat yang rapi",
+        "body": "Profil lengkap, foto, keluarga, dan riwayat kehadiran dalam satu tempat. Tamu tercatat sejak kunjungan pertama."
+      },
+      "attendance": {
+        "title": "Kehadiran komsel dalam 3 menit",
+        "body": "Jadwal mingguan, dua mingguan, atau bulanan. Tandai hadir, izin, atau absen dengan satu ketukan."
+      },
+      "followup": {
+        "title": "Tahu siapa yang perlu dihubungi",
+        "body": "Jemaat yang absen dua pertemuan berturut-turut otomatis muncul di daftar tindak lanjut."
+      },
+      "tags": {
+        "title": "Tag untuk pelayanan dan usia",
+        "body": "Kelompokkan jemaat sesuai struktur gereja Anda: pemuda, wilayah, pelayanan, apa saja."
+      },
+      "invite": {
+        "title": "Undang pemimpin dengan akses terbatas",
+        "body": "Setiap pemimpin hanya melihat jemaat yang menjadi tanggung jawabnya."
+      },
+      "notes": {
+        "title": "Catatan pastoral yang terjaga",
+        "body": "Catatan pribadi hanya terlihat oleh penulis dan gembala. Tidak pernah muncul di daftar atau ekspor."
+      }
+    }
+  },
+  "telegramSection": {
+    "badge": "Asisten AI di Telegram",
+    "title": "Catat kehadiran semudah mengirim pesan",
+    "body": "Selesai komsel, cukup ketik siapa yang hadir. Asisten Gembala memahami bahasa sehari-hari, meminta konfirmasi sebelum menyimpan, dan menjawab pertanyaan tentang jemaat Anda.",
+    "list": {
+      "log": "Rekam kehadiran dan tambah tamu baru dari chat",
+      "ask": "Tanya siapa yang sudah lama tidak datang",
+      "notes": "Tulis catatan pastoral saat masih ingat"
+    },
+    "chat": {
+      "ariaLabel": "Contoh percakapan dengan asisten Gembala",
+      "me1": "Kehadiran komsel pemuda hari ini: Budi, Sari, Dewi hadir. Andi izin, sakit.",
+      "bot1Prefix": "Saya catat untuk",
+      "bot1Group": "Komsel Pemuda, Jumat 25 Sep",
+      "bot1Present": "✓ Hadir: Budi Santoso, Sari Wijaya, Dewi Natalia",
+      "bot1Excused": "– Izin: Andi Pratama (sakit)",
+      "bot1Confirm": "Simpan?",
+      "me2": "Ya. Siapa yang belum datang 2 minggu terakhir?",
+      "bot2Intro": "2 jemaat perlu dihubungi:",
+      "bot2Item1": "• Yosua Hutapea — absen 3 pertemuan",
+      "bot2Item2": "• Maria Lestari — absen 2 pertemuan"
+    }
+  },
+  "privacy": {
+    "title": "Data jemaat adalah titipan",
+    "body": "Setiap gereja punya ruang datanya sendiri yang terpisah. Pemimpin hanya melihat jemaat sesuai tag yang diberikan, dan semua perubahan tercatat.",
+    "items": {
+      "isolated": {
+        "title": "Terpisah per gereja",
+        "body": "Tidak ada gereja lain yang bisa melihat data Anda — termasuk tim Gembala."
+      },
+      "tags": {
+        "title": "Akses berdasarkan tag",
+        "body": "Pemimpin komsel pemuda hanya melihat jemaat pemuda. Tidak lebih."
+      },
+      "safe": {
+        "title": "Aman saat pemimpin berganti",
+        "body": "Akses dicabut seketika, data dan catatan tetap aman di tangan gereja."
+      }
+    }
+  },
+  "verse": {
+    "quote": "Aku mengenal domba-domba-Ku dan domba-domba-Ku mengenal Aku.",
+    "reference": "Yohanes 10:14"
+  },
+  "finalCta": {
+    "title": "Mulai gembalakan dengan lebih baik",
+    "body": "Buat akun gereja, tambahkan komsel pertama, dan catat pertemuan pertama Anda hari ini."
+  },
+  "footer": {
+    "signIn": "Masuk",
+    "signUp": "Daftar"
+  }
+}

@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import type { PermissionAction, PermissionResource } from "@gembala/shared"
 import {
   Sidebar,
@@ -29,49 +30,54 @@ import { useAuth } from "@/lib/auth"
 import { MemberAvatar } from "@/components/member-avatar"
 
 type NavItem = {
-  title: string
+  titleKey: string
   to: string
   icon: typeof LayoutDashboard
   permission?: { resource: PermissionResource; action: PermissionAction }
 }
 
 const nav: NavItem[] = [
-  { title: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-  { title: "Small Groups", to: "/groups", icon: Sprout, permission: { resource: "groups", action: "read" } },
-  { title: "Members", to: "/members", icon: Users, permission: { resource: "members", action: "read" } },
-  { title: "Events", to: "/events", icon: CalendarDays, permission: { resource: "events", action: "read" } },
-  { title: "Rooms", to: "/rooms", icon: DoorOpen, permission: { resource: "rooms", action: "read" } },
-  { title: "Tags", to: "/tags", icon: Tags, permission: { resource: "tags", action: "read" } },
+  { titleKey: "nav.dashboard", to: "/dashboard", icon: LayoutDashboard },
+  { titleKey: "nav.groups", to: "/groups", icon: Sprout, permission: { resource: "groups", action: "read" } },
+  { titleKey: "nav.members", to: "/members", icon: Users, permission: { resource: "members", action: "read" } },
+  { titleKey: "nav.events", to: "/events", icon: CalendarDays, permission: { resource: "events", action: "read" } },
+  { titleKey: "nav.rooms", to: "/rooms", icon: DoorOpen, permission: { resource: "rooms", action: "read" } },
+  { titleKey: "nav.tags", to: "/tags", icon: Tags, permission: { resource: "tags", action: "read" } },
 ]
 
 const adminNav: NavItem[] = [
-  { title: "Invites", to: "/settings/invites", icon: MailPlus },
-  { title: "Team", to: "/settings/team", icon: Users2 },
-  { title: "Roles", to: "/settings/roles", icon: ShieldCheck },
+  { titleKey: "nav.invites", to: "/settings/invites", icon: MailPlus },
+  { titleKey: "nav.team", to: "/settings/team", icon: Users2 },
+  { titleKey: "nav.roles", to: "/settings/roles", icon: ShieldCheck },
 ]
 
-const personalNav: NavItem[] = [{ title: "Telegram", to: "/settings/telegram", icon: Send }]
+const personalNav: NavItem[] = [{ titleKey: "nav.telegram", to: "/settings/telegram", icon: Send }]
 
 function NavItems({ items }: { items: NavItem[] }) {
+  const { t } = useTranslation()
   return (
     <SidebarMenu>
-      {items.map((item) => (
-        <SidebarMenuItem key={item.to}>
-          <NavLink to={item.to} end={item.to === "/"}>
-            {({ isActive }) => (
-              <SidebarMenuButton isActive={isActive} tooltip={item.title}>
-                <item.icon />
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            )}
-          </NavLink>
-        </SidebarMenuItem>
-      ))}
+      {items.map((item) => {
+        const title = t(item.titleKey)
+        return (
+          <SidebarMenuItem key={item.to}>
+            <NavLink to={item.to} end={item.to === "/"}>
+              {({ isActive }) => (
+                <SidebarMenuButton isActive={isActive} tooltip={title}>
+                  <item.icon />
+                  <span>{title}</span>
+                </SidebarMenuButton>
+              )}
+            </NavLink>
+          </SidebarMenuItem>
+        )
+      })}
     </SidebarMenu>
   )
 }
 
 export function AppSidebar() {
+  const { t } = useTranslation()
   const { me, isSystemAdmin, hasPermission } = useAuth()
   const visibleNav = nav.filter(
     (item) => !item.permission || hasPermission(item.permission.resource, item.permission.action),
@@ -91,19 +97,19 @@ export function AppSidebar() {
           </div>
           <div className="leading-tight">
             <div className="font-heading text-lg font-bold">Gembala</div>
-            <div className="text-muted-foreground text-xs">{me?.org.name ?? "Shepherd your people"}</div>
+            <div className="text-muted-foreground text-xs">{me?.org.name ?? t("sidebar.tagline")}</div>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Manage</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("nav.manage")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <NavItems items={manageItems} />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Personal</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("nav.personal")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <NavItems items={personalNav} />
           </SidebarGroupContent>
@@ -116,7 +122,7 @@ export function AppSidebar() {
             <div className="leading-tight">
               <div className="text-sm font-medium">{me.user.name}</div>
               <div className="text-muted-foreground text-xs">
-                {me.isSystemAdmin ? "Admin" : me.roles.map((r) => r.name).join(", ") || "No roles"}
+                {me.isSystemAdmin ? t("roles.admin") : me.roles.map((r) => r.name).join(", ") || t("roles.noRoles")}
               </div>
             </div>
           </div>

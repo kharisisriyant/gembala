@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "groups": "Komsel",
+    "members": "Jemaat",
+    "events": "Acara",
+    "rooms": "Ruangan",
+    "tags": "Tag",
+    "invites": "Undangan",
+    "team": "Tim",
+    "roles": "Peran",
+    "telegram": "Telegram",
+    "manage": "Kelola",
+    "personal": "Pribadi"
+  },
+  "sidebar": {
+    "tagline": "Gembalakan jemaat Anda"
+  },
+  "roles": {
+    "admin": "Admin",
+    "noRoles": "Tanpa peran"
+  },
+  "scope": {
+    "fullAccess": "Akses penuh",
+    "scopedTo": "Dibatasi ke",
+    "memberSuffix": "jemaat",
+    "members": "{{count}} jemaat"
+  },
+  "userMenu": {
+    "signOut": "Keluar"
+  },
+  "theme": {
+    "toggle": "Ganti tema"
+  },
+  "language": {
+    "toggle": "Ganti bahasa"
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "nav": {
+    "fitur": "Features",
+    "telegram": "Telegram Assistant",
+    "privasi": "Privacy",
+    "openDashboard": "Open dashboard",
+    "signIn": "Sign in",
+    "signUpFree": "Sign up free"
+  },
+  "hero": {
+    "badge": "For churches and small groups in Indonesia",
+    "title": "Shepherd your people, not a spreadsheet.",
+    "body": "Gembala helps church leaders log small group attendance, know every member, and see who needs a follow-up this week — from a browser or straight from Telegram.",
+    "cta": "Register your church",
+    "ctaSecondary": "See features",
+    "note": "Ready to use in 15 minutes. No install."
+  },
+  "preview": {
+    "groupName": "Youth Small Group · Friday",
+    "dateTime": "Friday, September 25 2026 · 7:00 PM",
+    "attendanceLabel": "attendance",
+    "status": {
+      "present": "Present",
+      "excused": "Excused",
+      "followup": "Needs follow-up"
+    }
+  },
+  "features": {
+    "title": "Everything a leader needs to care for their people",
+    "subtitle": "Built with small group leaders, not accountants.",
+    "items": {
+      "members": {
+        "title": "Tidy member data",
+        "body": "Full profiles, photos, family, and attendance history in one place. Guests are tracked from their very first visit."
+      },
+      "attendance": {
+        "title": "Small group attendance in 3 minutes",
+        "body": "Weekly, biweekly, or monthly schedules. Mark present, excused, or absent with a single tap."
+      },
+      "followup": {
+        "title": "Know who needs a follow-up",
+        "body": "Members who miss two meetings in a row automatically show up on the follow-up list."
+      },
+      "tags": {
+        "title": "Tags for ministry and age group",
+        "body": "Group members however your church is structured: youth, region, ministry — anything."
+      },
+      "invite": {
+        "title": "Invite leaders with scoped access",
+        "body": "Every leader only sees the members they're responsible for."
+      },
+      "notes": {
+        "title": "Pastoral notes stay private",
+        "body": "Private notes are visible only to the author and the pastor. They never appear in lists or exports."
+      }
+    }
+  },
+  "telegramSection": {
+    "badge": "AI assistant on Telegram",
+    "title": "Log attendance as easily as sending a message",
+    "body": "After small group, just type who showed up. The Gembala assistant understands everyday language, asks for confirmation before saving, and answers questions about your members.",
+    "list": {
+      "log": "Log attendance and add new guests from chat",
+      "ask": "Ask who hasn't come in a while",
+      "notes": "Write pastoral notes while they're still fresh"
+    },
+    "chat": {
+      "ariaLabel": "Example conversation with the Gembala assistant",
+      "me1": "Today's youth small group attendance: Budi, Sari, Dewi present. Andi excused, sick.",
+      "bot1Prefix": "I've logged for",
+      "bot1Group": "Youth Small Group, Fri Sep 25",
+      "bot1Present": "✓ Present: Budi Santoso, Sari Wijaya, Dewi Natalia",
+      "bot1Excused": "– Excused: Andi Pratama (sick)",
+      "bot1Confirm": "Save?",
+      "me2": "Yes. Who hasn't come in the last 2 weeks?",
+      "bot2Intro": "2 members need a follow-up:",
+      "bot2Item1": "• Yosua Hutapea — missed 3 meetings",
+      "bot2Item2": "• Maria Lestari — missed 2 meetings"
+    }
+  },
+  "privacy": {
+    "title": "Member data is a trust, not an asset",
+    "body": "Every church gets its own isolated data space. Leaders only see members matching the tags they've been given, and every change is logged.",
+    "items": {
+      "isolated": {
+        "title": "Isolated per church",
+        "body": "No other church can see your data — not even the Gembala team."
+      },
+      "tags": {
+        "title": "Tag-based access",
+        "body": "A youth group leader only sees youth members. Nothing more."
+      },
+      "safe": {
+        "title": "Safe when leaders change",
+        "body": "Access is revoked instantly — data and notes stay safe with the church."
+      }
+    }
+  },
+  "verse": {
+    "quote": "I know my sheep and my sheep know me.",
+    "reference": "John 10:14"
+  },
+  "finalCta": {
+    "title": "Start shepherding better",
+    "body": "Create your church account, add your first small group, and log your first meeting today."
+  },
+  "footer": {
+    "signIn": "Sign in",
+    "signUp": "Sign up"
+  }
+}

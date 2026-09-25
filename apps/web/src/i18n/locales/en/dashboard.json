@@ -1,0 +1,30 @@
+{
+  "welcome": "Welcome back, {{name}}",
+  "subtitle": "Here's how your people are doing this week.",
+  "loading": "Loading…",
+  "stats": {
+    "members": "Members",
+    "membersHint": "{{count}} active",
+    "groups": "Small Groups",
+    "groupsHint": "in your care",
+    "avgAttendance": "Avg. attendance",
+    "avgAttendanceHint": "per meeting",
+    "newcomers": "Newcomers",
+    "newcomersHint": "last 60 days"
+  },
+  "recentMeetings": {
+    "title": "Recent group meetings",
+    "subtitle": "Attendance & topics from your groups",
+    "viewAll": "View all",
+    "empty": "No meetings logged yet.",
+    "came": "{{count}} came"
+  },
+  "tagBreakdown": {
+    "title": "Tag breakdown",
+    "subtitle": "Who's in your scope"
+  },
+  "prayerNotes": {
+    "title": "Latest prayer notes",
+    "empty": "No prayer notes yet."
+  }
+}

@@ -7,6 +7,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LanguageToggle } from "@/components/language-toggle"
 import { ScopeBanner } from "@/components/scope-banner"
 import { UserMenu } from "@/components/user-menu"
 
@@ -20,6 +21,7 @@ export function Layout() {
           <Separator orientation="vertical" className="mr-2 h-6" />
           <ScopeBanner />
           <div className="ml-auto flex items-center gap-2">
+            <LanguageToggle />
             <ThemeToggle />
             <UserMenu />
           </div>

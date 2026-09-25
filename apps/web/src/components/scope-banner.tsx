@@ -1,9 +1,11 @@
 import { Eye, ShieldCheck } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "@/lib/auth"
 import { useMembers } from "@/lib/queries"
 
 // Tiny indicator in the header that makes the active RBAC scope obvious.
 export function ScopeBanner() {
+  const { t } = useTranslation()
   const { me } = useAuth()
   const { data: members } = useMembers()
   if (!me) return null
@@ -17,10 +19,11 @@ export function ScopeBanner() {
         <>
           <ShieldCheck className="text-primary size-4" />
           <span>
-            Full access
+            {t("scope.fullAccess")}
             {count !== undefined && (
               <>
-                {" "}· <span className="text-foreground font-medium">{count}</span> members
+                {" "}· <span className="text-foreground font-medium">{count}</span>{" "}
+                {t("scope.memberSuffix")}
               </>
             )}
           </span>
@@ -29,11 +32,11 @@ export function ScopeBanner() {
         <>
           <Eye className="text-primary size-4" />
           <span>
-            Scoped to{" "}
+            {t("scope.scopedTo")}{" "}
             <span className="text-foreground font-mono font-medium">
               #{me.scopeTags?.join(" #")}
             </span>
-            {count !== undefined && <> · {count} members</>}
+            {count !== undefined && <> · {t("scope.members", { count })}</>}
           </span>
         </>
       )}
