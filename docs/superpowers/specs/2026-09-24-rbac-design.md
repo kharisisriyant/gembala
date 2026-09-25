@@ -49,6 +49,19 @@ and the React frontend.
   endpoint today (members, groups, households — see "Permission catalog vs.
   wired endpoints" below).
 
+## Addendum (2026-09-25)
+
+Two new feature areas (`rooms`, `events`) landed in the codebase after this
+spec was approved. Per the approved "all existing feature areas" scope
+decision, they're included as first-class resources everywhere `members`/
+`groups`/`households`/`tags`/`invites` are mentioned below: the permission
+catalog gains `rooms:*` and `events:*`, `rooms` keeps its current
+`@Roles("admin")`-equivalent gate on create/update/delete (→
+`rooms:create/update/delete`) with `rooms:read` open the same way
+`rooms:read`/list is today, and `events` (currently fully ungated) gets the
+same CRUD mapping. The implementation plan carries the concrete endpoint
+table.
+
 ## Data model
 
 Replace `orgMemberships.role` / `roleLabel` and `invites.roleLabel` with
