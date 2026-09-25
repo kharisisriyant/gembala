@@ -1,9 +1,7 @@
 import { ForbiddenException, Injectable } from "@nestjs/common"
 import { expandWithDescendants, type TagDef } from "@gembala/shared"
-import { eq } from "drizzle-orm"
-import { InjectDb, type Db } from "../db/drizzle.module"
-import { tags } from "../db/schema"
 import type { AuthContext } from "./auth-context"
+import { ScopeRepository } from "./scope.repository"
 
 export type TagRow = {
   id: string
@@ -17,18 +15,10 @@ export type TagRow = {
 // shared tag-tree helpers the UI uses (identical subtree semantics).
 @Injectable()
 export class ScopeService {
-  constructor(@InjectDb() private readonly db: Db) {}
+  constructor(private readonly scope: ScopeRepository) {}
 
   async orgTags(orgId: string): Promise<TagRow[]> {
-    return this.db
-      .select({
-        id: tags.id,
-        name: tags.name,
-        parentId: tags.parentId,
-        description: tags.description,
-      })
-      .from(tags)
-      .where(eq(tags.orgId, orgId))
+    return this.scope.orgTags(orgId)
   }
 
   toTagDefs(rows: TagRow[]): TagDef[] {
