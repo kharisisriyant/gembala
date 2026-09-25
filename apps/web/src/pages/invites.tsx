@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table"
 import { PageHeader } from "@/components/page-header"
 import { Tag, TagList } from "@/components/tag"
+import { useAuth } from "@/lib/auth"
 import { useAssignableRoles, useCreateInvite, useInvites, useRevokeInvite, useTags } from "@/lib/queries"
 import { rootTags, childrenOf } from "@/lib/tag-tree"
 import { formatDate } from "@/lib/helpers"
@@ -143,6 +144,7 @@ function InviteDialog() {
 }
 
 export function InvitesPage() {
+  const { hasPermission } = useAuth()
   const { data: invites = [], isLoading } = useInvites()
   const revoke = useRevokeInvite()
 
@@ -151,7 +153,7 @@ export function InvitesPage() {
       <PageHeader
         title="Invites"
         subtitle="Bring leaders into your organization with scoped access."
-        action={<InviteDialog />}
+        action={hasPermission("invites", "create") ? <InviteDialog /> : undefined}
       />
 
       <Card className="overflow-hidden py-0">

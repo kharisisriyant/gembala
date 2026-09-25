@@ -20,11 +20,13 @@ import { buildForest, type TagNode } from "@/lib/tag-tree"
 function TagRow({
   node,
   byName,
-  canManage,
+  canCreate,
+  canDelete,
 }: {
   node: TagNode
   byName: Map<string, TagResponse>
-  canManage: boolean
+  canCreate: boolean
+  canDelete: boolean
 }) {
   const deleteTag = useDeleteTag()
   const counts = byName.get(node.name)
@@ -66,7 +68,7 @@ function TagRow({
               <span className="text-muted-foreground">/ {subtree} w/ children</span>
             )}
           </Badge>
-          {canManage && (
+          {(canCreate || canDelete) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-7">
@@ -74,24 +76,28 @@ function TagRow({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <AddTagDialog
-                  defaultParent={node.name}
-                  trigger={
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <Plus className="size-4" /> Add child tag
-                    </DropdownMenuItem>
-                  }
-                />
-                <DropdownMenuItem variant="destructive" onClick={remove}>
-                  Delete tag
-                </DropdownMenuItem>
+                {canCreate && (
+                  <AddTagDialog
+                    defaultParent={node.name}
+                    trigger={
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Plus className="size-4" /> Add child tag
+                      </DropdownMenuItem>
+                    }
+                  />
+                )}
+                {canDelete && (
+                  <DropdownMenuItem variant="destructive" onClick={remove}>
+                    Delete tag
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
         </div>
       </div>
       {node.children.map((c) => (
-        <TagRow key={c.name} node={c} byName={byName} canManage={canManage} />
+        <TagRow key={c.name} node={c} byName={byName} canCreate={canCreate} canDelete={canDelete} />
       ))}
     </>
   )
@@ -100,7 +106,7 @@ function TagRow({
 export function TagsPage() {
   const { hasPermission } = useAuth()
   const canCreate = hasPermission("tags", "create")
-  const canManage = hasPermission("tags", "update") || hasPermission("tags", "delete")
+  const canDelete = hasPermission("tags", "delete")
   const { data: defs = [] } = useTags()
   const forest = buildForest(defs)
   const byName = new Map(defs.map((d) => [d.name, d]))
@@ -132,7 +138,7 @@ export function TagsPage() {
       <Card className="mt-6 py-2">
         <CardContent className="divide-y px-4">
           {forest.map((node) => (
-            <TagRow key={node.name} node={node} byName={byName} canManage={canManage} />
+            <TagRow key={node.name} node={node} byName={byName} canCreate={canCreate} canDelete={canDelete} />
           ))}
         </CardContent>
       </Card>

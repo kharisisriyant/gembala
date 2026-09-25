@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
+import type { PermissionAction, PermissionResource } from "@gembala/shared"
 import {
   Sidebar,
   SidebarContent,
@@ -27,15 +28,20 @@ import {
 import { useAuth } from "@/lib/auth"
 import { MemberAvatar } from "@/components/member-avatar"
 
-type NavItem = { title: string; to: string; icon: typeof LayoutDashboard }
+type NavItem = {
+  title: string
+  to: string
+  icon: typeof LayoutDashboard
+  permission?: { resource: PermissionResource; action: PermissionAction }
+}
 
 const nav: NavItem[] = [
   { title: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-  { title: "Small Groups", to: "/groups", icon: Sprout },
-  { title: "Members", to: "/members", icon: Users },
-  { title: "Events", to: "/events", icon: CalendarDays },
-  { title: "Rooms", to: "/rooms", icon: DoorOpen },
-  { title: "Tags", to: "/tags", icon: Tags },
+  { title: "Small Groups", to: "/groups", icon: Sprout, permission: { resource: "groups", action: "read" } },
+  { title: "Members", to: "/members", icon: Users, permission: { resource: "members", action: "read" } },
+  { title: "Events", to: "/events", icon: CalendarDays, permission: { resource: "events", action: "read" } },
+  { title: "Rooms", to: "/rooms", icon: DoorOpen, permission: { resource: "rooms", action: "read" } },
+  { title: "Tags", to: "/tags", icon: Tags, permission: { resource: "tags", action: "read" } },
 ]
 
 const adminNav: NavItem[] = [
@@ -67,11 +73,14 @@ function NavItems({ items }: { items: NavItem[] }) {
 
 export function AppSidebar() {
   const { me, isSystemAdmin, hasPermission } = useAuth()
+  const visibleNav = nav.filter(
+    (item) => !item.permission || hasPermission(item.permission.resource, item.permission.action),
+  )
   const visibleAdminNav = adminNav.filter((item) => {
     if (item.to === "/settings/invites") return hasPermission("invites", "read")
     return isSystemAdmin // Team and Roles stay system-admin-only
   })
-  const manageItems = [...nav, ...visibleAdminNav]
+  const manageItems = [...visibleNav, ...visibleAdminNav]
 
   return (
     <Sidebar>

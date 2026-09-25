@@ -202,6 +202,38 @@ export class RolesService {
       }
     }
 
+    // Never let an edit leave the org with zero system admins — there is no
+    // in-app recovery path from that (every remaining member is filtered out
+    // of assignableRoles for the system-admin role, and /roles + /team both
+    // require isSystemAdmin to reach at all).
+    const allRoles = await this.list(auth.orgId)
+    const systemAdminRoleIds = new Set(allRoles.filter((r) => r.isSystemAdmin).map((r) => r.id))
+    const keepsAdmin = roleIds.some((id) => systemAdminRoleIds.has(id))
+    if (!keepsAdmin && systemAdminRoleIds.size > 0) {
+      const currentRoleRows = await this.db
+        .select({ roleId: membershipRoles.roleId })
+        .from(membershipRoles)
+        .where(eq(membershipRoles.membershipId, membershipId))
+      const currentlyHoldsAdmin = currentRoleRows.some((r) => systemAdminRoleIds.has(r.roleId))
+      if (currentlyHoldsAdmin) {
+        const adminHolders = await this.db
+          .select({ membershipId: membershipRoles.membershipId })
+          .from(membershipRoles)
+          .innerJoin(orgMemberships, eq(orgMemberships.id, membershipRoles.membershipId))
+          .where(
+            and(
+              eq(orgMemberships.orgId, auth.orgId),
+              inArray(membershipRoles.roleId, [...systemAdminRoleIds]),
+            ),
+          )
+        const remaining = new Set(adminHolders.map((r) => r.membershipId))
+        remaining.delete(membershipId)
+        if (remaining.size === 0) {
+          throw new ConflictException("an organization must keep at least one Admin")
+        }
+      }
+    }
+
     await this.db.transaction(async (tx) => {
       await tx.delete(membershipRoles).where(eq(membershipRoles.membershipId, membershipId))
       if (roleIds.length > 0) {

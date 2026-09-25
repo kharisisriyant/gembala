@@ -38,12 +38,54 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/groups" element={<SmallGroupsPage />} />
-          <Route path="/groups/:id" element={<GroupDetailPage />} />
-          <Route path="/members" element={<MembersPage />} />
-          <Route path="/tags" element={<TagsPage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/rooms" element={<RoomsPage />} />
+          <Route
+            path="/groups"
+            element={
+              <RequirePermission resource="groups" action="read">
+                <SmallGroupsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/groups/:id"
+            element={
+              <RequirePermission resource="groups" action="read">
+                <GroupDetailPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/members"
+            element={
+              <RequirePermission resource="members" action="read">
+                <MembersPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/tags"
+            element={
+              <RequirePermission resource="tags" action="read">
+                <TagsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/events"
+            element={
+              <RequirePermission resource="events" action="read">
+                <EventsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/rooms"
+            element={
+              <RequirePermission resource="rooms" action="read">
+                <RoomsPage />
+              </RequirePermission>
+            }
+          />
           <Route
             path="/settings/invites"
             element={
