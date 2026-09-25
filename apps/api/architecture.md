@@ -11,19 +11,34 @@ Each feature is a folder under `src/`:
 
 ```
 members/
-  members.module.ts        # DI wiring: controller + service + repository
-  members.controller.ts    # HTTP layer: routing, request/response, guards
-  members.service.ts       # business logic
-  members.repository.ts    # all Drizzle queries for this module
-  members.schema.ts        # this module's pgTable defs + enums + relations
-  dto.ts                   # request/response DTOs (zod/nestjs-zod), if any
+  members.module.ts            # DI wiring: controller + service + repository
+  members.controller.ts        # HTTP layer: routing, request/response, guards
+  members.service.ts           # business logic
+  members.service.spec.ts      # unit tests for the service (mocked repository)
+  members.repository.ts        # all Drizzle queries for this module
+  members.schema.ts            # this module's pgTable defs + enums + relations
+  dto.ts                       # request/response DTOs (zod/nestjs-zod), if any
   member-relationships.service.ts      # sub-feature: same pattern, own repo
+  member-relationships.service.spec.ts
   member-relationships.repository.ts
 ```
 
 A sub-feature within a module (e.g. `member-relationships`,
 `attendance`) gets its own `service.ts` + `repository.ts` pair rather
 than being folded into the parent module's files.
+
+Top-level, alongside `src/`:
+
+```
+apps/api/
+  src/
+  test/
+    jest-e2e.json              # e2e Jest config (separate from unit test config)
+    setup-test-db.ts           # resets/migrates the test DB, imported by e2e specs
+    members.e2e-spec.ts        # HTTP-level tests per module, one file per module
+    groups.e2e-spec.ts
+    ...
+```
 
 ## Layer responsibilities
 
@@ -91,6 +106,91 @@ async create(auth: AuthContext, input: MemberCreateInput) {
 The service holds `@InjectDb()` solely to call `.transaction()` — it
 never builds a query itself.
 
+## Testing
+
+Jest, `@nestjs/testing`, and `supertest`. Unit tests are colocated with
+the code they test; e2e tests live in `apps/api/test/`, one file per
+module, run against a real Postgres test database (not mocked) so
+queries and constraints are actually exercised.
+
+**Unit tests — service layer only.** A service's `.spec.ts` mocks its
+repository (plain object of `jest.fn()`s, or `jest.mocked<Repo>`), so the
+test exercises business logic — scope/permission checks, DTO mapping,
+error cases (404s, validation) — without a database:
+
+```ts
+// members.service.spec.ts
+const repo = { orgMembersWithTags: jest.fn(), insert: jest.fn(), attachTags: jest.fn() }
+const scope = { expandedScope: jest.fn(), memberVisible: jest.fn(), assertCanWriteMemberTags: jest.fn() }
+
+describe("MembersService.list", () => {
+  it("filters out-of-scope members", async () => {
+    repo.orgMembersWithTags.mockResolvedValue([{ id: "1", tags: ["youth"], ... }])
+    scope.expandedScope.mockResolvedValue(someScope)
+    scope.memberVisible.mockReturnValue(false)
+    const service = new MembersService(repo as any, scope as any, tagsService as any)
+    expect(await service.list(auth)).toEqual([])
+  })
+})
+```
+
+Repositories are **not** unit tested in isolation — they're thin query
+builders whose only real behavior is the SQL Drizzle generates, which is
+covered by e2e tests running against a real database. Don't mock the DB
+to unit-test a repository; if a repository method has logic worth
+testing on its own, that logic probably belongs in the service instead.
+
+**E2e tests — full HTTP stack.** One `x.e2e-spec.ts` per module, boots
+the real Nest app (`Test.createTestingModule({ imports: [AppModule] })`)
+against a disposable/reset test database, and drives it through
+`supertest` like a real client — including auth (login or a seeded JWT)
+and guards:
+
+```ts
+// test/members.e2e-spec.ts
+describe("MembersController (e2e)", () => {
+  let app: INestApplication
+
+  beforeAll(async () => {
+    await resetTestDb()
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile()
+    app = moduleRef.createNestApplication()
+    await app.init()
+  })
+
+  afterAll(() => app.close())
+
+  it("POST /members creates a member visible to the creating org", async () => {
+    await request(app.getHttpServer())
+      .post("/members")
+      .set("Authorization", `Bearer ${testToken}`)
+      .send({ name: "Jane", email: "jane@example.com", tags: [] })
+      .expect(201)
+  })
+})
+```
+
+Test DB: a separate Postgres database (or schema) from dev, reset via
+migration + optional seed before each e2e run — never point e2e tests at
+the dev/seed database. `test/setup-test-db.ts` centralizes that
+reset/migrate logic so every `*.e2e-spec.ts` calls the same setup.
+
+**Coverage expectation for new/refactored modules:** each module's
+Phase 2 PR (service/repository split) adds `x.service.spec.ts` covering
+that service's business-logic branches, and `test/x.e2e-spec.ts`
+covering its controller's endpoints (happy path + the main error cases:
+404/out-of-scope, validation failure, permission denied). Existing
+modules without tests don't block the schema-split (Phase 1); test
+coverage is added as each module goes through Phase 2.
+
+**Scripts** (add to `apps/api/package.json`):
+```json
+"test": "jest",
+"test:watch": "jest --watch",
+"test:cov": "jest --coverage",
+"test:e2e": "jest --config ./test/jest-e2e.json"
+```
+
 ## Adding a new module
 
 1. Create the folder with `x.module.ts`, `x.controller.ts`,
@@ -101,6 +201,8 @@ never builds a query itself.
 3. Register `x.repository.ts` in `x.module.ts` providers; export it only
    if another module's service legitimately needs to inject it directly
    (prefer going through the owning service instead).
+4. Add `x.service.spec.ts` next to the service and `test/x.e2e-spec.ts`
+   for its controller (see Testing above).
 
 ## Cross-cutting modules
 
