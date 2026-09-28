@@ -28,6 +28,9 @@
     "members": "{{count}} jemaat"
   },
   "userMenu": {
+    "profile": "Profil saya",
+    "roles": "Peran & akses",
+    "password": "Ubah kata sandi",
     "signOut": "Keluar"
   },
   "theme": {

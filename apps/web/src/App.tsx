@@ -15,6 +15,7 @@ import { SchedulingSettingsPage } from "@/pages/scheduling-settings"
 import { InvitesPage } from "@/pages/invites"
 import { RolesPage } from "@/pages/roles"
 import { TeamPage } from "@/pages/team"
+import { ProfilePage } from "@/pages/profile"
 import { TelegramPage } from "@/pages/telegram"
 import { LoginPage } from "@/pages/auth/login"
 import { RegisterPage } from "@/pages/auth/register"
@@ -128,6 +129,7 @@ export default function App() {
               </RequireSystemAdmin>
             }
           />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings/telegram" element={<TelegramPage />} />
         </Route>
       </Routes>

@@ -9,7 +9,6 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
 import { ScopeBanner } from "@/components/scope-banner"
-import { UserMenu } from "@/components/user-menu"
 
 export function Layout() {
   return (
@@ -23,7 +22,6 @@ export function Layout() {
           <div className="ml-auto flex items-center gap-2">
             <LanguageToggle />
             <ThemeToggle />
-            <UserMenu />
           </div>
         </header>
         <main className="min-w-0 flex-1 p-4 md:p-6">

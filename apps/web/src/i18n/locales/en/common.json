@@ -28,6 +28,9 @@
     "members": "{{count}} members"
   },
   "userMenu": {
+    "profile": "My profile",
+    "roles": "Roles & access",
+    "password": "Change password",
     "signOut": "Sign out"
   },
   "theme": {

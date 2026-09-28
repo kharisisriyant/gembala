@@ -1,0 +1,43 @@
+{
+  "title": "My profile",
+  "subtitle": "Manage your account details, see your access and keep your password safe.",
+  "tabs": {
+    "profile": "Profile",
+    "roles": "Roles & access",
+    "security": "Security"
+  },
+  "profile": {
+    "title": "Account details",
+    "description": "Your name is shown to your team across Gembala.",
+    "name": "Full name",
+    "email": "Email",
+    "emailHint": "Email can't be changed.",
+    "organization": "Organization",
+    "saved": "Profile updated",
+    "error": "Could not update profile"
+  },
+  "roles": {
+    "title": "Your roles",
+    "description": "Roles decide what you can see and do.",
+    "adminNote": "You are a system administrator with full access to everything.",
+    "none": "No roles assigned. Ask an admin to give you access.",
+    "scopeTitle": "Visibility",
+    "fullAccess": "You can see all members.",
+    "scopedTo": "You can only see members tagged:",
+    "permissionsTitle": "What you can do",
+    "noPermissions": "No permissions yet."
+  },
+  "password": {
+    "title": "Change password",
+    "description": "Use at least 8 characters. You stay signed in on this device.",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "mismatch": "Passwords don't match",
+    "same": "New password must differ from the current one",
+    "submit": "Update password",
+    "submitting": "Updating…",
+    "success": "Password updated",
+    "error": "Could not change password"
+  }
+}

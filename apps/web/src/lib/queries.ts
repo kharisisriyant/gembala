@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
+  ChangePasswordInput,
+  MeResponse,
+  UpdateProfileInput,
   AttendanceHeatmapResponse,
   DashboardResponse,
   EventCreateInput,
@@ -547,5 +550,21 @@ export function useUnlinkTelegram() {
   return useMutation({
     mutationFn: () => apiFetch<void>("/telegram/link", { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["telegram-link"] }),
+  })
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpdateProfileInput) =>
+      apiFetch<MeResponse>("/auth/profile", { method: "PATCH", body: input }),
+    onSuccess: (me) => qc.setQueryData(["me"], me),
+  })
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (input: ChangePasswordInput) =>
+      apiFetch<void>("/auth/change-password", { method: "POST", body: input }),
   })
 }

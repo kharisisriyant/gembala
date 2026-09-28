@@ -1,0 +1,43 @@
+{
+  "title": "Profil saya",
+  "subtitle": "Kelola data akun, lihat akses Anda, dan jaga keamanan kata sandi.",
+  "tabs": {
+    "profile": "Profil",
+    "roles": "Peran & akses",
+    "security": "Keamanan"
+  },
+  "profile": {
+    "title": "Data akun",
+    "description": "Nama Anda ditampilkan kepada tim di seluruh Gembala.",
+    "name": "Nama lengkap",
+    "email": "Email",
+    "emailHint": "Email tidak dapat diubah.",
+    "organization": "Organisasi",
+    "saved": "Profil diperbarui",
+    "error": "Gagal memperbarui profil"
+  },
+  "roles": {
+    "title": "Peran Anda",
+    "description": "Peran menentukan apa yang dapat Anda lihat dan lakukan.",
+    "adminNote": "Anda adalah administrator sistem dengan akses penuh ke semuanya.",
+    "none": "Belum ada peran. Minta admin untuk memberi Anda akses.",
+    "scopeTitle": "Cakupan data",
+    "fullAccess": "Anda dapat melihat semua jemaat.",
+    "scopedTo": "Anda hanya dapat melihat jemaat dengan tag:",
+    "permissionsTitle": "Yang dapat Anda lakukan",
+    "noPermissions": "Belum ada izin."
+  },
+  "password": {
+    "title": "Ubah kata sandi",
+    "description": "Gunakan minimal 8 karakter. Anda tetap masuk di perangkat ini.",
+    "current": "Kata sandi saat ini",
+    "new": "Kata sandi baru",
+    "confirm": "Konfirmasi kata sandi baru",
+    "mismatch": "Kata sandi tidak cocok",
+    "same": "Kata sandi baru harus berbeda dari yang sekarang",
+    "submit": "Perbarui kata sandi",
+    "submitting": "Memperbarui…",
+    "success": "Kata sandi diperbarui",
+    "error": "Gagal mengubah kata sandi"
+  }
+}

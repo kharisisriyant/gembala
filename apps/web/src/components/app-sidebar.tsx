@@ -28,7 +28,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/lib/auth"
-import { MemberAvatar } from "@/components/member-avatar"
+import { UserMenu } from "@/components/user-menu"
 
 type NavItem = {
   titleKey: string
@@ -118,17 +118,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        {me && (
-          <div className="flex items-center gap-2 rounded-md p-2">
-            <MemberAvatar name={me.user.name} />
-            <div className="leading-tight">
-              <div className="text-sm font-medium">{me.user.name}</div>
-              <div className="text-muted-foreground text-xs">
-                {me.isSystemAdmin ? t("roles.admin") : me.roles.map((r) => r.name).join(", ") || t("roles.noRoles")}
-              </div>
-            </div>
-          </div>
-        )}
+        <UserMenu />
       </SidebarFooter>
     </Sidebar>
   )

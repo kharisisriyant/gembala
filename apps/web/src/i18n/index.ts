@@ -25,6 +25,8 @@ import invitesEn from "./locales/en/invites.json"
 import invitesId from "./locales/id/invites.json"
 import rolesEn from "./locales/en/roles.json"
 import rolesId from "./locales/id/roles.json"
+import profileEn from "./locales/en/profile.json"
+import profileId from "./locales/id/profile.json"
 
 export const defaultNS = "common"
 
@@ -46,6 +48,7 @@ void i18n
         team: teamEn,
         invites: invitesEn,
         roles: rolesEn,
+        profile: profileEn,
       },
       id: {
         common: commonId,
@@ -60,6 +63,7 @@ void i18n
         team: teamId,
         invites: invitesId,
         roles: rolesId,
+        profile: profileId,
       },
     },
     fallbackLng: "id",
