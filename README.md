@@ -47,6 +47,15 @@ Seeded logins (password `password123`):
   prayer or care needs about a member, then close (with a note) or reopen them.
   Visibility follows the member's tags: you see a request only if you can see its
   member. Leaders get create/read/update; delete is admin-only.
+- **Spiritual journey** (`/journey`, member detail panel) — track each member's
+  faith journey: dated **milestones** (first visit, joined a class/group, baptism,
+  sidi…), enrollment in a church-defined **course catalog** (katekisasi, baptism/sidi
+  prep, discipleship), and **leadership-potential** assessments. `/journey` lists who
+  needs a next step: newcomers to follow up, members ready for baptism or sidi, and
+  leader candidates — derived from the records, not stored. A baptism milestone also
+  syncs the member's baptism fields. Visibility follows the member's tags. Leaders
+  get journey create/read/update and course read; deleting milestones and managing
+  the course catalog are admin-only.
 - **Tags** (`/tags`) — **structured (nested) tags** with per-tag member counts
   (direct and whole-subtree). Deleting a tag re-parents its children; tags used
   as a group's scope can't be deleted (409). Admin-only writes.

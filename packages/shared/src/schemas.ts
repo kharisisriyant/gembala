@@ -32,6 +32,8 @@ export const permissionResourceSchema = z.enum([
   "events",
   "scheduling",
   "care_requests",
+  "journey",
+  "courses",
 ])
 export type PermissionResource = z.infer<typeof permissionResourceSchema>
 
@@ -571,6 +573,143 @@ export type CareRequestResponse = {
   closeNote: string | null
   createdAt: string
   updatedAt: string
+}
+
+// ---------------------------------------------------------------------------
+// Spiritual journey (milestones, discipleship courses, leadership potential)
+// ---------------------------------------------------------------------------
+
+export const milestoneTypeSchema = z.enum([
+  "first_visit",
+  "follow_up_contact",
+  "joined_class",
+  "joined_group",
+  "baptism",
+  "sidi",
+  "catechism_completed",
+])
+export type MilestoneType = z.infer<typeof milestoneTypeSchema>
+
+export const courseKindSchema = z.enum([
+  "catechism",
+  "baptism_prep",
+  "sidi_prep",
+  "discipleship",
+  "other",
+])
+export type CourseKind = z.infer<typeof courseKindSchema>
+
+export const enrollmentStatusSchema = z.enum(["enrolled", "completed", "dropped"])
+export type EnrollmentStatus = z.infer<typeof enrollmentStatusSchema>
+
+export const leadershipLevelSchema = z.enum(["emerging", "ready"])
+export type LeadershipLevel = z.infer<typeof leadershipLevelSchema>
+
+export const leadershipTargetRoleSchema = z.enum(["cell_leader", "ministry_coordinator"])
+export type LeadershipTargetRole = z.infer<typeof leadershipTargetRoleSchema>
+
+export const pipelineStageSchema = z.enum([
+  "newcomer_followup",
+  "baptism_ready",
+  "sidi_ready",
+  "leader_candidate",
+])
+export type PipelineStage = z.infer<typeof pipelineStageSchema>
+
+export const courseCreateSchema = z.object({
+  name: z.string().trim().min(1, "name is required").max(100),
+  kind: courseKindSchema,
+})
+export type CourseCreateInput = z.infer<typeof courseCreateSchema>
+
+export const courseUpdateSchema = z.object({
+  name: z.string().trim().min(1, "name is required").max(100).optional(),
+  kind: courseKindSchema.optional(),
+})
+export type CourseUpdateInput = z.infer<typeof courseUpdateSchema>
+
+export const milestoneCreateSchema = z.object({
+  type: milestoneTypeSchema,
+  achievedAt: isoDate,
+  note: z.string().trim().max(2000).optional(),
+})
+export type MilestoneCreateInput = z.infer<typeof milestoneCreateSchema>
+
+export const enrollmentCreateSchema = z.object({
+  courseId: z.string().uuid(),
+  startedAt: isoDate.optional(),
+})
+export type EnrollmentCreateInput = z.infer<typeof enrollmentCreateSchema>
+
+export const enrollmentUpdateSchema = z.object({
+  status: enrollmentStatusSchema,
+})
+export type EnrollmentUpdateInput = z.infer<typeof enrollmentUpdateSchema>
+
+export const leadershipAssessmentCreateSchema = z.object({
+  level: leadershipLevelSchema,
+  targetRole: leadershipTargetRoleSchema,
+  note: z.string().trim().max(2000).optional(),
+})
+export type LeadershipAssessmentCreateInput = z.infer<typeof leadershipAssessmentCreateSchema>
+
+export const pipelineQuerySchema = z.object({
+  stage: pipelineStageSchema,
+  followUpDays: z.coerce.number().int().min(1).max(365).default(30),
+})
+export type PipelineQuery = z.infer<typeof pipelineQuerySchema>
+
+export type CourseResponse = {
+  id: string
+  name: string
+  kind: CourseKind
+  enrollmentCount: number
+}
+
+export type MilestoneResponse = {
+  id: string
+  memberId: string
+  type: MilestoneType
+  achievedAt: string
+  note: string | null
+  recordedBy: { id: string; name: string } | null
+  createdAt: string
+}
+
+export type EnrollmentResponse = {
+  id: string
+  memberId: string
+  course: { id: string; name: string; kind: CourseKind }
+  status: EnrollmentStatus
+  startedAt: string
+  completedAt: string | null
+}
+
+export type LeadershipAssessmentResponse = {
+  id: string
+  memberId: string
+  level: LeadershipLevel
+  targetRole: LeadershipTargetRole
+  note: string | null
+  assessedBy: { id: string; name: string } | null
+  assessedAt: string
+}
+
+export type MemberJourneyResponse = {
+  milestones: MilestoneResponse[]
+  enrollments: EnrollmentResponse[]
+  // newest first; [0] is the current assessment
+  assessments: LeadershipAssessmentResponse[]
+}
+
+export type PipelineRowResponse = {
+  memberId: string
+  memberName: string
+  tags: string[]
+  stage: PipelineStage
+  daysSince: number | null
+  courseName: string | null
+  leadership: { level: LeadershipLevel; targetRole: LeadershipTargetRole } | null
 }
 
 // ---------------------------------------------------------------------------

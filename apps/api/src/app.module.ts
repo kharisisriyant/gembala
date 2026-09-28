@@ -22,6 +22,7 @@ import { InvitesModule } from "./invites/invites.module"
 import { RolesModule } from "./roles/roles.module"
 import { TelegramModule } from "./telegram/telegram.module"
 import { CareRequestsModule } from "./care-requests/care-requests.module"
+import { JourneyModule } from "./journey/journey.module"
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { CareRequestsModule } from "./care-requests/care-requests.module"
     RolesModule,
     TelegramModule,
     CareRequestsModule,
+    JourneyModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

@@ -10,6 +10,6 @@ import { MemberRelationshipsRepository } from "./member-relationships.repository
   imports: [TagsModule],
   controllers: [MembersController],
   providers: [MembersService, MembersRepository, MemberRelationshipsService, MemberRelationshipsRepository],
-  exports: [MembersService],
+  exports: [MembersService, MembersRepository],
 })
 export class MembersModule {}

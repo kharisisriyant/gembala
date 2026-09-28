@@ -3,6 +3,12 @@ import {
   attendanceHeatmapResponseSchema,
   authResponseSchema,
   careRequestResponseSchema,
+  courseResponseSchema,
+  enrollmentResponseSchema,
+  leadershipAssessmentResponseSchema,
+  memberJourneyResponseSchema,
+  milestoneResponseSchema,
+  pipelineRowResponseSchema,
   dashboardResponseSchema,
   eventResponseSchema,
   groupDetailResponseSchema,
@@ -57,3 +63,9 @@ export class InviteResponseDto extends createZodDto(inviteResponseSchema) {}
 export class InvitePreviewResponseDto extends createZodDto(invitePreviewResponseSchema) {}
 export class DashboardResponseDto extends createZodDto(dashboardResponseSchema) {}
 export class CareRequestResponseDto extends createZodDto(careRequestResponseSchema) {}
+export class CourseResponseDto extends createZodDto(courseResponseSchema) {}
+export class MilestoneResponseDto extends createZodDto(milestoneResponseSchema) {}
+export class EnrollmentResponseDto extends createZodDto(enrollmentResponseSchema) {}
+export class LeadershipAssessmentResponseDto extends createZodDto(leadershipAssessmentResponseSchema) {}
+export class MemberJourneyResponseDto extends createZodDto(memberJourneyResponseSchema) {}
+export class PipelineRowResponseDto extends createZodDto(pipelineRowResponseSchema) {}

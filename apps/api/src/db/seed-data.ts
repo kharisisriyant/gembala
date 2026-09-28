@@ -74,6 +74,7 @@ export const seedMembers: SeedMember[] = [
   { id: "m13", name: "Marcus Ng", email: "marcus.n@gmail.com", phone: "0812-1111-2213", tags: ["members", "youth", "worship", "guitarist"], status: "active", joinedAt: "2022-04-08" },
   { id: "m14", name: "Nadia Sari", email: "nadia.s@gmail.com", phone: "0812-1111-2214", tags: ["members", "youth", "kids"], status: "inactive", joinedAt: "2021-02-27" },
   { id: "m15", name: "Oscar Wibowo", email: "oscar.w@gmail.com", phone: "0812-1111-2215", tags: ["members", "married", "leader"], status: "active", joinedAt: "2016-10-05" },
+  { id: "m16", name: "Putri Anjani", email: "putri.a@gmail.com", phone: "0812-1111-2216", tags: ["members", "youth"], status: "newcomer", joinedAt: "2026-07-20" },
 ]
 
 export const seedGroups: SeedGroup[] = [
@@ -113,4 +114,71 @@ export const seedCareRequests: SeedCareRequest[] = [
   { memberId: "m4", type: "care", body: "Mom is recovering from surgery. Would appreciate a visit or meal this week.", submittedByEmail: "andrew@gembala.dev" },
   { memberId: "m3", type: "prayer", body: "Final exams this week.", submittedByEmail: "andrew@gembala.dev", closeNote: "Passed all finals, praise God." },
   { memberId: "m10", type: "prayer", body: "Parents' health.", submittedByEmail: "gerald@gembala.dev" },
+]
+
+export type SeedCourse = {
+  key: string
+  name: string
+  kind: "catechism" | "baptism_prep" | "sidi_prep" | "discipleship" | "other"
+}
+
+export const seedCourses: SeedCourse[] = [
+  { key: "catechism", name: "Katekisasi", kind: "catechism" },
+  { key: "baptism", name: "Kelas Baptisan", kind: "baptism_prep" },
+  { key: "sidi", name: "Kelas Sidi", kind: "sidi_prep" },
+  { key: "discipleship", name: "Pemuridan Dasar", kind: "discipleship" },
+]
+
+export type SeedEnrollment = {
+  memberId: string
+  courseKey: string
+  status: "enrolled" | "completed" | "dropped"
+  startedAt: string
+  completedAt?: string
+}
+
+export const seedEnrollments: SeedEnrollment[] = [
+  { memberId: "m5", courseKey: "baptism", status: "completed", startedAt: "2026-07-05", completedAt: "2026-09-14" },
+  { memberId: "m3", courseKey: "catechism", status: "completed", startedAt: "2025-02-02", completedAt: "2025-06-15" },
+  { memberId: "m3", courseKey: "sidi", status: "completed", startedAt: "2026-06-07", completedAt: "2026-09-01" },
+  { memberId: "m4", courseKey: "discipleship", status: "completed", startedAt: "2026-03-01", completedAt: "2026-06-21" },
+  { memberId: "m12", courseKey: "discipleship", status: "enrolled", startedAt: "2026-09-06" },
+]
+
+export type SeedMilestone = {
+  memberId: string
+  type:
+    | "first_visit"
+    | "follow_up_contact"
+    | "joined_class"
+    | "joined_group"
+    | "baptism"
+    | "sidi"
+    | "catechism_completed"
+  achievedAt: string
+  note?: string
+  recordedByEmail: string
+}
+
+export const seedMilestones: SeedMilestone[] = [
+  { memberId: "m5", type: "first_visit", achievedAt: "2026-04-02", recordedByEmail: "andrew@gembala.dev" },
+  { memberId: "m5", type: "joined_group", achievedAt: "2026-04-10", note: "Youth Komsel — North", recordedByEmail: "andrew@gembala.dev" },
+  { memberId: "m12", type: "first_visit", achievedAt: "2026-05-18", recordedByEmail: "andrew@gembala.dev" },
+  { memberId: "m16", type: "first_visit", achievedAt: "2026-07-20", recordedByEmail: "andrew@gembala.dev" },
+  { memberId: "m16", type: "follow_up_contact", achievedAt: "2026-07-27", note: "Called; interested but busy with exams.", recordedByEmail: "andrew@gembala.dev" },
+  { memberId: "m1", type: "baptism", achievedAt: "2021-06-20", recordedByEmail: "andrew@gembala.dev" },
+  { memberId: "m3", type: "catechism_completed", achievedAt: "2025-06-15", recordedByEmail: "andrew@gembala.dev" },
+]
+
+export type SeedLeadershipAssessment = {
+  memberId: string
+  level: "emerging" | "ready"
+  targetRole: "cell_leader" | "ministry_coordinator"
+  note?: string
+  assessedByEmail: string
+}
+
+export const seedLeadershipAssessments: SeedLeadershipAssessment[] = [
+  { memberId: "m2", level: "emerging", targetRole: "ministry_coordinator", note: "Steady in worship team, still building confidence.", assessedByEmail: "andrew@gembala.dev" },
+  { memberId: "m6", level: "ready", targetRole: "cell_leader", note: "Already mentors two newer members.", assessedByEmail: "andrew@gembala.dev" },
 ]

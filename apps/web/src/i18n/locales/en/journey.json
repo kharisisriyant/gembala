@@ -1,0 +1,127 @@
+{
+  "title": "Spiritual Journey",
+  "subtitle": "Follow newcomers, class progress, baptism and sidi readiness, and emerging leaders.",
+  "manageCourses": "Manage courses",
+  "empty": "No members at this stage.",
+  "followUpAfter": "Follow up after (days)",
+  "days_one": "{{count}} day",
+  "days_other": "{{count}} days",
+  "stage": {
+    "newcomer_followup": "Newcomer follow-up",
+    "baptism_ready": "Ready for baptism",
+    "sidi_ready": "Ready for sidi",
+    "leader_candidate": "Leader candidates"
+  },
+  "stageHelp": {
+    "newcomer_followup": "Newcomers past the follow-up window with no class, group or milestone yet. Counted from their join date.",
+    "baptism_ready": "Completed a baptism class and not yet baptized. Counted from class completion.",
+    "sidi_ready": "Completed a sidi class and no sidi milestone yet. Counted from class completion.",
+    "leader_candidate": "Latest leadership assessment is \"ready\". Counted from the assessment."
+  },
+  "table": {
+    "member": "Member",
+    "tags": "Tags",
+    "waiting": "Waiting",
+    "course": "Course",
+    "leadership": "Leadership"
+  },
+  "milestone": {
+    "first_visit": "First visit",
+    "follow_up_contact": "Follow-up contact",
+    "joined_class": "Joined a class",
+    "joined_group": "Joined a small group",
+    "baptism": "Baptism",
+    "sidi": "Sidi",
+    "catechism_completed": "Catechism completed"
+  },
+  "courseKind": {
+    "catechism": "Catechism",
+    "baptism_prep": "Baptism prep",
+    "sidi_prep": "Sidi prep",
+    "discipleship": "Discipleship",
+    "other": "Other"
+  },
+  "enrollmentStatus": {
+    "enrolled": "Enrolled",
+    "completed": "Completed",
+    "dropped": "Dropped"
+  },
+  "level": {
+    "emerging": "Emerging",
+    "ready": "Ready"
+  },
+  "targetRole": {
+    "cell_leader": "Cell leader",
+    "ministry_coordinator": "Ministry coordinator"
+  },
+  "memberSection": {
+    "title": "Spiritual journey",
+    "milestones": "Milestones",
+    "courses": "Classes",
+    "leadership": "Leadership potential",
+    "noMilestones": "No milestones recorded.",
+    "noCourses": "Not enrolled in any class.",
+    "noAssessment": "Not assessed yet.",
+    "addMilestone": "Milestone",
+    "enroll": "Enroll",
+    "assess": "Assess",
+    "recordedBy": "by {{name}}",
+    "started": "Started {{date}}",
+    "completed": "completed {{date}}",
+    "deleteMilestone": "Delete milestone"
+  },
+  "milestoneForm": {
+    "title": "Record milestone",
+    "description": "Add a step to {{name}}'s journey. A baptism also marks them as baptized.",
+    "type": "Milestone",
+    "date": "Date",
+    "note": "Note (optional)",
+    "notePlaceholder": "Anything worth remembering",
+    "submit": "Record milestone",
+    "added": "Milestone recorded",
+    "error": "Could not record milestone",
+    "deleted": "Milestone deleted",
+    "deleteError": "Could not delete milestone"
+  },
+  "enrollForm": {
+    "title": "Enroll in a class",
+    "description": "Enroll {{name}} in a course from your catalog.",
+    "course": "Course",
+    "coursePlaceholder": "Select a course",
+    "noCourses": "No courses yet. Ask an admin to add some.",
+    "startedAt": "Start date",
+    "submit": "Enroll",
+    "enrolled": "Enrolled",
+    "error": "Could not enroll member",
+    "statusUpdated": "Enrollment updated",
+    "statusError": "Could not update enrollment"
+  },
+  "assessForm": {
+    "title": "Leadership assessment",
+    "description": "How ready is {{name}} to lead? This adds to their history; the newest is current.",
+    "level": "Level",
+    "targetRole": "Target role",
+    "note": "Note (optional)",
+    "notePlaceholder": "What have you observed?",
+    "submit": "Save assessment",
+    "saved": "Assessment saved",
+    "error": "Could not save assessment"
+  },
+  "courses": {
+    "title": "Courses",
+    "description": "The classes your church offers. Members are enrolled from this list.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Baptism class",
+    "kind": "Kind",
+    "add": "Add course",
+    "added": "Course added",
+    "updated": "Course updated",
+    "deleted": "Course deleted",
+    "empty": "No courses yet.",
+    "enrollments_one": "{{count}} enrollment",
+    "enrollments_other": "{{count}} enrollments",
+    "addError": "Could not add course",
+    "updateError": "Could not update course",
+    "deleteError": "Could not delete course"
+  }
+}

@@ -3,6 +3,12 @@ import {
   careRequestSourceSchema,
   careRequestStatusSchema,
   careRequestTypeSchema,
+  courseKindSchema,
+  enrollmentStatusSchema,
+  leadershipLevelSchema,
+  leadershipTargetRoleSchema,
+  milestoneTypeSchema,
+  pipelineStageSchema,
   memberBaptismStatusSchema,
   memberGenderSchema,
   memberMaritalStatusSchema,
@@ -11,6 +17,7 @@ import {
   type AttendanceHeatmapResponse,
   type AuthResponse,
   type CareRequestResponse,
+  type CourseResponse,
   type DashboardResponse,
   type EventResponse,
   type GroupDetailResponse,
@@ -20,11 +27,16 @@ import {
   type InstanceTypeResponse,
   type InvitePreviewResponse,
   type InviteResponse,
+  type LeadershipAssessmentResponse,
   type MeResponse,
   type MemberDetailResponse,
   type MemberImportResult,
+  type MemberJourneyResponse,
   type MemberRelationshipResponse,
   type MemberResponse,
+  type MilestoneResponse,
+  type PipelineRowResponse,
+  type EnrollmentResponse,
   type RoleAssignmentResponse,
   type RoleResponse,
   type RoleTemplateResponse,
@@ -316,3 +328,61 @@ export const careRequestResponseSchema = z.object({
   createdAt: z.string().describe("ISO 8601 timestamp"),
   updatedAt: z.string().describe("ISO 8601 timestamp"),
 }) satisfies z.ZodType<CareRequestResponse>
+
+const journeyUserRefSchema = z.object({ id: z.string().uuid(), name: z.string() })
+
+export const courseResponseSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  kind: courseKindSchema,
+  enrollmentCount: z.number().int(),
+}) satisfies z.ZodType<CourseResponse>
+
+export const milestoneResponseSchema = z.object({
+  id: z.string().uuid(),
+  memberId: z.string().uuid(),
+  type: milestoneTypeSchema,
+  achievedAt: z.string().describe("ISO date (YYYY-MM-DD)"),
+  note: z.string().nullable(),
+  recordedBy: journeyUserRefSchema.nullable(),
+  createdAt: z.string().describe("ISO 8601 timestamp"),
+}) satisfies z.ZodType<MilestoneResponse>
+
+export const enrollmentResponseSchema = z.object({
+  id: z.string().uuid(),
+  memberId: z.string().uuid(),
+  course: z.object({ id: z.string().uuid(), name: z.string(), kind: courseKindSchema }),
+  status: enrollmentStatusSchema,
+  startedAt: z.string().describe("ISO date (YYYY-MM-DD)"),
+  completedAt: z.string().nullable().describe("ISO date (YYYY-MM-DD)"),
+}) satisfies z.ZodType<EnrollmentResponse>
+
+export const leadershipAssessmentResponseSchema = z.object({
+  id: z.string().uuid(),
+  memberId: z.string().uuid(),
+  level: leadershipLevelSchema,
+  targetRole: leadershipTargetRoleSchema,
+  note: z.string().nullable(),
+  assessedBy: journeyUserRefSchema.nullable(),
+  assessedAt: z.string().describe("ISO 8601 timestamp"),
+}) satisfies z.ZodType<LeadershipAssessmentResponse>
+
+export const memberJourneyResponseSchema = z.object({
+  milestones: z.array(milestoneResponseSchema),
+  enrollments: z.array(enrollmentResponseSchema),
+  assessments: z
+    .array(leadershipAssessmentResponseSchema)
+    .describe("Newest first; the first entry is the current assessment"),
+}) satisfies z.ZodType<MemberJourneyResponse>
+
+export const pipelineRowResponseSchema = z.object({
+  memberId: z.string().uuid(),
+  memberName: z.string(),
+  tags: z.array(z.string()),
+  stage: pipelineStageSchema,
+  daysSince: z.number().int().nullable().describe("Days since joining (follow-up) or since course completion (readiness)"),
+  courseName: z.string().nullable().describe("The completed prep course, for baptism/sidi readiness"),
+  leadership: z
+    .object({ level: leadershipLevelSchema, targetRole: leadershipTargetRoleSchema })
+    .nullable(),
+}) satisfies z.ZodType<PipelineRowResponse>

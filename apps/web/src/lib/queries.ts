@@ -10,6 +10,19 @@ import type {
   CareRequestStatus,
   CareRequestType,
   CareRequestUpdateInput,
+  CourseCreateInput,
+  CourseResponse,
+  CourseUpdateInput,
+  EnrollmentCreateInput,
+  EnrollmentResponse,
+  EnrollmentUpdateInput,
+  LeadershipAssessmentCreateInput,
+  LeadershipAssessmentResponse,
+  MemberJourneyResponse,
+  MilestoneCreateInput,
+  MilestoneResponse,
+  PipelineRowResponse,
+  PipelineStage,
   DashboardResponse,
   EventCreateInput,
   EventResponse,
@@ -635,5 +648,116 @@ export function useDeleteCareRequest() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/care-requests/${id}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
+  })
+}
+
+// --- journey (milestones, courses, leadership) -----------------------------
+
+export function useMemberJourney(memberId: string, enabled = true) {
+  return useQuery({
+    queryKey: ["journey", "member", memberId],
+    queryFn: () => apiFetch<MemberJourneyResponse>(`/members/${memberId}/journey`),
+    enabled,
+  })
+}
+
+export function usePipeline(stage: PipelineStage, followUpDays?: number) {
+  const params = new URLSearchParams({ stage })
+  if (followUpDays) params.set("followUpDays", String(followUpDays))
+  return useQuery({
+    queryKey: ["journey", "pipeline", stage, followUpDays ?? null],
+    queryFn: () => apiFetch<PipelineRowResponse[]>(`/journey/pipeline?${params.toString()}`),
+  })
+}
+
+export function useCourses(enabled = true) {
+  return useQuery({
+    queryKey: ["courses"],
+    queryFn: () => apiFetch<CourseResponse[]>("/courses"),
+    enabled,
+  })
+}
+
+// Journey writes change pipeline lists and, for baptism milestones, the
+// member's own baptism fields — so they invalidate all three caches.
+function useInvalidateJourney() {
+  const qc = useQueryClient()
+  return () => {
+    void qc.invalidateQueries({ queryKey: ["journey"] })
+    void qc.invalidateQueries({ queryKey: ["members"] })
+    void qc.invalidateQueries({ queryKey: ["courses"] })
+  }
+}
+
+export function useAddMilestone() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: ({ memberId, ...input }: MilestoneCreateInput & { memberId: string }) =>
+      apiFetch<MilestoneResponse>(`/members/${memberId}/milestones`, { method: "POST", body: input }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDeleteMilestone() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/milestones/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useEnrollMember() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: ({ memberId, ...input }: EnrollmentCreateInput & { memberId: string }) =>
+      apiFetch<EnrollmentResponse>(`/members/${memberId}/enrollments`, { method: "POST", body: input }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useUpdateEnrollment() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: ({ id, ...input }: EnrollmentUpdateInput & { id: string }) =>
+      apiFetch<EnrollmentResponse>(`/enrollments/${id}`, { method: "PATCH", body: input }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useAddLeadershipAssessment() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: ({ memberId, ...input }: LeadershipAssessmentCreateInput & { memberId: string }) =>
+      apiFetch<LeadershipAssessmentResponse>(`/members/${memberId}/leadership-assessments`, {
+        method: "POST",
+        body: input,
+      }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useCreateCourse() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: (input: CourseCreateInput) =>
+      apiFetch<CourseResponse>("/courses", { method: "POST", body: input }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useUpdateCourse() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: ({ id, ...input }: CourseUpdateInput & { id: string }) =>
+      apiFetch<CourseResponse>(`/courses/${id}`, { method: "PATCH", body: input }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDeleteCourse() {
+  const invalidate = useInvalidateJourney()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/courses/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
   })
 }

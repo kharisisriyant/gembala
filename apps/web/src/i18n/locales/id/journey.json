@@ -1,0 +1,125 @@
+{
+  "title": "Pertumbuhan Rohani",
+  "subtitle": "Pantau jemaat baru, kemajuan kelas, kesiapan baptis dan sidi, serta calon pemimpin.",
+  "manageCourses": "Kelola kelas",
+  "empty": "Tidak ada jemaat pada tahap ini.",
+  "followUpAfter": "Tindak lanjut setelah (hari)",
+  "days_other": "{{count}} hari",
+  "stage": {
+    "newcomer_followup": "Tindak lanjut jemaat baru",
+    "baptism_ready": "Siap baptis",
+    "sidi_ready": "Siap sidi",
+    "leader_candidate": "Calon pemimpin"
+  },
+  "stageHelp": {
+    "newcomer_followup": "Jemaat baru yang melewati masa tindak lanjut dan belum ikut kelas, komsel, atau tahap apa pun. Dihitung sejak tanggal bergabung.",
+    "baptism_ready": "Sudah menyelesaikan kelas baptis dan belum dibaptis. Dihitung sejak kelas selesai.",
+    "sidi_ready": "Sudah menyelesaikan kelas sidi dan belum tercatat sidi. Dihitung sejak kelas selesai.",
+    "leader_candidate": "Penilaian kepemimpinan terbaru adalah \"siap\". Dihitung sejak penilaian."
+  },
+  "table": {
+    "member": "Jemaat",
+    "tags": "Tag",
+    "waiting": "Menunggu",
+    "course": "Kelas",
+    "leadership": "Kepemimpinan"
+  },
+  "milestone": {
+    "first_visit": "Kunjungan pertama",
+    "follow_up_contact": "Kontak tindak lanjut",
+    "joined_class": "Masuk kelas",
+    "joined_group": "Bergabung komsel",
+    "baptism": "Baptis",
+    "sidi": "Sidi",
+    "catechism_completed": "Katekisasi selesai"
+  },
+  "courseKind": {
+    "catechism": "Katekisasi",
+    "baptism_prep": "Persiapan baptis",
+    "sidi_prep": "Persiapan sidi",
+    "discipleship": "Pemuridan",
+    "other": "Lainnya"
+  },
+  "enrollmentStatus": {
+    "enrolled": "Terdaftar",
+    "completed": "Selesai",
+    "dropped": "Berhenti"
+  },
+  "level": {
+    "emerging": "Berkembang",
+    "ready": "Siap"
+  },
+  "targetRole": {
+    "cell_leader": "Pemimpin komsel",
+    "ministry_coordinator": "Koordinator pelayanan"
+  },
+  "memberSection": {
+    "title": "Pertumbuhan rohani",
+    "milestones": "Tahapan",
+    "courses": "Kelas",
+    "leadership": "Potensi kepemimpinan",
+    "noMilestones": "Belum ada tahapan tercatat.",
+    "noCourses": "Belum mengikuti kelas apa pun.",
+    "noAssessment": "Belum dinilai.",
+    "addMilestone": "Tahapan",
+    "enroll": "Daftarkan",
+    "assess": "Nilai",
+    "recordedBy": "oleh {{name}}",
+    "started": "Mulai {{date}}",
+    "completed": "selesai {{date}}",
+    "deleteMilestone": "Hapus tahapan"
+  },
+  "milestoneForm": {
+    "title": "Catat tahapan",
+    "description": "Tambahkan langkah pada perjalanan iman {{name}}. Baptis juga menandai mereka sebagai sudah dibaptis.",
+    "type": "Tahapan",
+    "date": "Tanggal",
+    "note": "Catatan (opsional)",
+    "notePlaceholder": "Hal yang perlu diingat",
+    "submit": "Catat tahapan",
+    "added": "Tahapan dicatat",
+    "error": "Gagal mencatat tahapan",
+    "deleted": "Tahapan dihapus",
+    "deleteError": "Gagal menghapus tahapan"
+  },
+  "enrollForm": {
+    "title": "Daftarkan ke kelas",
+    "description": "Daftarkan {{name}} ke salah satu kelas dari katalog gereja Anda.",
+    "course": "Kelas",
+    "coursePlaceholder": "Pilih kelas",
+    "noCourses": "Belum ada kelas. Minta admin menambahkannya.",
+    "startedAt": "Tanggal mulai",
+    "submit": "Daftarkan",
+    "enrolled": "Berhasil didaftarkan",
+    "error": "Gagal mendaftarkan jemaat",
+    "statusUpdated": "Pendaftaran diperbarui",
+    "statusError": "Gagal memperbarui pendaftaran"
+  },
+  "assessForm": {
+    "title": "Penilaian kepemimpinan",
+    "description": "Seberapa siap {{name}} memimpin? Penilaian ditambahkan ke riwayat; yang terbaru berlaku.",
+    "level": "Tingkat",
+    "targetRole": "Peran yang dituju",
+    "note": "Catatan (opsional)",
+    "notePlaceholder": "Apa yang Anda amati?",
+    "submit": "Simpan penilaian",
+    "saved": "Penilaian disimpan",
+    "error": "Gagal menyimpan penilaian"
+  },
+  "courses": {
+    "title": "Kelas",
+    "description": "Kelas yang ditawarkan gereja Anda. Jemaat didaftarkan dari daftar ini.",
+    "name": "Nama",
+    "namePlaceholder": "mis. Kelas Baptisan",
+    "kind": "Jenis",
+    "add": "Tambah kelas",
+    "added": "Kelas ditambahkan",
+    "updated": "Kelas diperbarui",
+    "deleted": "Kelas dihapus",
+    "empty": "Belum ada kelas.",
+    "enrollments_other": "{{count}} peserta",
+    "addError": "Gagal menambah kelas",
+    "updateError": "Gagal memperbarui kelas",
+    "deleteError": "Gagal menghapus kelas"
+  }
+}

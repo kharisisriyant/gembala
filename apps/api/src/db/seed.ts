@@ -8,6 +8,10 @@ import {
   ORG_NAME,
   SEED_PASSWORD,
   seedCareRequests,
+  seedCourses,
+  seedEnrollments,
+  seedLeadershipAssessments,
+  seedMilestones,
   seedGroups,
   seedMembers,
   seedSessions,
@@ -39,6 +43,7 @@ async function main() {
       "groups:read", "groups:create", "groups:update",
       "households:read", "tags:read", "rooms:read", "events:read",
       "care_requests:read", "care_requests:create", "care_requests:update",
+      "journey:read", "journey:create", "journey:update", "courses:read",
     ]
 
     const [adminRole] = await tx
@@ -164,6 +169,55 @@ async function main() {
           }),
         }
       }),
+    )
+
+    const courseIdByKey = new Map<string, string>()
+    for (const c of seedCourses) {
+      const [row] = await tx
+        .insert(schema.courses)
+        .values({ orgId: org.id, name: c.name, kind: c.kind })
+        .returning()
+      courseIdByKey.set(c.key, row.id)
+    }
+
+    await tx.insert(schema.courseEnrollments).values(
+      seedEnrollments.map((e) => ({
+        orgId: org.id,
+        memberId: memberIdByLocal.get(e.memberId)!,
+        courseId: courseIdByKey.get(e.courseKey)!,
+        status: e.status,
+        startedAt: e.startedAt,
+        completedAt: e.completedAt ?? null,
+      })),
+    )
+
+    await tx.insert(schema.memberMilestones).values(
+      seedMilestones.map((m) => ({
+        orgId: org.id,
+        memberId: memberIdByLocal.get(m.memberId)!,
+        type: m.type,
+        achievedAt: m.achievedAt,
+        note: m.note ?? null,
+        recordedByUserId: userIdByEmail.get(m.recordedByEmail)!,
+      })),
+    )
+    // Same sync the API does when a baptism milestone is recorded.
+    for (const m of seedMilestones.filter((m) => m.type === "baptism")) {
+      await tx
+        .update(schema.members)
+        .set({ baptismStatus: "baptized", baptismDate: m.achievedAt })
+        .where(eq(schema.members.id, memberIdByLocal.get(m.memberId)!))
+    }
+
+    await tx.insert(schema.leadershipAssessments).values(
+      seedLeadershipAssessments.map((a) => ({
+        orgId: org.id,
+        memberId: memberIdByLocal.get(a.memberId)!,
+        level: a.level,
+        targetRole: a.targetRole,
+        note: a.note ?? null,
+        assessedByUserId: userIdByEmail.get(a.assessedByEmail)!,
+      })),
     )
   })
 

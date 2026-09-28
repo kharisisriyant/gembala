@@ -57,6 +57,13 @@
       "when": 1790590010944,
       "tag": "0007_classy_iceman",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790590858971,
+      "tag": "0008_premium_wolf_cub",
+      "breakpoints": true
     }
   ]
 }
