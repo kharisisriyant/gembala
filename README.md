@@ -21,6 +21,9 @@ pnpm db:seed        # demo org with members, groups, sessions, logins
 pnpm dev            # api on :3000, web on :5173
 ```
 
+Interactive API docs (Swagger UI) are at <http://localhost:3000/api/docs>; the raw
+OpenAPI document is at `/api/docs-json`.
+
 Seeded logins (password `password123`):
 
 | Email | Role | Scope |

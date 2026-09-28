@@ -5,6 +5,8 @@ import {
   instanceTypeUpdateSchema,
   type InstanceTypeResponse,
 } from "@gembala/shared"
+import { ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
+import { InstanceTypeResponseDto } from "../swagger/response-dtos"
 import { CurrentAuth, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { InstanceTypesService } from "./instance-types.service"
@@ -12,16 +14,21 @@ import { InstanceTypesService } from "./instance-types.service"
 class InstanceTypeCreateDto extends createZodDto(instanceTypeCreateSchema) {}
 class InstanceTypeUpdateDto extends createZodDto(instanceTypeUpdateSchema) {}
 
+@ApiTags("Scheduling")
 @Controller("scheduling/instance-types")
 export class InstanceTypesController {
   constructor(private readonly instanceTypes: InstanceTypesService) {}
 
+  @ApiOperation({ summary: "List service instance types (e.g. Morning Service)" })
+  @ApiOkResponse({ type: [InstanceTypeResponseDto] })
   @RequirePermission("scheduling", "read")
   @Get()
   list(@CurrentAuth() auth: AuthContext): Promise<InstanceTypeResponse[]> {
     return this.instanceTypes.list(auth.orgId)
   }
 
+  @ApiOperation({ summary: "Create an instance type" })
+  @ApiCreatedResponse({ type: InstanceTypeResponseDto })
   @RequirePermission("scheduling", "create")
   @Post()
   create(
@@ -31,6 +38,9 @@ export class InstanceTypesController {
     return this.instanceTypes.create(auth.orgId, dto)
   }
 
+  @ApiOperation({ summary: "Update an instance type" })
+  @ApiOkResponse({ type: InstanceTypeResponseDto })
+  @ApiNotFoundResponse({ description: "Instance type not found" })
   @RequirePermission("scheduling", "update")
   @Patch(":id")
   update(
@@ -41,6 +51,9 @@ export class InstanceTypesController {
     return this.instanceTypes.update(auth.orgId, id, dto)
   }
 
+  @ApiOperation({ summary: "Delete an instance type" })
+  @ApiNoContentResponse({ description: "Deleted" })
+  @ApiNotFoundResponse({ description: "Instance type not found" })
   @RequirePermission("scheduling", "delete")
   @HttpCode(204)
   @Delete(":id")

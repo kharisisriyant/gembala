@@ -23,6 +23,8 @@ import {
   type MemberRelationType,
   type MemberResponse,
 } from "@gembala/shared"
+import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
+import { MemberDetailResponseDto, MemberImportResultDto, MemberRelationshipResponseDto, MemberResponseDto } from "../swagger/response-dtos"
 import { CurrentAuth, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { MembersService } from "./members.service"
@@ -33,6 +35,7 @@ class MemberUpdateDto extends createZodDto(memberUpdateSchema) {}
 class MemberImportDto extends createZodDto(memberImportSchema) {}
 class RelationshipCreateDto extends createZodDto(relationshipCreateSchema) {}
 
+@ApiTags("Members")
 @Controller("members")
 export class MembersController {
   constructor(
@@ -40,6 +43,10 @@ export class MembersController {
     private readonly relationships: MemberRelationshipsService,
   ) {}
 
+  @ApiOperation({ summary: "List members in the caller's scope" })
+  @ApiQuery({ name: "search", required: false, description: "Case-insensitive match on name, email or phone" })
+  @ApiQuery({ name: "tag", required: false, description: "Only members tagged with this tag or one of its descendants" })
+  @ApiOkResponse({ type: [MemberResponseDto] })
   @RequirePermission("members", "read")
   @Get()
   list(
@@ -50,12 +57,18 @@ export class MembersController {
     return this.members.list(auth, search, tag)
   }
 
+  @ApiOperation({ summary: "Create a member" })
+  @ApiCreatedResponse({ type: MemberResponseDto })
+  @ApiNotFoundResponse({ description: "Unknown tag" })
+  @ApiForbiddenResponse({ description: "Member tags must include at least one tag in the caller's scope" })
   @RequirePermission("members", "create")
   @Post()
   create(@CurrentAuth() auth: AuthContext, @Body() dto: MemberCreateDto): Promise<MemberResponse> {
     return this.members.create(auth, dto)
   }
 
+  @ApiOperation({ summary: "Bulk-create members (up to 500); rows that fail are reported, not fatal" })
+  @ApiCreatedResponse({ type: MemberImportResultDto })
   @RequirePermission("members", "create")
   @Post("import")
   importMany(
@@ -65,6 +78,9 @@ export class MembersController {
     return this.members.importMany(auth, dto.members)
   }
 
+  @ApiOperation({ summary: "Get a member with the groups they belong to" })
+  @ApiOkResponse({ type: MemberDetailResponseDto })
+  @ApiNotFoundResponse({ description: "Member not found or outside the caller's tag scope" })
   @RequirePermission("members", "read")
   @Get(":id")
   detail(
@@ -74,6 +90,10 @@ export class MembersController {
     return this.members.detail(auth, id)
   }
 
+  @ApiOperation({ summary: "Update a member" })
+  @ApiOkResponse({ type: MemberResponseDto })
+  @ApiNotFoundResponse({ description: "Member not found or outside the caller's tag scope" })
+  @ApiForbiddenResponse({ description: "Member tags must include at least one tag in the caller's scope" })
   @RequirePermission("members", "update")
   @Patch(":id")
   update(
@@ -84,6 +104,9 @@ export class MembersController {
     return this.members.update(auth, id, dto)
   }
 
+  @ApiOperation({ summary: "List a member's family relationships" })
+  @ApiOkResponse({ type: [MemberRelationshipResponseDto] })
+  @ApiNotFoundResponse({ description: "Member not found or outside the caller's tag scope" })
   @RequirePermission("members", "read")
   @Get(":id/relationships")
   listRelationships(
@@ -93,6 +116,11 @@ export class MembersController {
     return this.relationships.list(auth, id)
   }
 
+  @ApiOperation({ summary: "Add a relationship from this member to another" })
+  @ApiCreatedResponse({ type: MemberRelationshipResponseDto })
+  @ApiBadRequestResponse({ description: "A member cannot be related to themselves" })
+  @ApiConflictResponse({ description: "This relationship already exists" })
+  @ApiNotFoundResponse({ description: "Member not found or outside the caller's tag scope" })
   @RequirePermission("members", "update")
   @Post(":id/relationships")
   createRelationship(
@@ -103,6 +131,9 @@ export class MembersController {
     return this.relationships.create(auth, id, dto)
   }
 
+  @ApiOperation({ summary: "Remove a relationship" })
+  @ApiNoContentResponse({ description: "Deleted" })
+  @ApiNotFoundResponse({ description: "Relationship not found" })
   @RequirePermission("members", "update")
   @Delete(":id/relationships/:relatedMemberId/:relationType")
   removeRelationship(

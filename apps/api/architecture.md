@@ -17,7 +17,8 @@ members/
   members.service.spec.ts      # unit tests for the service (mocked repository)
   members.repository.ts        # all Drizzle queries for this module
   members.schema.ts            # this module's pgTable defs + enums + relations
-  dto.ts                       # request/response DTOs (zod/nestjs-zod), if any
+  dto.ts                       # request DTOs (createZodDto), if shared across files; otherwise
+                               # declared as small classes at the top of the controller
   member-relationships.service.ts      # sub-feature: same pattern, own repo
   member-relationships.service.spec.ts
   member-relationships.repository.ts
@@ -26,6 +27,15 @@ members/
 A sub-feature within a module (e.g. `member-relationships`,
 `attendance`) gets its own `service.ts` + `repository.ts` pair rather
 than being folded into the parent module's files.
+
+Cross-cutting, not a feature module:
+
+```
+swagger/
+  setup-swagger.ts             # builds + serves the OpenAPI document (called from main.ts)
+  extensions.ts                # x-* vendor-extension keys shared with authz/decorators.ts
+  response-dtos.ts             # createZodDto classes for every response type (docs only)
+```
 
 Top-level, alongside `src/`:
 
@@ -43,7 +53,9 @@ apps/api/
 ## Layer responsibilities
 
 **Controller** — HTTP concerns only: route definitions, param/body
-parsing via DTOs, guards/decorators. No business logic, no DB access.
+parsing via DTOs, guards/decorators, and the Swagger decorators that
+document each route (see [API documentation](#api-documentation-swagger)).
+No business logic, no DB access.
 
 **Service** — business logic: scope and permission checks, validation
 beyond DTO shape, orchestration across repositories/other services,
@@ -203,6 +215,68 @@ coverage is added as each module goes through Phase 2.
    (prefer going through the owning service instead).
 4. Add `x.service.spec.ts` next to the service and `test/x.e2e-spec.ts`
    for its controller (see Testing above).
+5. Document every route with Swagger decorators and add response
+   schemas/DTOs for new response types (see API documentation above).
+
+## API documentation (Swagger)
+
+The API describes itself with OpenAPI via `@nestjs/swagger`, wired up in
+`swagger/setup-swagger.ts` and called from `main.ts` after the global
+prefix is set. Because `useGlobalPrefix` is on, it is served at:
+
+| URL | What |
+|---|---|
+| `/api/docs` | Swagger UI ("Authorize" takes the JWT from `POST /api/auth/login`) |
+| `/api/docs-json` | raw OpenAPI 3 document |
+
+These routes are registered on the HTTP adapter directly, so they bypass
+`JwtAuthGuard` and need no token.
+
+**Every route must be documented.** A controller change that adds or
+alters an endpoint updates its Swagger decorators in the same commit.
+Per controller and route:
+
+- Class: `@ApiTags("<Feature>")` above `@Controller(...)`.
+- Method: `@ApiOperation({ summary })` (imperative, one line) and one
+  success response — `@ApiOkResponse` / `@ApiCreatedResponse` with
+  `type: XResponseDto` (`[XResponseDto]` for arrays), or
+  `@ApiNoContentResponse` for `204`. The status must match `@HttpCode` /
+  the HTTP-method default.
+- Method: one `@Api*Response({ description })` for each *domain* error the
+  service can throw (`404` not found / out of scope, `409` conflict,
+  `400` business-rule failures, `403` service-level forbidden). Read the
+  service to find them; do not guess.
+- `@ApiQuery` for `@Query` params (path params are inferred).
+
+**What you get for free — don't repeat it:**
+
+- Request bodies: `@Body() dto: XDto` where `XDto extends createZodDto(schema)`
+  is documented from the zod schema automatically (via `nestjs-zod`).
+  `nestjs-zod` v5 needs no patching; `setupSwagger` runs the document
+  through `cleanupOpenApiDoc`.
+- Auth: `setupSwagger` post-processes every operation. Routes marked
+  `@Public()` get `security: []`; all others get the bearer requirement
+  and a `401`. `@RequirePermission(...)` / `@RequireSystemAdmin()` add a
+  `403` and a "Requires permission `x:y`" line to the description. This
+  works because those decorators (in `authz/decorators.ts`) also set
+  `x-public` / `x-required-permission` / `x-system-admin` extensions —
+  keep new auth decorators doing the same.
+- `400 Request validation failed` on any route with a DTO body.
+
+**Response schemas.** Responses are plain TypeScript types in
+`packages/shared/src/schemas.ts` (`MemberResponse`, ...), which the web
+app also uses. Swagger needs runtime schemas, so each has a zod mirror in
+`packages/shared/src/response-schemas.ts`, written as
+`z.object({...}) satisfies z.ZodType<MemberResponse>` so the compiler
+fails if the mirror and the type drift. `swagger/response-dtos.ts` wraps
+each in a `createZodDto` class (`MemberResponseDto`) that the decorators
+reference. To add a response type: add the TS type, add its schema with
+`satisfies`, add the DTO class, then use it in `@ApiOkResponse`.
+Response DTOs are documentation only — they are not used to validate or
+serialize output.
+
+Union responses (e.g. Telegram link status) can't be a DTO class; describe
+them inline with `@ApiOkResponse({ schema: { oneOf: [...] } })`.
 
 ## Cross-cutting modules
 

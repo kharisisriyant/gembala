@@ -5,6 +5,8 @@ import {
   roleTemplateUpdateSchema,
   type RoleTemplateResponse,
 } from "@gembala/shared"
+import { ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
+import { RoleTemplateResponseDto } from "../swagger/response-dtos"
 import { CurrentAuth, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { RoleTemplatesService } from "./role-templates.service"
@@ -12,16 +14,21 @@ import { RoleTemplatesService } from "./role-templates.service"
 class RoleTemplateCreateDto extends createZodDto(roleTemplateCreateSchema) {}
 class RoleTemplateUpdateDto extends createZodDto(roleTemplateUpdateSchema) {}
 
+@ApiTags("Scheduling")
 @Controller("scheduling/role-templates")
 export class RoleTemplatesController {
   constructor(private readonly roleTemplates: RoleTemplatesService) {}
 
+  @ApiOperation({ summary: "List serving role templates (e.g. Worship Leader)" })
+  @ApiOkResponse({ type: [RoleTemplateResponseDto] })
   @RequirePermission("scheduling", "read")
   @Get()
   list(@CurrentAuth() auth: AuthContext): Promise<RoleTemplateResponse[]> {
     return this.roleTemplates.list(auth.orgId)
   }
 
+  @ApiOperation({ summary: "Create a role template" })
+  @ApiCreatedResponse({ type: RoleTemplateResponseDto })
   @RequirePermission("scheduling", "create")
   @Post()
   create(
@@ -31,6 +38,9 @@ export class RoleTemplatesController {
     return this.roleTemplates.create(auth.orgId, dto)
   }
 
+  @ApiOperation({ summary: "Update a role template" })
+  @ApiOkResponse({ type: RoleTemplateResponseDto })
+  @ApiNotFoundResponse({ description: "Role template not found" })
   @RequirePermission("scheduling", "update")
   @Patch(":id")
   update(
@@ -41,6 +51,9 @@ export class RoleTemplatesController {
     return this.roleTemplates.update(auth.orgId, id, dto)
   }
 
+  @ApiOperation({ summary: "Delete a role template" })
+  @ApiNoContentResponse({ description: "Deleted" })
+  @ApiNotFoundResponse({ description: "Role template not found" })
   @RequirePermission("scheduling", "delete")
   @HttpCode(204)
   @Delete(":id")
