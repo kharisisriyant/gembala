@@ -1,14 +1,16 @@
-import { Body, Controller, Get, HttpCode, Post } from "@nestjs/common"
+import { Body, Controller, Get, HttpCode, Patch, Post } from "@nestjs/common"
 import type { AuthResponse, MeResponse } from "@gembala/shared"
 import { CurrentAuth, Public } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthService } from "./auth.service"
 import {
   AcceptInviteDto,
+  ChangePasswordDto,
   ForgotPasswordDto,
   LoginDto,
   RegisterDto,
   ResetPasswordDto,
+  UpdateProfileDto,
 } from "./dto"
 
 @Controller("auth")
@@ -31,6 +33,17 @@ export class AuthController {
   @Get("me")
   me(@CurrentAuth() auth: AuthContext): MeResponse {
     return this.auth.meFromContext(auth)
+  }
+
+  @Patch("profile")
+  updateProfile(@CurrentAuth() auth: AuthContext, @Body() dto: UpdateProfileDto): Promise<MeResponse> {
+    return this.auth.updateProfile(auth, dto)
+  }
+
+  @HttpCode(204)
+  @Post("change-password")
+  async changePassword(@CurrentAuth() auth: AuthContext, @Body() dto: ChangePasswordDto): Promise<void> {
+    await this.auth.changePassword(auth.userId, dto)
   }
 
   @Public()

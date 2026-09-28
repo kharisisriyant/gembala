@@ -94,6 +94,17 @@ export const acceptInviteSchema = z.object({
 })
 export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>
 
+export const updateProfileSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+})
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: password,
+})
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
+
 export type MeResponse = {
   user: { id: string; name: string; email: string }
   org: { id: string; name: string }

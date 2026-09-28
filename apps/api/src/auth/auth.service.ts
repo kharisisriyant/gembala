@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -8,10 +9,12 @@ import { JwtService } from "@nestjs/jwt"
 import type {
   AcceptInviteInput,
   AuthResponse,
+  ChangePasswordInput,
   LoginInput,
   MeResponse,
   RegisterInput,
   ResetPasswordInput,
+  UpdateProfileInput,
 } from "@gembala/shared"
 import * as argon2 from "argon2"
 import { createHash, randomBytes } from "node:crypto"
@@ -93,6 +96,25 @@ export class AuthService {
       throw new UnauthorizedException("invalid email or password")
     }
     return this.buildAuthResponse(user.id)
+  }
+
+  async updateProfile(auth: AuthContext, input: UpdateProfileInput): Promise<MeResponse> {
+    await this.auth.updateUserName(auth.userId, input.name)
+    return this.meFromContext({ ...auth, userName: input.name })
+  }
+
+  async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
+    const user = await this.auth.findUserById(userId)
+    if (!user) throw new UnauthorizedException("user no longer exists")
+    if (!(await argon2.verify(user.passwordHash, input.currentPassword))) {
+      throw new BadRequestException("current password is incorrect")
+    }
+    const passwordHash = await argon2.hash(input.newPassword)
+    await this.db.transaction(async (tx) => {
+      await this.auth.updateUserPasswordHash(userId, passwordHash, tx)
+      // a pending reset link shouldn't outlive a password the user just chose
+      await this.auth.burnPasswordResetTokensForUser(userId, tx)
+    })
   }
 
   async forgotPassword(email: string): Promise<void> {

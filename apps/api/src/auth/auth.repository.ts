@@ -41,6 +41,15 @@ export class AuthRepository {
     await tx.update(users).set({ passwordHash }).where(eq(users.id, userId))
   }
 
+  async findUserById(id: string, tx: Db | Tx = this.db) {
+    const [row] = await tx.select().from(users).where(eq(users.id, id))
+    return row
+  }
+
+  async updateUserName(userId: string, name: string, tx: Db | Tx = this.db) {
+    await tx.update(users).set({ name }).where(eq(users.id, userId))
+  }
+
   async insertOrganization(name: string, tx: Db | Tx = this.db) {
     const [row] = await tx.insert(organizations).values({ name }).returning()
     return row

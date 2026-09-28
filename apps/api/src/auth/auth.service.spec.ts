@@ -1,4 +1,4 @@
-import { ConflictException, UnauthorizedException } from "@nestjs/common"
+import { BadRequestException, ConflictException, UnauthorizedException } from "@nestjs/common"
 import * as argon2 from "argon2"
 import { AuthService } from "./auth.service"
 import type { AuthRepository } from "./auth.repository"
@@ -14,6 +14,8 @@ function makeRepo(): jest.Mocked<AuthRepository> {
   return {
     findUserIdByEmail: jest.fn(),
     findUserByEmail: jest.fn(),
+    findUserById: jest.fn(),
+    updateUserName: jest.fn(),
     insertUser: jest.fn(),
     updateUserPasswordHash: jest.fn(),
     insertOrganization: jest.fn(),
@@ -171,6 +173,41 @@ describe("AuthService", () => {
       expect(db.transaction).toHaveBeenCalled()
       expect(auth.updateUserPasswordHash).toHaveBeenCalledWith("u1", "hashed", db)
       expect(auth.burnPasswordResetTokensForUser).toHaveBeenCalledWith("u1", db)
+    })
+  })
+
+  describe("changePassword", () => {
+    it("rejects a wrong current password without touching the hash", async () => {
+      auth.findUserById.mockResolvedValue({ id: "u1", passwordHash: "old" } as any)
+      ;(argon2.verify as jest.Mock).mockResolvedValue(false)
+
+      await expect(
+        service.changePassword("u1", { currentPassword: "nope", newPassword: "newpassword" }),
+      ).rejects.toThrow(BadRequestException)
+      expect(auth.updateUserPasswordHash).not.toHaveBeenCalled()
+    })
+
+    it("updates the hash and burns outstanding reset tokens", async () => {
+      auth.findUserById.mockResolvedValue({ id: "u1", passwordHash: "old" } as any)
+
+      await service.changePassword("u1", { currentPassword: "old", newPassword: "newpassword" })
+
+      expect(auth.updateUserPasswordHash).toHaveBeenCalledWith("u1", "hashed", db)
+      expect(auth.burnPasswordResetTokensForUser).toHaveBeenCalledWith("u1", db)
+    })
+  })
+
+  describe("updateProfile", () => {
+    it("persists the name and returns the refreshed me", async () => {
+      const ctx = {
+        userId: "u1", userName: "Old", userEmail: "a@b.c", orgId: "o", orgName: "Org",
+        roles: [], isSystemAdmin: false, permissions: new Set<string>(), scopeTagNames: null,
+      } as any
+
+      const me = await service.updateProfile(ctx, { name: "New" })
+
+      expect(auth.updateUserName).toHaveBeenCalledWith("u1", "New")
+      expect(me.user.name).toBe("New")
     })
   })
 
