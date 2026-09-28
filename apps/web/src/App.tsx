@@ -17,6 +17,7 @@ import { RolesPage } from "@/pages/roles"
 import { TeamPage } from "@/pages/team"
 import { ProfilePage } from "@/pages/profile"
 import { TelegramPage } from "@/pages/telegram"
+import { CareRequestsPage } from "@/pages/care-requests"
 import { LoginPage } from "@/pages/auth/login"
 import { RegisterPage } from "@/pages/auth/register"
 import { ForgotPasswordPage } from "@/pages/auth/forgot-password"
@@ -62,6 +63,14 @@ export default function App() {
             element={
               <RequirePermission resource="members" action="read">
                 <MembersPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/care-requests"
+            element={
+              <RequirePermission resource="care_requests" action="read">
+                <CareRequestsPage />
               </RequirePermission>
             }
           />

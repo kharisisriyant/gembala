@@ -7,6 +7,7 @@ import * as schema from "./schema"
 import {
   ORG_NAME,
   SEED_PASSWORD,
+  seedCareRequests,
   seedGroups,
   seedMembers,
   seedSessions,
@@ -37,6 +38,7 @@ async function main() {
       "members:read", "members:create", "members:update",
       "groups:read", "groups:create", "groups:update",
       "households:read", "tags:read", "rooms:read", "events:read",
+      "care_requests:read", "care_requests:create", "care_requests:update",
     ]
 
     const [adminRole] = await tx
@@ -123,11 +125,13 @@ async function main() {
         .values(s.presentIds.map((m) => ({ sessionId: row.id, memberId: memberIdByLocal.get(m)! })))
     }
 
+    const userIdByEmail = new Map<string, string>()
     for (const u of seedUsers) {
       const [user] = await tx
         .insert(schema.users)
         .values({ email: u.email, name: u.name, passwordHash })
         .returning()
+      userIdByEmail.set(u.email, user.id)
       const [membership] = await tx
         .insert(schema.orgMemberships)
         .values({ orgId: org.id, userId: user.id })
@@ -141,6 +145,26 @@ async function main() {
         )
       }
     }
+
+    await tx.insert(schema.careRequests).values(
+      seedCareRequests.map((r) => {
+        const userId = userIdByEmail.get(r.submittedByEmail)!
+        return {
+          orgId: org.id,
+          memberId: memberIdByLocal.get(r.memberId)!,
+          type: r.type,
+          body: r.body,
+          source: "leader" as const,
+          submittedByUserId: userId,
+          ...(r.closeNote !== undefined && {
+            status: "closed" as const,
+            closedAt: new Date(),
+            closedByUserId: userId,
+            closeNote: r.closeNote,
+          }),
+        }
+      }),
+    )
   })
 
   console.log(`Seeded "${ORG_NAME}".`)

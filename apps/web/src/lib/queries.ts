@@ -4,6 +4,12 @@ import type {
   MeResponse,
   UpdateProfileInput,
   AttendanceHeatmapResponse,
+  CareRequestCloseInput,
+  CareRequestCreateInput,
+  CareRequestResponse,
+  CareRequestStatus,
+  CareRequestType,
+  CareRequestUpdateInput,
   DashboardResponse,
   EventCreateInput,
   EventResponse,
@@ -150,6 +156,25 @@ export function useTelegramLink() {
   return useQuery({
     queryKey: ["telegram-link"],
     queryFn: () => apiFetch<TelegramLinkStatusResponse>("/telegram/link"),
+  })
+}
+
+export type CareRequestFilters = {
+  status?: CareRequestStatus
+  type?: CareRequestType
+  memberId?: string
+}
+
+export function useCareRequests(filters: CareRequestFilters = {}, enabled = true) {
+  const params = new URLSearchParams()
+  if (filters.status) params.set("status", filters.status)
+  if (filters.type) params.set("type", filters.type)
+  if (filters.memberId) params.set("memberId", filters.memberId)
+  const qs = params.toString()
+  return useQuery({
+    queryKey: ["care-requests", filters],
+    queryFn: () => apiFetch<CareRequestResponse[]>(`/care-requests${qs ? `?${qs}` : ""}`),
+    enabled,
   })
 }
 
@@ -566,5 +591,49 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (input: ChangePasswordInput) =>
       apiFetch<void>("/auth/change-password", { method: "POST", body: input }),
+  })
+}
+
+export function useCreateCareRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CareRequestCreateInput) =>
+      apiFetch<CareRequestResponse>("/care-requests", { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
+  })
+}
+
+export function useUpdateCareRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: CareRequestUpdateInput & { id: string }) =>
+      apiFetch<CareRequestResponse>(`/care-requests/${id}`, { method: "PATCH", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
+  })
+}
+
+export function useCloseCareRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: CareRequestCloseInput & { id: string }) =>
+      apiFetch<CareRequestResponse>(`/care-requests/${id}/close`, { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
+  })
+}
+
+export function useReopenCareRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<CareRequestResponse>(`/care-requests/${id}/reopen`, { method: "POST" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
+  })
+}
+
+export function useDeleteCareRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/care-requests/${id}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
   })
 }

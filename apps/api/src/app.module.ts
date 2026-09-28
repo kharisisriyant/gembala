@@ -21,6 +21,7 @@ import { DashboardModule } from "./dashboard/dashboard.module"
 import { InvitesModule } from "./invites/invites.module"
 import { RolesModule } from "./roles/roles.module"
 import { TelegramModule } from "./telegram/telegram.module"
+import { CareRequestsModule } from "./care-requests/care-requests.module"
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { TelegramModule } from "./telegram/telegram.module"
     InvitesModule,
     RolesModule,
     TelegramModule,
+    CareRequestsModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

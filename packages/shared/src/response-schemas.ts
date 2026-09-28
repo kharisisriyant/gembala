@@ -1,5 +1,8 @@
 import { z } from "zod"
 import {
+  careRequestSourceSchema,
+  careRequestStatusSchema,
+  careRequestTypeSchema,
   memberBaptismStatusSchema,
   memberGenderSchema,
   memberMaritalStatusSchema,
@@ -7,6 +10,7 @@ import {
   memberStatusSchema,
   type AttendanceHeatmapResponse,
   type AuthResponse,
+  type CareRequestResponse,
   type DashboardResponse,
   type EventResponse,
   type GroupDetailResponse,
@@ -294,3 +298,21 @@ export const telegramLinkStatusResponseSchema = z.discriminatedUnion("linked", [
     botUsername: z.string().nullable(),
   }),
 ]) satisfies z.ZodType<TelegramLinkStatusResponse>
+
+const careRequestUserRefSchema = z.object({ id: z.string().uuid(), name: z.string() })
+
+export const careRequestResponseSchema = z.object({
+  id: z.string().uuid(),
+  memberId: z.string().uuid(),
+  memberName: z.string(),
+  type: careRequestTypeSchema,
+  body: z.string(),
+  status: careRequestStatusSchema,
+  source: careRequestSourceSchema,
+  submittedBy: careRequestUserRefSchema.nullable(),
+  closedAt: z.string().nullable().describe("ISO 8601 timestamp"),
+  closedBy: careRequestUserRefSchema.nullable(),
+  closeNote: z.string().nullable(),
+  createdAt: z.string().describe("ISO 8601 timestamp"),
+  updatedAt: z.string().describe("ISO 8601 timestamp"),
+}) satisfies z.ZodType<CareRequestResponse>

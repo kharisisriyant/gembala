@@ -11,6 +11,7 @@ import {
   CalendarClock,
   DoorOpen,
   ShieldCheck,
+  HandHeart,
 } from "lucide-react"
 import { NavLink } from "react-router-dom"
 import { useTranslation } from "react-i18next"
@@ -41,6 +42,7 @@ const nav: NavItem[] = [
   { titleKey: "nav.dashboard", to: "/dashboard", icon: LayoutDashboard },
   { titleKey: "nav.groups", to: "/groups", icon: Sprout, permission: { resource: "groups", action: "read" } },
   { titleKey: "nav.members", to: "/members", icon: Users, permission: { resource: "members", action: "read" } },
+  { titleKey: "nav.careRequests", to: "/care-requests", icon: HandHeart, permission: { resource: "care_requests", action: "read" } },
   { titleKey: "nav.events", to: "/events", icon: CalendarDays, permission: { resource: "events", action: "read" } },
   { titleKey: "nav.scheduling", to: "/scheduling", icon: CalendarClock, permission: { resource: "scheduling", action: "read" } },
   { titleKey: "nav.rooms", to: "/rooms", icon: DoorOpen, permission: { resource: "rooms", action: "read" } },

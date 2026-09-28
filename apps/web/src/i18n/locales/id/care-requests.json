@@ -1,0 +1,70 @@
+{
+  "title": "Permintaan Doa & Kepedulian",
+  "subtitle": "Kebutuhan doa dan penggembalaan untuk jemaat yang Anda layani.",
+  "newRequest": "Permintaan baru",
+  "empty": "Tidak ada permintaan.",
+  "closeNotePrefix": "Catatan penutup:",
+  "type": {
+    "prayer": "Doa",
+    "care": "Kepedulian"
+  },
+  "status": {
+    "open": "Terbuka",
+    "closed": "Selesai"
+  },
+  "filters": {
+    "allStatuses": "Semua status",
+    "allTypes": "Semua jenis"
+  },
+  "table": {
+    "member": "Jemaat",
+    "type": "Jenis",
+    "request": "Permintaan",
+    "status": "Status",
+    "submitted": "Diajukan"
+  },
+  "menu": {
+    "edit": "Ubah permintaan",
+    "close": "Selesaikan permintaan",
+    "reopen": "Buka kembali",
+    "delete": "Hapus permintaan"
+  },
+  "memberSection": {
+    "title": "Permintaan doa & kepedulian",
+    "add": "Tambah",
+    "empty": "Belum ada permintaan untuk jemaat ini."
+  },
+  "form": {
+    "newTitle": "Permintaan baru",
+    "editTitle": "Ubah permintaan",
+    "description": "Terlihat oleh pemimpin yang dapat melihat jemaat ini.",
+    "member": "Jemaat",
+    "memberPlaceholder": "Pilih jemaat",
+    "type": "Jenis",
+    "body": "Permintaan",
+    "bodyPlaceholder": "Apa yang perlu didoakan atau ditindaklanjuti?",
+    "submit": "Kirim permintaan",
+    "saveChanges": "Simpan perubahan",
+    "created": "Permintaan ditambahkan",
+    "updated": "Permintaan diperbarui",
+    "createError": "Gagal menambahkan permintaan",
+    "updateError": "Gagal memperbarui permintaan"
+  },
+  "close": {
+    "title": "Selesaikan permintaan",
+    "description": "Tandai permintaan {{name}} sebagai selesai.",
+    "noteLabel": "Catatan penutup (opsional)",
+    "notePlaceholder": "mis. Terjawab — sudah mendapat pekerjaan",
+    "submit": "Selesaikan permintaan",
+    "success": "Permintaan diselesaikan",
+    "error": "Gagal menyelesaikan permintaan"
+  },
+  "reopen": {
+    "success": "Permintaan dibuka kembali",
+    "error": "Gagal membuka kembali permintaan"
+  },
+  "delete": {
+    "success": "Permintaan dihapus",
+    "error": "Gagal menghapus permintaan"
+  }
+}

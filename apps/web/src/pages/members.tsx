@@ -27,6 +27,7 @@ import { Tag, TagList } from "@/components/tag"
 import { AddMemberDialog } from "@/components/add-member-dialog"
 import { EditMemberDialog } from "@/components/edit-member-dialog"
 import { ImportMembersDialog } from "@/components/import-members-dialog"
+import { MemberCareRequests } from "@/components/member-care-requests"
 import { useAuth } from "@/lib/auth"
 import { useGroups, useMember, useMembers } from "@/lib/queries"
 import { formatDate } from "@/lib/helpers"
@@ -286,6 +287,7 @@ export function MembersPage() {
                     )}
                   </div>
                 </div>
+                <MemberCareRequests memberId={selected.id} />
               </div>
             </>
           )}

@@ -99,3 +99,18 @@ export const seedUsers: SeedUser[] = [
   { name: "Hana Kusuma", email: "hana@gembala.dev", roleNames: ["Leader"], scopeTags: ["worship"] },
   { name: "Gerald Manik", email: "gerald@gembala.dev", roleNames: ["Leader"], scopeTags: ["married"] },
 ]
+
+export type SeedCareRequest = {
+  memberId: string
+  type: "prayer" | "care"
+  body: string
+  submittedByEmail: string
+  closeNote?: string
+}
+
+export const seedCareRequests: SeedCareRequest[] = [
+  { memberId: "m5", type: "prayer", body: "Looking for a job; pray for open doors and peace while waiting.", submittedByEmail: "andrew@gembala.dev" },
+  { memberId: "m4", type: "care", body: "Mom is recovering from surgery. Would appreciate a visit or meal this week.", submittedByEmail: "andrew@gembala.dev" },
+  { memberId: "m3", type: "prayer", body: "Final exams this week.", submittedByEmail: "andrew@gembala.dev", closeNote: "Passed all finals, praise God." },
+  { memberId: "m10", type: "prayer", body: "Parents' health.", submittedByEmail: "gerald@gembala.dev" },
+]

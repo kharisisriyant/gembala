@@ -27,6 +27,8 @@ import rolesEn from "./locales/en/roles.json"
 import rolesId from "./locales/id/roles.json"
 import profileEn from "./locales/en/profile.json"
 import profileId from "./locales/id/profile.json"
+import careRequestsEn from "./locales/en/care-requests.json"
+import careRequestsId from "./locales/id/care-requests.json"
 
 export const defaultNS = "common"
 
@@ -49,6 +51,7 @@ void i18n
         invites: invitesEn,
         roles: rolesEn,
         profile: profileEn,
+        "care-requests": careRequestsEn,
       },
       id: {
         common: commonId,
@@ -64,6 +67,7 @@ void i18n
         invites: invitesId,
         roles: rolesId,
         profile: profileId,
+        "care-requests": careRequestsId,
       },
     },
     fallbackLng: "id",

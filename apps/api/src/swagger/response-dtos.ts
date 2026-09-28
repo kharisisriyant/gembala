@@ -2,6 +2,7 @@ import { createZodDto } from "nestjs-zod"
 import {
   attendanceHeatmapResponseSchema,
   authResponseSchema,
+  careRequestResponseSchema,
   dashboardResponseSchema,
   eventResponseSchema,
   groupDetailResponseSchema,
@@ -55,3 +56,4 @@ export class ScheduleEventDetailResponseDto extends createZodDto(scheduleEventDe
 export class InviteResponseDto extends createZodDto(inviteResponseSchema) {}
 export class InvitePreviewResponseDto extends createZodDto(invitePreviewResponseSchema) {}
 export class DashboardResponseDto extends createZodDto(dashboardResponseSchema) {}
+export class CareRequestResponseDto extends createZodDto(careRequestResponseSchema) {}

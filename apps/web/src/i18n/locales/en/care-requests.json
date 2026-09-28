@@ -1,0 +1,70 @@
+{
+  "title": "Care & Prayer Requests",
+  "subtitle": "Prayer and pastoral care needs for the members you look after.",
+  "newRequest": "New request",
+  "empty": "No requests found.",
+  "closeNotePrefix": "Closing note:",
+  "type": {
+    "prayer": "Prayer",
+    "care": "Care"
+  },
+  "status": {
+    "open": "Open",
+    "closed": "Closed"
+  },
+  "filters": {
+    "allStatuses": "All statuses",
+    "allTypes": "All types"
+  },
+  "table": {
+    "member": "Member",
+    "type": "Type",
+    "request": "Request",
+    "status": "Status",
+    "submitted": "Submitted"
+  },
+  "menu": {
+    "edit": "Edit request",
+    "close": "Close request",
+    "reopen": "Reopen request",
+    "delete": "Delete request"
+  },
+  "memberSection": {
+    "title": "Prayer & care requests",
+    "add": "Add",
+    "empty": "No requests for this member."
+  },
+  "form": {
+    "newTitle": "New request",
+    "editTitle": "Edit request",
+    "description": "Visible to leaders who can see this member.",
+    "member": "Member",
+    "memberPlaceholder": "Select a member",
+    "type": "Type",
+    "body": "Request",
+    "bodyPlaceholder": "What should we pray for or follow up on?",
+    "submit": "Submit request",
+    "saveChanges": "Save changes",
+    "created": "Request added",
+    "updated": "Request updated",
+    "createError": "Could not add request",
+    "updateError": "Could not update request"
+  },
+  "close": {
+    "title": "Close request",
+    "description": "Mark {{name}}'s request as resolved.",
+    "noteLabel": "Closing note (optional)",
+    "notePlaceholder": "e.g. Answered — got the job",
+    "submit": "Close request",
+    "success": "Request closed",
+    "error": "Could not close request"
+  },
+  "reopen": {
+    "success": "Request reopened",
+    "error": "Could not reopen request"
+  },
+  "delete": {
+    "success": "Request deleted",
+    "error": "Could not delete request"
+  }
+}

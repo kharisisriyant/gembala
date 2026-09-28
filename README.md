@@ -43,6 +43,10 @@ Seeded logins (password `password123`):
 - **Small Groups** (`/groups`, `/groups/:id`) — komsel/cell groups with
   **attendance tracking**: per-meeting who-came, topic, and prayer notes.
 - **Members** (`/members`) — directory with search, tag filtering, and a detail panel.
+- **Care & Prayer requests** (`/care-requests`, member detail panel) — leaders log
+  prayer or care needs about a member, then close (with a note) or reopen them.
+  Visibility follows the member's tags: you see a request only if you can see its
+  member. Leaders get create/read/update; delete is admin-only.
 - **Tags** (`/tags`) — **structured (nested) tags** with per-tag member counts
   (direct and whole-subtree). Deleting a tag re-parents its children; tags used
   as a group's scope can't be deleted (409). Admin-only writes.

@@ -32,6 +32,7 @@ const LEADER_BASELINE_PERMISSIONS = [
   "members:read", "members:create", "members:update",
   "groups:read", "groups:create", "groups:update",
   "households:read", "tags:read", "rooms:read", "events:read",
+  "care_requests:read", "care_requests:create", "care_requests:update",
 ]
 
 @Injectable()

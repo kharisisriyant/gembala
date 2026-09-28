@@ -31,6 +31,7 @@ export const permissionResourceSchema = z.enum([
   "rooms",
   "events",
   "scheduling",
+  "care_requests",
 ])
 export type PermissionResource = z.infer<typeof permissionResourceSchema>
 
@@ -523,6 +524,53 @@ export type AttendanceHeatmapResponse = {
     memberCount: number
     cells: { rate: number | null; present: number; sessions: number }[]
   }[]
+}
+
+// ---------------------------------------------------------------------------
+// Care & prayer requests
+// ---------------------------------------------------------------------------
+
+export const careRequestTypeSchema = z.enum(["prayer", "care"])
+export type CareRequestType = z.infer<typeof careRequestTypeSchema>
+
+export const careRequestStatusSchema = z.enum(["open", "closed"])
+export type CareRequestStatus = z.infer<typeof careRequestStatusSchema>
+
+export const careRequestSourceSchema = z.enum(["leader", "member"])
+export type CareRequestSource = z.infer<typeof careRequestSourceSchema>
+
+export const careRequestCreateSchema = z.object({
+  memberId: z.string().uuid(),
+  type: careRequestTypeSchema,
+  body: z.string().trim().min(1, "body is required").max(2000),
+})
+export type CareRequestCreateInput = z.infer<typeof careRequestCreateSchema>
+
+export const careRequestUpdateSchema = z.object({
+  type: careRequestTypeSchema.optional(),
+  body: z.string().trim().min(1, "body is required").max(2000).optional(),
+})
+export type CareRequestUpdateInput = z.infer<typeof careRequestUpdateSchema>
+
+export const careRequestCloseSchema = z.object({
+  note: z.string().trim().max(2000).optional(),
+})
+export type CareRequestCloseInput = z.infer<typeof careRequestCloseSchema>
+
+export type CareRequestResponse = {
+  id: string
+  memberId: string
+  memberName: string
+  type: CareRequestType
+  body: string
+  status: CareRequestStatus
+  source: CareRequestSource
+  submittedBy: { id: string; name: string } | null
+  closedAt: string | null
+  closedBy: { id: string; name: string } | null
+  closeNote: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 // ---------------------------------------------------------------------------

@@ -82,6 +82,7 @@ export function RoleFormDialog({
     rooms: t("common:nav.rooms"),
     events: t("common:nav.events"),
     scheduling: t("common:nav.scheduling"),
+    care_requests: t("common:nav.careRequests"),
   }
 
   const actionLabels: Record<string, string> = {

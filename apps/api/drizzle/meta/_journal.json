@@ -50,6 +50,13 @@
       "when": 1790352955585,
       "tag": "0006_vengeful_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790590010944,
+      "tag": "0007_classy_iceman",
+      "breakpoints": true
     }
   ]
 }
