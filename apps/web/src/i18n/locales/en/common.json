@@ -15,7 +15,10 @@
     "roles": "Roles",
     "telegram": "Telegram",
     "manage": "Manage",
-    "personal": "Personal"
+    "personal": "Personal",
+    "congregation": "Congregation",
+    "services": "Services & Events",
+    "administration": "Administration"
   },
   "sidebar": {
     "tagline": "Shepherd your people"

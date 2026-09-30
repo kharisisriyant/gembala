@@ -15,7 +15,10 @@
     "roles": "Peran",
     "telegram": "Telegram",
     "manage": "Kelola",
-    "personal": "Pribadi"
+    "personal": "Pribadi",
+    "congregation": "Jemaat",
+    "services": "Ibadah & Acara",
+    "administration": "Administrasi"
   },
   "sidebar": {
     "tagline": "Gembalakan jemaat Anda"
