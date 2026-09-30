@@ -17,7 +17,7 @@
   "assignment": {
     "add": "Tambah",
     "empty": "—",
-    "placeholder": "Ketik nama atau tim…",
+    "placeholder": "Tambah…",
     "inputLabel": "Tambah petugas untuk {{role}} pada {{instance}}",
     "suggestions": "Saran petugas",
     "members": "Jemaat",

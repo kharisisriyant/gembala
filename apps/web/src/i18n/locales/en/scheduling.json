@@ -17,7 +17,7 @@
   "assignment": {
     "add": "Add",
     "empty": "—",
-    "placeholder": "Type a name or team…",
+    "placeholder": "Add…",
     "inputLabel": "Add assignment for {{role}} in {{instance}}",
     "suggestions": "Assignment suggestions",
     "members": "Members",
