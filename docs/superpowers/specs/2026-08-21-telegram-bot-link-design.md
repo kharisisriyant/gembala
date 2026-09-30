@@ -18,7 +18,7 @@ the patterns already established by the Invites feature (`apps/api/src/invites/*
 ## Goals
 
 - Any logged-in user can link their personal Telegram account to their
-  Gembala user account, from a page reachable in the actual running app.
+  gembala user account, from a page reachable in the actual running app.
 - Linking works by the user messaging a bot with a one-time code generated
   in the app.
 - The app runs correctly whether or not a real Telegram bot token has been

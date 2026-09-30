@@ -1,4 +1,4 @@
-# Gembala
+# gembala
 
 > _Gembala_ (Indonesian: "shepherd") — a tool for church leaders, teachers, and
 > coordinators to shepherd their people.

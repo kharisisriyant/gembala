@@ -9,10 +9,10 @@
   },
   "hero": {
     "badge": "For churches and small groups in Indonesia",
-    "title": "Shepherd your people, not a spreadsheet.",
-    "body": "Gembala helps church leaders log small group attendance, know every member, and see who needs a follow-up this week — from a browser or straight from Telegram.",
-    "cta": "Register your church",
-    "ctaSecondary": "See features",
+    "title": "Your church is growing. Its admin shouldn't grow with it.",
+    "body": "gembala brings members, small groups, service schedules, worship, and events into one platform, so you can focus on what matters most: your people.",
+    "cta": "Try it free",
+    "ctaSecondary": "See the demo",
     "note": "Ready to use in 15 minutes. No install."
   },
   "preview": {
@@ -26,28 +26,36 @@
     }
   },
   "features": {
-    "title": "Everything a leader needs to care for their people",
-    "subtitle": "Built with small group leaders, not accountants.",
+    "title": "One place to care for your people, not five apps",
+    "subtitle": "Built with church and small group leaders, not accountants.",
     "items": {
       "members": {
-        "title": "Tidy member data",
-        "body": "Full profiles, photos, family, and attendance history in one place. Guests are tracked from their very first visit."
+        "title": "Know every member",
+        "body": "Family, birthdays, baptism status, and small group all in one profile."
       },
-      "attendance": {
-        "title": "Small group attendance in 3 minutes",
-        "body": "Weekly, biweekly, or monthly schedules. Mark present, excused, or absent with a single tap."
+      "scheduling": {
+        "title": "Service scheduling without the drama",
+        "body": "Build the volunteer rotation for each service in minutes. Everyone knows who's serving from the start."
       },
-      "followup": {
-        "title": "Know who needs a follow-up",
-        "body": "Members who miss two meetings in a row automatically show up on the follow-up list."
+      "worship": {
+        "title": "Worship ready ahead of time",
+        "body": "Theme, scripture, order of service, songs, and volunteers linked together."
       },
-      "tags": {
-        "title": "Tags for ministry and age group",
-        "body": "Group members however your church is structured: youth, region, ministry — anything."
+      "events": {
+        "title": "Events and rooms, sorted",
+        "body": "Retreats, catechism classes, and other events go on a shared calendar with the room they use."
       },
-      "invite": {
-        "title": "Invite leaders with scoped access",
-        "body": "Every leader only sees the members they're responsible for."
+      "groups": {
+        "title": "Small groups you can see into",
+        "body": "Pastors know which groups are thriving and which members are becoming less visible."
+      },
+      "care": {
+        "title": "No prayer or care need slips through",
+        "body": "Log prayer and care needs, then close them with a note once they're handled."
+      },
+      "journey": {
+        "title": "Faith journeys made visible",
+        "body": "From first visit to catechism, baptism, and leadership potential. The next step is clear for everyone."
       },
       "notes": {
         "title": "Pastoral notes stay private",
@@ -58,14 +66,14 @@
   "telegramSection": {
     "badge": "AI assistant on Telegram",
     "title": "Log attendance as easily as sending a message",
-    "body": "After small group, just type who showed up. The Gembala assistant understands everyday language, asks for confirmation before saving, and answers questions about your members.",
+    "body": "After small group, just type who showed up. The gembala assistant understands everyday language, asks for confirmation before saving, and answers questions about your members.",
     "list": {
       "log": "Log attendance and add new guests from chat",
       "ask": "Ask who hasn't come in a while",
       "notes": "Write pastoral notes while they're still fresh"
     },
     "chat": {
-      "ariaLabel": "Example conversation with the Gembala assistant",
+      "ariaLabel": "Example conversation with the gembala assistant",
       "me1": "Today's youth small group attendance: Budi, Sari, Dewi present. Andi excused, sick.",
       "bot1Prefix": "I've logged for",
       "bot1Group": "Youth Small Group, Fri Sep 25",
@@ -84,7 +92,7 @@
     "items": {
       "isolated": {
         "title": "Isolated per church",
-        "body": "No other church can see your data — not even the Gembala team."
+        "body": "No other church can see your data — not even the gembala team."
       },
       "tags": {
         "title": "Tag-based access",
@@ -102,10 +110,40 @@
   },
   "finalCta": {
     "title": "Start shepherding better",
-    "body": "Create your church account, add your first small group, and log your first meeting today."
+    "body": "Create your church account, add your first small group, and log your first meeting today.",
+    "madeBy": "Built by church members, for churches in Indonesia."
   },
   "footer": {
     "signIn": "Sign in",
     "signUp": "Sign up"
+  },
+  "pain": {
+    "body": "Service rosters in Excel. Confirmations across 5 WhatsApp groups. Member data scattered through the office ledger. The drummer finds out Saturday night that he's on.",
+    "question": "Sound familiar?"
+  },
+  "personas": {
+    "title": "For everyone who serves",
+    "items": {
+      "pastor": {
+        "role": "Pastor / senior minister",
+        "worry": "Members “disappear” unnoticed",
+        "message": "Know who needs a visit this week."
+      },
+      "admin": {
+        "role": "Church office / admin",
+        "worry": "Messy data, repeated work",
+        "message": "Enter once, use everywhere."
+      },
+      "coordinator": {
+        "role": "Ministry coordinator",
+        "worry": "Chasing confirmations every week",
+        "message": "Roster done in 10 minutes, not 3 days."
+      },
+      "volunteer": {
+        "role": "Volunteer / member",
+        "worry": "Learning the schedule at the last minute",
+        "message": "Your duty is clear from the start, no more Saturday-night surprises."
+      }
+    }
   }
 }

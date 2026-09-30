@@ -9,10 +9,10 @@
   },
   "hero": {
     "badge": "Untuk gereja dan komsel di Indonesia",
-    "title": "Gembalakan jemaat, bukan spreadsheet.",
-    "body": "Gembala membantu pemimpin gereja mencatat kehadiran komsel, mengenal setiap jemaat, dan tahu siapa yang perlu dihubungi minggu ini — dari browser atau langsung lewat Telegram.",
-    "cta": "Daftarkan gereja Anda",
-    "ctaSecondary": "Lihat fitur",
+    "title": "Gerejanya bertumbuh. Administrasinya jangan ikut rumit.",
+    "body": "gembala menyatukan data jemaat, kelompok kecil, jadwal pelayanan, ibadah, dan event dalam satu platform, supaya Anda bisa fokus pada yang paling penting: jemaat.",
+    "cta": "Coba gratis",
+    "ctaSecondary": "Lihat demo",
     "note": "Siap dipakai dalam 15 menit. Tanpa instalasi."
   },
   "preview": {
@@ -26,28 +26,36 @@
     }
   },
   "features": {
-    "title": "Semua yang dibutuhkan pemimpin untuk merawat jemaat",
-    "subtitle": "Dirancang bersama pemimpin komsel, bukan untuk akuntan.",
+    "title": "Satu tempat untuk merawat jemaat, bukan lima aplikasi",
+    "subtitle": "Dirancang bersama pemimpin gereja dan komsel, bukan untuk akuntan.",
     "items": {
       "members": {
-        "title": "Data jemaat yang rapi",
-        "body": "Profil lengkap, foto, keluarga, dan riwayat kehadiran dalam satu tempat. Tamu tercatat sejak kunjungan pertama."
+        "title": "Kenali setiap jemaat",
+        "body": "Data keluarga, ulang tahun, status baptis, dan kelompok kecil semuanya dalam satu profil."
       },
-      "attendance": {
-        "title": "Kehadiran komsel dalam 3 menit",
-        "body": "Jadwal mingguan, dua mingguan, atau bulanan. Tandai hadir, izin, atau absen dengan satu ketukan."
+      "scheduling": {
+        "title": "Jadwal pelayanan tanpa drama",
+        "body": "Susun rotasi petugas per ibadah dalam hitungan menit. Siapa bertugas jelas sejak awal."
       },
-      "followup": {
-        "title": "Tahu siapa yang perlu dihubungi",
-        "body": "Jemaat yang absen dua pertemuan berturut-turut otomatis muncul di daftar tindak lanjut."
+      "worship": {
+        "title": "Ibadah yang siap lebih awal",
+        "body": "Tema, bacaan Alkitab, tata ibadah, lagu, dan petugas terhubung jadi satu."
       },
-      "tags": {
-        "title": "Tag untuk pelayanan dan usia",
-        "body": "Kelompokkan jemaat sesuai struktur gereja Anda: pemuda, wilayah, pelayanan, apa saja."
+      "events": {
+        "title": "Event dan ruangan tertata",
+        "body": "Retret, katekisasi, dan acara lainnya masuk kalender bersama, lengkap dengan ruangan yang dipakai."
       },
-      "invite": {
-        "title": "Undang pemimpin dengan akses terbatas",
-        "body": "Setiap pemimpin hanya melihat jemaat yang menjadi tanggung jawabnya."
+      "groups": {
+        "title": "Kelompok kecil yang terpantau",
+        "body": "Gembala tahu komsel mana yang aktif dan jemaat mana yang mulai jarang terlihat."
+      },
+      "care": {
+        "title": "Doa dan kepedulian tidak terlewat",
+        "body": "Catat pokok doa dan kebutuhan jemaat, tutup dengan catatan saat sudah ditangani."
+      },
+      "journey": {
+        "title": "Perjalanan iman terlihat",
+        "body": "Dari kunjungan pertama, katekisasi, baptis, sampai calon pemimpin. Langkah berikutnya jelas untuk tiap orang."
       },
       "notes": {
         "title": "Catatan pastoral yang terjaga",
@@ -58,14 +66,14 @@
   "telegramSection": {
     "badge": "Asisten AI di Telegram",
     "title": "Catat kehadiran semudah mengirim pesan",
-    "body": "Selesai komsel, cukup ketik siapa yang hadir. Asisten Gembala memahami bahasa sehari-hari, meminta konfirmasi sebelum menyimpan, dan menjawab pertanyaan tentang jemaat Anda.",
+    "body": "Selesai komsel, cukup ketik siapa yang hadir. Asisten gembala memahami bahasa sehari-hari, meminta konfirmasi sebelum menyimpan, dan menjawab pertanyaan tentang jemaat Anda.",
     "list": {
       "log": "Rekam kehadiran dan tambah tamu baru dari chat",
       "ask": "Tanya siapa yang sudah lama tidak datang",
       "notes": "Tulis catatan pastoral saat masih ingat"
     },
     "chat": {
-      "ariaLabel": "Contoh percakapan dengan asisten Gembala",
+      "ariaLabel": "Contoh percakapan dengan asisten gembala",
       "me1": "Kehadiran komsel pemuda hari ini: Budi, Sari, Dewi hadir. Andi izin, sakit.",
       "bot1Prefix": "Saya catat untuk",
       "bot1Group": "Komsel Pemuda, Jumat 25 Sep",
@@ -84,7 +92,7 @@
     "items": {
       "isolated": {
         "title": "Terpisah per gereja",
-        "body": "Tidak ada gereja lain yang bisa melihat data Anda — termasuk tim Gembala."
+        "body": "Tidak ada gereja lain yang bisa melihat data Anda — termasuk tim gembala."
       },
       "tags": {
         "title": "Akses berdasarkan tag",
@@ -102,10 +110,40 @@
   },
   "finalCta": {
     "title": "Mulai gembalakan dengan lebih baik",
-    "body": "Buat akun gereja, tambahkan komsel pertama, dan catat pertemuan pertama Anda hari ini."
+    "body": "Buat akun gereja, tambahkan komsel pertama, dan catat pertemuan pertama Anda hari ini.",
+    "madeBy": "Dibuat oleh jemaat, untuk gereja di Indonesia."
   },
   "footer": {
     "signIn": "Masuk",
     "signUp": "Daftar"
+  },
+  "pain": {
+    "body": "Jadwal pelayanan di Excel. Konfirmasi lewat 5 grup WhatsApp. Data jemaat tersebar di buku sekretariat. Pemusik baru tahu dia bertugas hari Sabtu malam.",
+    "question": "Kedengarannya familiar?"
+  },
+  "personas": {
+    "title": "Untuk setiap orang yang melayani",
+    "items": {
+      "pastor": {
+        "role": "Pendeta / gembala sidang",
+        "worry": "Jemaat “hilang” tanpa disadari",
+        "message": "Tahu siapa yang perlu dikunjungi minggu ini."
+      },
+      "admin": {
+        "role": "Sekretariat / admin gereja",
+        "worry": "Data berantakan, kerja berulang",
+        "message": "Input sekali, dipakai di mana saja."
+      },
+      "coordinator": {
+        "role": "Koordinator pelayanan",
+        "worry": "Mengejar konfirmasi setiap minggu",
+        "message": "Jadwal beres dalam 10 menit, bukan 3 hari."
+      },
+      "volunteer": {
+        "role": "Volunteer / jemaat",
+        "worry": "Baru tahu jadwal di menit terakhir",
+        "message": "Tugas jelas sejak awal, tidak ada lagi kabar Sabtu malam."
+      }
+    }
   }
 }

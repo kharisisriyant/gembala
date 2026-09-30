@@ -48,7 +48,7 @@ export function RegisterPage() {
           <Label htmlFor="org">Church / organization name</Label>
           <Input
             id="org"
-            placeholder="e.g. Gembala Community Church"
+            placeholder="e.g. gembala Community Church"
             required
             value={organizationName}
             onChange={(e) => setOrganizationName(e.target.value)}

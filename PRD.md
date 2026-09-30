@@ -1,4 +1,4 @@
-# Gembala — Church Leadership App
+# gembala — Church Leadership App
 ### Product Requirements Document · v0.2 · May 2026
 
 ---
@@ -30,7 +30,7 @@
 
 ## 1. Overview & Goals
 
-Gembala (Indonesian: "shepherd / pastor") is a multi-tenant SaaS platform for church communities. Each church is an isolated tenant. Leaders manage member care, track small group attendance, and receive AI-powered follow-up suggestions — all from a web browser and optionally via a Telegram chatbot.
+gembala (Indonesian: "shepherd / pastor") is a multi-tenant SaaS platform for church communities. Each church is an isolated tenant. Leaders manage member care, track small group attendance, and receive AI-powered follow-up suggestions — all from a web browser and optionally via a Telegram chatbot.
 
 ### Success Metrics
 
@@ -72,7 +72,7 @@ CREATE POLICY tenant_isolation ON members
 
 1. A church admin registers → creates a new church tenant with a unique slug (e.g. `gkj-jakarta.gembala.app`)
 2. Admin invites other users by email; invited users are scoped to that tenant
-3. Super-admin (Gembala staff) account can view tenant metadata for support — never member-level data
+3. Super-admin (gembala staff) account can view tenant metadata for support — never member-level data
 
 ---
 
@@ -83,7 +83,7 @@ CREATE POLICY tenant_isolation ON members
 | **Cell Leader** | Leads a small group of 8–20 members | Take attendance, view absences, add pastoral notes, use Telegram bot |
 | **Zone Leader** | Oversees multiple cell leaders | Aggregate attendance across groups, identify struggling members |
 | **Church Admin** | Manages the tenant | Manage users, configure tags, export reports, manage billing |
-| **Super-Admin** | Gembala staff | Cross-tenant support, platform health monitoring |
+| **Super-Admin** | gembala staff | Cross-tenant support, platform health monitoring |
 
 ---
 
@@ -232,7 +232,7 @@ Tags serve a dual purpose: they categorise members (e.g. `youth`, `sunday-school
 
 ## 8. AI Assistant — Telegram MCP
 
-Leaders can connect their personal Telegram account to the Gembala bot. The bot exposes a subset of app functionality via natural language, powered by an MCP (Model Context Protocol) server that bridges the Telegram message handler and the Gembala API.
+Leaders can connect their personal Telegram account to the gembala bot. The bot exposes a subset of app functionality via natural language, powered by an MCP (Model Context Protocol) server that bridges the Telegram message handler and the gembala API.
 
 ### Architecture Overview
 
@@ -242,21 +242,21 @@ Leader (Telegram) → Telegram Bot API → MCP Server (Node.js / Fly.io)
                                      Anthropic Claude API
                                      (tool use / function calling)
                                               ↓
-                                     Gembala Internal API
+                                     gembala Internal API
                                      (scoped to leader's church_id + tag access)
                                               ↓
                                      PostgreSQL (Neon)
 ```
 
-> **Security note:** The AI model never receives data outside the leader's tag-scoped permissions. Permission checks happen at the Gembala API layer before any data is returned to the MCP server — it is not a UI-only restriction.
+> **Security note:** The AI model never receives data outside the leader's tag-scoped permissions. Permission checks happen at the gembala API layer before any data is returned to the MCP server — it is not a UI-only restriction.
 
 ### FR-AI-01 · Telegram Account Linking `[P1 — must have]`
 
 - Leader navigates to Settings → Integrations → Telegram in the web app
 - Web app generates a one-time link code (expires after 10 minutes)
-- Leader sends the code to the Gembala Telegram bot to verify ownership
+- Leader sends the code to the gembala Telegram bot to verify ownership
 - Link persists until the leader explicitly unlinks or their account is deactivated
-- One Telegram account maps to exactly one Gembala user account
+- One Telegram account maps to exactly one gembala user account
 
 ### FR-AI-02 · Attendance via Chat `[P1 — must have]`
 
@@ -503,7 +503,7 @@ churches
 | **Database** | PostgreSQL + Drizzle | Relational model; RLS for tenant isolation; Drizzle for type-safe migrations |
 | **Auth** | Auth.js (NextAuth v5) | Session management; credentials + future SSO; JWT carries `church_id` and `role` |
 | **File storage** | Cloudflare R2 | S3-compatible; no egress fees; paths prefixed by `church_id` |
-| **MCP server** | Node.js service | Separate service; exposes Gembala tools to AI model; handles Telegram webhook |
+| **MCP server** | Node.js service | Separate service; exposes gembala tools to AI model; handles Telegram webhook |
 | **AI model** | Claude via Anthropic API | Tool use / function calling for MCP; natural language → structured actions |
 | **Telegram** | Telegram Bot API | Webhook-based message handling; linked to MCP server |
 | **DB hosting** | PostgreSQL | Serverless PostgreSQL; connection pooling; branching for staging environments |

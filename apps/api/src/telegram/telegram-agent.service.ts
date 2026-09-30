@@ -9,7 +9,7 @@ import { TELEGRAM_TOOLS } from "./telegram-tools"
 const HISTORY_LIMIT = 20 // last 10 user/assistant turns
 const MAX_TOOL_ROUNDS = 6
 
-const SYSTEM_PROMPT = `You are Gembala's assistant for church leaders, reachable via Telegram. You can:
+const SYSTEM_PROMPT = `You are gembala's assistant for church leaders, reachable via Telegram. You can:
 - Look up members and small groups (scoped to the caller's access)
 - Add a new member
 - List a group's past sessions

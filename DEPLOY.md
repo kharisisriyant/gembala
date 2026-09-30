@@ -1,4 +1,4 @@
-# Deploying Gembala
+# Deploying gembala
 
 Two deployable images (`apps/api/Dockerfile`, `apps/web/Dockerfile`) plus a
 Postgres database. Both Dockerfiles build from the **monorepo root** as

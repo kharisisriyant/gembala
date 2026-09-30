@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Let any logged-in Gembala user link their personal Telegram account by messaging a bot a one-time code, reachable from a real page in the currently-running `apps/web` + `apps/api` app.
+**Goal:** Let any logged-in gembala user link their personal Telegram account by messaging a bot a one-time code, reachable from a real page in the currently-running `apps/web` + `apps/api` app.
 
 **Architecture:** Two new Postgres tables (`telegram_link_codes`, `telegram_links`) back a new `TelegramModule` in `apps/api` (controller + service), following the existing `InvitesModule` pattern exactly. A public webhook endpoint receives Telegram's pushed messages; an authenticated pair of endpoints (`GET`/`DELETE /telegram/link`) drive the UI. `apps/web` gets a new page, a sidebar section visible to every logged-in user (not just admins), and two React Query hooks.
 
@@ -343,7 +343,7 @@ export class TelegramService implements OnModuleInit {
     if (text === "/start") {
       await this.reply(
         chatId,
-        "Welcome! Open Integrations in Gembala and send me /link <code> to connect your account.",
+        "Welcome! Open Integrations in gembala and send me /link <code> to connect your account.",
       )
       return
     }
@@ -398,7 +398,7 @@ export class TelegramService implements OnModuleInit {
     }
 
     await this.db.delete(telegramLinkCodes).where(eq(telegramLinkCodes.id, codeRow.id))
-    await this.reply(chatId, "Connected! Your Gembala account is now linked.")
+    await this.reply(chatId, "Connected! Your gembala account is now linked.")
   }
 
   private async reply(chatId: string, text: string): Promise<void> {
@@ -634,7 +634,7 @@ export function TelegramPage() {
 
   return (
     <div>
-      <PageHeader title="Telegram" subtitle="Link your Telegram account to Gembala." />
+      <PageHeader title="Telegram" subtitle="Link your Telegram account to gembala." />
 
       <Card className="max-w-lg p-6">
         <div className="flex items-start gap-4">
@@ -809,7 +809,7 @@ export function AppSidebar() {
             <Leaf className="size-5" />
           </div>
           <div className="leading-tight">
-            <div className="font-heading text-lg font-bold">Gembala</div>
+            <div className="font-heading text-lg font-bold">gembala</div>
             <div className="text-muted-foreground text-xs">{me?.org.name ?? "Shepherd your people"}</div>
           </div>
         </div>

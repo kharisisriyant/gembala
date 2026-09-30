@@ -1,4 +1,3 @@
-import { Leaf } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function AuthShell({
@@ -16,11 +15,9 @@ export function AuthShell({
     <div className="bg-muted/30 flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <div className="bg-primary text-primary-foreground flex size-10 items-center justify-center rounded-lg">
-            <Leaf className="size-5" />
-          </div>
+          <img src="/logo.png" alt="" className="size-10 object-contain" />
           <div className="leading-tight">
-            <div className="font-heading text-xl font-bold">Gembala</div>
+            <div className="font-heading text-xl font-bold">gembala</div>
             <div className="text-muted-foreground text-xs">Shepherd your people</div>
           </div>
         </div>

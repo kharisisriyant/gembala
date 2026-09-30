@@ -12,7 +12,7 @@ export function TelegramPage() {
 
   return (
     <div>
-      <PageHeader title="Telegram" subtitle="Link your Telegram account to Gembala." />
+      <PageHeader title="Telegram" subtitle="Link your Telegram account to gembala." />
 
       <Card className="max-w-lg p-6">
         <div className="flex items-start gap-4">

@@ -98,7 +98,7 @@ export class TelegramService implements OnModuleInit {
     if (text === "/start") {
       await this.reply(
         chatId,
-        "Welcome! Open Integrations in Gembala and send me /link <code> to connect your account.",
+        "Welcome! Open Integrations in gembala and send me /link <code> to connect your account.",
       )
       return
     }
@@ -170,7 +170,7 @@ export class TelegramService implements OnModuleInit {
     }
 
     await this.links.deleteCode(codeRow.id)
-    await this.reply(chatId, "Connected! Your Gembala account is now linked.")
+    await this.reply(chatId, "Connected! Your gembala account is now linked.")
   }
 
   private async reply(chatId: string, text: string, opts?: { markdown?: boolean }): Promise<void> {

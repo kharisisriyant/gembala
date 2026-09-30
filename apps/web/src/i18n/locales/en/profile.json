@@ -8,7 +8,7 @@
   },
   "profile": {
     "title": "Account details",
-    "description": "Your name is shown to your team across Gembala.",
+    "description": "Your name is shown to your team across gembala.",
     "name": "Full name",
     "email": "Email",
     "emailHint": "Email can't be changed.",

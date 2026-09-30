@@ -1,6 +1,6 @@
-# Gembala — Design System
+# gembala — Design System
 
-> Gembala (Indonesian: "shepherd") is a church management platform. This document defines how Gembala looks, feels and reads. It is the source of truth for designers, engineers and AI coding tools. When a rule here conflicts with a shadcn default, this document wins.
+> gembala (Indonesian: "shepherd") is a church management platform. This document defines how gembala looks, feels and reads. It is the source of truth for designers, engineers and AI coding tools. When a rule here conflicts with a shadcn default, this document wins.
 
 Stack: **Tailwind CSS v4 + shadcn/ui**, theme tokens in `src/index.css` (CSS variables mapped via `@theme inline`). Always use tokens (`bg-primary`, `text-muted-foreground`, `rounded-lg`); never hard-code colors, radii or shadows.
 
@@ -10,7 +10,7 @@ Items marked **[Proposed]** are recommendations that are not yet in `index.css`.
 
 ## 1. Design principles
 
-1. **Care over control.** Gembala exists to help people look after people. The UI should feel warm and pastoral, not like an ERP. Prefer friendly language and generous space over density for its own sake.
+1. **Care over control.** gembala exists to help people look after people. The UI should feel warm and pastoral, not like an ERP. Prefer friendly language and generous space over density for its own sake.
 2. **Calm, not loud.** Green is our brand, but it is used with intent: primary actions, active states and highlights. Most of the screen is white (or near-black in dark mode) and neutral.
 3. **Trustworthy with sensitive data.** Member records, pastoral notes and offerings are personal. Make privacy visible (who can see this?) and destructive actions deliberate.
 4. **Usable by everyone in the congregation.** Admins may be volunteers, older, on a low-end Android phone, on slow connections. Default to readable sizes, big tap targets and forgiving flows.
@@ -355,6 +355,6 @@ See §3.2 — dark-mode `sidebar-primary`/`sidebar-accent`/`sidebar-ring` are bl
 
 1. Primary/accent/destructive contrast in light mode (§15.1): option A (dark text, matching what dark mode already does) or B (darken the backgrounds and keep white text)?
 2. Congregant app tone: *Anda* or *kamu*?
-3. Multi-church / multi-campus: should each church be able to set its own accent color or logo on top of the Gembala base (white-labelling)? If yes, only `primary`, `ring` and `sidebar-primary` should be overridable.
+3. Multi-church / multi-campus: should each church be able to set its own accent color or logo on top of the gembala base (white-labelling)? If yes, only `primary`, `ring` and `sidebar-primary` should be overridable.
 4. Is dark mode needed at launch, or can it wait until the light theme is stable?
 5. Should the marketing site share this system exactly, or allow bolder use of green?

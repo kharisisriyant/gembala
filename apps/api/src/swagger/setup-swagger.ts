@@ -13,7 +13,7 @@ const HTTP_METHODS = ["get", "post", "put", "patch", "delete"] as const
 
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
-    .setTitle("Gembala API")
+    .setTitle("gembala API")
     .setDescription(
       "Church management API. All routes are served under the `/api` prefix and, unless marked public, require a bearer token from `POST /auth/login`. Data access is further limited by the caller's permissions and tag scope.",
     )

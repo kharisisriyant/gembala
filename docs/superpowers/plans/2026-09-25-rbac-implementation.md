@@ -385,7 +385,7 @@ docker compose up -d
 pnpm --filter @gembala/api db:seed
 ```
 
-Expected: `Seeded "Gembala Demo Church".` with 4 logins printed. This
+Expected: `Seeded "gembala Demo Church".` with 4 logins printed. This
 creates one `admin` and three `leader` `org_memberships` rows **under the
 current (pre-change) schema** — exactly the data shape the migration's
 data-migration step below must handle correctly. Leave this data in place;
@@ -562,7 +562,7 @@ And the final log line:
 - [ ] **Step 9: Re-seed against the new schema to confirm the script works**
 
 ```bash
-docker compose exec db psql -U gembala -d gembala -c "DELETE FROM organizations WHERE name = 'Gembala Demo Church';"
+docker compose exec db psql -U gembala -d gembala -c "DELETE FROM organizations WHERE name = 'gembala Demo Church';"
 pnpm --filter @gembala/api db:seed
 ```
 

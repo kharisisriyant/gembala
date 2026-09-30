@@ -3,7 +3,6 @@ import {
   Users,
   Users2,
   Sprout,
-  Leaf,
   Tags,
   MailPlus,
   Send,
@@ -98,11 +97,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:p-0">
-          <div className="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-lg group-data-[collapsible=icon]:size-8">
-            <Leaf className="size-5" />
-          </div>
+          <img src="/logo.png" alt="" className="size-9 shrink-0 object-contain group-data-[collapsible=icon]:size-8" />
           <div className="leading-tight group-data-[collapsible=icon]:hidden">
-            <div className="font-heading text-lg font-bold">Gembala</div>
+            <div className="font-heading text-lg font-bold">gembala</div>
             <div className="text-muted-foreground text-xs">{me?.org.name ?? t("sidebar.tagline")}</div>
           </div>
         </div>

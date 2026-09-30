@@ -35,7 +35,7 @@ export type SeedUser = {
   scopeTags: string[] | null
 }
 
-export const ORG_NAME = "Gembala Demo Church"
+export const ORG_NAME = "gembala Demo Church"
 export const SEED_PASSWORD = "password123"
 
 export const seedTags: SeedTag[] = [

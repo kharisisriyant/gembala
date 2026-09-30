@@ -4,16 +4,22 @@ import {
   ArrowRight,
   BellRing,
   CalendarCheck,
+  CalendarDays,
   Check,
+  ClipboardList,
+  Church,
+  HandHeart,
+  HandHelping,
   HeartHandshake,
-  Leaf,
   Lock,
   MessageCircle,
+  Music,
+  Route,
   ShieldCheck,
   Sprout,
   Tags,
-  UserPlus,
   Users,
+  UsersRound,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -25,10 +31,8 @@ import { useAuth } from "@/lib/auth"
 function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2">
-      <div className="bg-primary text-primary-foreground flex size-9 items-center justify-center rounded-lg">
-        <Leaf className="size-5" />
-      </div>
-      <span className="text-lg font-bold">Gembala</span>
+      <img src="/logo.png" alt="" className="size-9 object-contain" />
+      <span className="text-lg font-bold">gembala</span>
     </Link>
   )
 }
@@ -150,7 +154,7 @@ function Hero() {
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="h-11">
-            <a href="#fitur">{t("hero.ctaSecondary")}</a>
+            <a href="#telegram">{t("hero.ctaSecondary")}</a>
           </Button>
         </div>
         <p className="text-muted-foreground mt-4 text-sm">{t("hero.note")}</p>
@@ -160,12 +164,26 @@ function Hero() {
   )
 }
 
+function PainPoints() {
+  const { t } = useTranslation("landing")
+  return (
+    <section className="bg-card border-y">
+      <div className="mx-auto max-w-3xl px-4 py-12 text-center md:px-6 md:py-16">
+        <p className="text-lg text-balance md:text-xl">{t("pain.body")}</p>
+        <p className="mt-4 text-2xl font-semibold md:text-3xl">{t("pain.question")}</p>
+      </div>
+    </section>
+  )
+}
+
 const features = [
   { key: "members", icon: Users },
-  { key: "attendance", icon: CalendarCheck },
-  { key: "followup", icon: BellRing },
-  { key: "tags", icon: Tags },
-  { key: "invite", icon: UserPlus },
+  { key: "scheduling", icon: CalendarCheck },
+  { key: "worship", icon: Music },
+  { key: "events", icon: CalendarDays },
+  { key: "groups", icon: UsersRound },
+  { key: "care", icon: HandHeart },
+  { key: "journey", icon: Route },
   { key: "notes", icon: HeartHandshake },
 ] as const
 
@@ -177,7 +195,7 @@ function Features() {
         <h2 className="text-2xl font-semibold md:text-3xl">{t("features.title")}</h2>
         <p className="text-muted-foreground mt-3 text-lg">{t("features.subtitle")}</p>
       </div>
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {features.map(({ key, icon: Icon }) => (
           <Card key={key}>
             <CardHeader>
@@ -191,6 +209,40 @@ function Features() {
             </CardHeader>
           </Card>
         ))}
+      </div>
+    </section>
+  )
+}
+
+const personas = [
+  { key: "pastor", icon: Church },
+  { key: "admin", icon: ClipboardList },
+  { key: "coordinator", icon: CalendarCheck },
+  { key: "volunteer", icon: HandHelping },
+] as const
+
+function Personas() {
+  const { t } = useTranslation("landing")
+  return (
+    <section className="mx-auto max-w-6xl px-4 pb-16 md:px-6 md:pb-24">
+      <div>
+        <h2 className="max-w-2xl text-2xl font-semibold md:text-3xl">{t("personas.title")}</h2>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {personas.map(({ key, icon: Icon }) => (
+            <Card key={key}>
+              <CardHeader>
+                <div className="bg-primary/10 text-primary mb-2 flex size-10 items-center justify-center rounded-md">
+                  <Icon className="size-5" />
+                </div>
+                <CardDescription>{t(`personas.items.${key}.role`)}</CardDescription>
+                <CardTitle className="text-lg">{t(`personas.items.${key}.message`)}</CardTitle>
+                <p className="text-muted-foreground pt-1 text-sm">
+                  {t(`personas.items.${key}.worry`)}
+                </p>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -314,6 +366,7 @@ function FinalCta() {
       <Card className="items-center px-6 py-12 text-center md:py-16">
         <h2 className="text-2xl font-semibold md:text-3xl">{t("finalCta.title")}</h2>
         <p className="text-muted-foreground max-w-prose text-lg">{t("finalCta.body")}</p>
+        <p className="font-serif text-lg italic">{t("finalCta.madeBy")}</p>
         <Button asChild size="lg" className="h-11">
           <Link to="/register">
             {t("hero.cta")} <ArrowRight />
@@ -330,8 +383,8 @@ function Footer() {
     <footer className="border-t">
       <div className="text-muted-foreground mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm md:flex-row md:px-6">
         <div className="flex items-center gap-2">
-          <Leaf className="text-primary size-4" />
-          <span>© {new Date().getFullYear()} Gembala</span>
+          <img src="/logo.png" alt="" className="size-4 object-contain" />
+          <span>© {new Date().getFullYear()} gembala</span>
         </div>
         <div className="flex gap-6">
           <Link to="/login" className="hover:text-foreground transition-colors">
@@ -352,7 +405,9 @@ export function LandingPage() {
       <Nav />
       <main>
         <Hero />
+        <PainPoints />
         <Features />
+        <Personas />
         <TelegramSection />
         <Privacy />
         <Verse />
