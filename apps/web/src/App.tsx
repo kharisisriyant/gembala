@@ -25,11 +25,15 @@ import { ForgotPasswordPage } from "@/pages/auth/forgot-password"
 import { ResetPasswordPage } from "@/pages/auth/reset-password"
 import { AcceptInvitePage } from "@/pages/auth/accept-invite"
 
+import { LegalPage } from "@/pages/legal"
+
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/privacy-policy" element={<LegalPage document="privacy" />} />
+        <Route path="/terms-and-conditions" element={<LegalPage document="terms" />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

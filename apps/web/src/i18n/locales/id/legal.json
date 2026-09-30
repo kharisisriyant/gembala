@@ -1,0 +1,106 @@
+{
+  "home": "Kembali ke beranda",
+  "navigation": "Dokumen hukum",
+  "updated": "Terakhir diperbarui: 30 September 2026",
+  "draft": "Draf untuk ditinjau. Lokasi hosting dan jangka waktu penyimpanan harus dikonfirmasi sebelum dokumen ini berlaku.",
+  "privacy": {
+    "title": "Kebijakan Privasi",
+    "intro": "Kebijakan ini menjelaskan cara Gembala memproses data pribadi saat gereja dan pengguna yang berwenang menggunakan layanan untuk mengelola komunitasnya. Kebijakan ini juga mencakup orang yang informasinya dicatat oleh gereja, meskipun mereka tidak memiliki akun Gembala.",
+    "sections": [
+      {
+        "title": "Cakupan dan tanggung jawab",
+        "body": "Gereja atau organisasi Anda menentukan alasan pengumpulan informasi jemaat, informasi yang dicatat, dan pihak yang dapat mengaksesnya. Gembala menyediakan sarana untuk memproses informasi tersebut berdasarkan instruksi organisasi. Pengelolaan akun dan pengoperasian layanan juga melibatkan pemrosesan data pribadi. Hubungi administrator organisasi Anda terlebih dahulu terkait catatan gereja atau untuk mengetahui pengelola yang bertanggung jawab atas layanan yang Anda gunakan."
+      },
+      {
+        "title": "Informasi yang diproses",
+        "body": "Informasi dapat mencakup nama akun, alamat email, hash kata sandi, keanggotaan organisasi, peran, dan izin akses; kontak jemaat, tanggal lahir, alamat, foto, informasi keluarga, dan tag; keanggotaan kelompok, kehadiran, acara, dan jadwal pelayanan; serta catatan pastoral, permohonan doa dan pendampingan, tonggak perjalanan iman, keikutsertaan dalam kelas, dan penilaian potensi kepemimpinan. Catatan ini dapat mengungkap keyakinan agama, informasi kesehatan, atau informasi anak. Masukkan hanya informasi yang diperlukan untuk tujuan yang dimaksud."
+      },
+      {
+        "title": "Sumber dan tujuan",
+        "body": "Informasi berasal dari Anda, pengguna gereja yang berwenang, impor data, dan integrasi yang Anda gunakan. Informasi diproses untuk mengelola akun, mengautentikasi pengguna, memelihara catatan gereja, mengoordinasikan kegiatan dan pendampingan, menanggapi permintaan, mengatasi masalah, serta melindungi layanan. Organisasi Anda wajib menentukan dasar hukum pemrosesan yang sesuai dan memberikan pemberitahuan atau memperoleh persetujuan yang diperlukan. Penerimaan Syarat dan Ketentuan tidak dengan sendirinya merupakan persetujuan atas setiap penggunaan data pribadi."
+      },
+      {
+        "title": "Akses dan pengungkapan",
+        "body": "Administrator organisasi mengelola akses melalui peran dan cakupan izin. Pengguna yang berwenang dapat melihat catatan sesuai izinnya, termasuk informasi pendampingan yang terkait dengan catatan tersebut. Jangan berasumsi bahwa catatan hanya dapat dilihat oleh penulisnya. Penyedia hosting dan layanan lain dapat memproses informasi untuk menyediakan layanan. Informasi juga dapat diungkapkan apabila diwajibkan oleh hukum yang berlaku atau diperlukan untuk menangani penyalahgunaan atau melindungi hak hukum, dengan pelindungan yang sesuai."
+      },
+      {
+        "title": "Fitur Telegram dan AI",
+        "body": "Saat integrasi Telegram opsional digunakan, Telegram memproses pesan dan identitas akun. Asisten mengirimkan isi percakapan dan data yang diambil untuk menjawab permintaan melalui OpenRouter kepada penyedia AI yang dikonfigurasi. Data ini dapat mencakup informasi jemaat dan kelompok yang tersedia dalam cakupan izin pengguna. Penyedia menerapkan ketentuan dan praktik privasinya sendiri, dan pemrosesan dapat berlangsung di luar negara Anda. Pastikan organisasi mengizinkan penggunaan integrasi dan hindari mengirim informasi sensitif yang tidak diperlukan. Memutuskan tautan Telegram menghentikan akses tertaut berikutnya; tindakan ini tidak otomatis menghapus pesan atau data yang sudah disimpan penyedia eksternal."
+      },
+      {
+        "title": "Penyimpanan di peramban",
+        "body": "Gembala menggunakan penyimpanan lokal peramban untuk menyimpan token autentikasi dan pilihan bahasa. Preferensi antarmuka juga dapat disimpan di peramban Anda. Menghapus penyimpanan peramban dapat mengeluarkan Anda dari akun atau mengatur ulang preferensi; tindakan ini tidak menghapus catatan gereja yang disimpan oleh layanan."
+      },
+      {
+        "title": "Penyimpanan dan keamanan",
+        "body": "Jangka waktu penyimpanan bergantung pada tujuan pencatatan, instruksi organisasi, dan kewajiban hukum yang berlaku. Penutupan akun atau pencabutan akses pengguna tidak otomatis menghapus catatan jemaat milik organisasi. Permintaan penghapusan harus mempertimbangkan catatan terkait, kewajiban penyimpanan, dan siklus cadangan data jika ada. Gembala menggunakan autentikasi dan pemeriksaan izin untuk membatasi akses, tetapi tidak ada sistem yang dapat menjamin keamanan mutlak. Jaga kerahasiaan kredensial dan segera laporkan dugaan akses tanpa izin kepada administrator."
+      },
+      {
+        "title": "Hak dan permintaan Anda",
+        "body": "Sesuai hukum yang berlaku, Anda dapat meminta informasi mengenai pemrosesan, akses atau salinan data, perbaikan, penghapusan, pembatasan, portabilitas, atau penarikan persetujuan apabila pemrosesan didasarkan pada persetujuan. Hubungi administrator gereja terkait catatan jemaat dan minta mereka berkoordinasi dengan pengelola layanan jika diperlukan. Identitas dan kewenangan pemohon mungkin perlu diverifikasi. Jika permintaan tidak dapat dipenuhi, pihak yang bertanggung jawab perlu menjelaskan alasannya. Anda juga dapat mengajukan pengaduan kepada pihak berwenang."
+      },
+      {
+        "title": "Anak dan catatan sensitif",
+        "body": "Orang dewasa yang berwenang wajib menangani informasi anak dengan kehati-hatian khusus dan memperoleh persetujuan orang tua atau wali jika diwajibkan. Organisasi wajib menyediakan dasar pemrosesan dan pelindungan yang sesuai untuk informasi sensitif, membatasi akses, serta menghindari pengumpulan rincian pastoral atau kesehatan yang berlebihan. Gembala tidak ditujukan bagi anak untuk membuat akun administratif secara mandiri."
+      },
+      {
+        "title": "Pemrosesan lintas negara dan perubahan",
+        "body": "Sebelum menggunakan layanan atau integrasi, organisasi perlu memastikan penyedia, lokasi pemrosesan, dan pelindungan yang sah untuk transfer lintas negara. Kebijakan ini dapat diperbarui untuk mencerminkan perubahan layanan atau ketentuan yang berlaku. Tanggal pembaruan menunjukkan versi terbaru; perubahan penting perlu disampaikan sebelum berlaku apabila diwajibkan."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Syarat dan Ketentuan",
+    "intro": "Ketentuan ini mengatur akses dan penggunaan Gembala, layanan untuk administrasi gereja, koordinasi komunitas, dan pencatatan pendampingan pastoral. “Anda” berarti pengguna dan, ketika bertindak dengan kewenangan, organisasi yang diwakilinya.",
+    "sections": [
+      {
+        "title": "Persetujuan dan kewenangan",
+        "body": "Dengan membuat akun atau menggunakan layanan setelah Ketentuan ini berlaku, Anda menyetujuinya. Jika bertindak untuk organisasi, Anda harus memiliki kewenangan untuk melakukannya. Jika tidak setuju, jangan gunakan layanan. Ketentuan layanan tertulis yang disepakati secara terpisah berlaku untuk hal-hal yang secara tegas diaturnya."
+      },
+      {
+        "title": "Akun dan administrasi organisasi",
+        "body": "Berikan informasi akun yang akurat, lindungi kredensial, dan gunakan hanya akun yang boleh Anda akses. Administrator bertanggung jawab atas undangan, peran, cakupan izin, dan pencabutan akses segera ketika tanggung jawab berubah. Beri tahu administrator jika ada dugaan kebocoran akun atau aktivitas tanpa izin."
+      },
+      {
+        "title": "Penggunaan yang diizinkan",
+        "body": "Gunakan Gembala hanya untuk tujuan yang sah dan diizinkan. Jangan melewati pembatasan akses, mengakses catatan organisasi lain tanpa izin, mengunggah konten berbahaya, mengganggu layanan, menyamar sebagai pihak lain, atau menggunakan data pribadi untuk pelecehan, diskriminasi, pemasaran tanpa diminta, atau tujuan yang tidak terkait. Jangan menguji kerentanan layanan tanpa izin."
+      },
+      {
+        "title": "Data dan tanggung jawab Anda",
+        "body": "Organisasi Anda tetap memiliki hak atas konten yang diberikannya. Anda mengizinkan pemrosesan konten tersebut sejauh diperlukan untuk menyediakan layanan dan mengikuti instruksi yang sah. Anda bertanggung jawab untuk memiliki hak dan dasar hukum yang diperlukan dalam mengumpulkan, mengunggah, menggunakan, dan membagikan informasi, termasuk informasi jemaat, anak, dan orang yang tidak memiliki akun. Jaga keakuratan catatan, batasi konten sensitif, dan atur akses yang sesuai."
+      },
+      {
+        "title": "Privasi dan kerahasiaan",
+        "body": "Kebijakan Privasi menjelaskan pemrosesan data pribadi. Anda wajib menjaga kerahasiaan dan memenuhi kewajiban privasi organisasi, termasuk saat mengunduh, mengekspor, atau membagikan catatan. Akses terhadap catatan tidak memberikan izin untuk mengungkapkannya bagi tujuan yang tidak terkait."
+      },
+      {
+        "title": "Layanan pihak ketiga dan AI",
+        "body": "Integrasi opsional dapat tunduk pada ketentuan penyedia tersendiri dan dapat mengirim data kepada penyedia tersebut. Gunakan hanya dengan izin yang sesuai. Jawaban AI dapat keliru atau tidak lengkap; periksa informasi dan perubahan yang diusulkan sebelum mengandalkannya. Gembala dan asistennya tidak menyediakan layanan medis, kesehatan mental, hukum, atau darurat. Carilah bantuan profesional atau layanan darurat yang sesuai jika diperlukan."
+      },
+      {
+        "title": "Layanan dan kekayaan intelektual",
+        "body": "Dengan tunduk pada Ketentuan ini, Anda dapat menggunakan layanan sesuai tujuannya. Hak atas perangkat lunak, merek, dan materi layanan Gembala tetap berada pada pemiliknya masing-masing, dengan tunduk pada lisensi sumber terbuka yang berlaku. Ketersediaan dan fitur dapat berubah, dan pemeliharaan atau gangguan dapat menghambat akses. Tidak ada jaminan tingkat ketersediaan, hasil, atau fitur tertentu kecuali disepakati secara tertulis."
+      },
+      {
+        "title": "Biaya",
+        "body": "Paket berbayar, harga, siklus penagihan, perpanjangan, pembatalan, atau ketentuan pengembalian dana harus diinformasikan dan disepakati secara terpisah sebelum biaya dikenakan. Ketentuan ini sendiri tidak memberikan izin pembayaran atau membuat langganan."
+      },
+      {
+        "title": "Penangguhan dan penghentian penggunaan",
+        "body": "Akses dapat dibatasi atau ditangguhkan karena penggunaan tanpa izin, risiko keamanan, pelanggaran Ketentuan ini, atau kewajiban hukum. Jika memungkinkan dan diizinkan hukum, organisasi yang terdampak perlu menerima pemberitahuan dan kesempatan untuk menangani masalah. Anda dapat berhenti menggunakan layanan kapan saja. Hubungi administrator untuk mengatur pencabutan akses serta pengambilan atau penghapusan data yang diizinkan. Penghentian akses tidak otomatis menghapus catatan gereja atau mengesampingkan kewajiban penyimpanan yang sah."
+      },
+      {
+        "title": "Jaminan dan tanggung jawab",
+        "body": "Sejauh diizinkan hukum yang berlaku, layanan disediakan sebagaimana tersedia tanpa jaminan bahwa layanan akan selalu berjalan, bebas kesalahan, atau sesuai untuk setiap tujuan. Setiap pihak tetap bertanggung jawab atas kewajibannya berdasarkan hukum yang berlaku. Tidak ada ketentuan yang mengecualikan tanggung jawab yang menurut hukum tidak dapat dikecualikan atau membatasi hak wajib konsumen maupun hak atas data pribadi."
+      },
+      {
+        "title": "Sengketa, pembaruan, dan bahasa",
+        "body": "Sampaikan masalah layanan kepada administrator organisasi untuk dikoordinasikan dengan pengelola. Para pihak perlu mengupayakan penyelesaian dengan iktikad baik tanpa membatasi hak untuk menghubungi pihak berwenang atau pengadilan yang berwenang. Ketentuan hukum yang bersifat wajib tetap berlaku. Perubahan penting pada Ketentuan ini perlu disampaikan sebelum berlaku apabila diwajibkan. Versi bahasa Inggris dan Bahasa Indonesia dimaksudkan memiliki makna yang sama; perbedaan perlu diklarifikasi sesuai hukum yang berlaku."
+      }
+    ]
+  },
+  "contact": {
+    "title": "Kontak",
+    "body": "Saat ini Gembala beroperasi tanpa badan hukum terdaftar. Untuk permintaan terkait privasi, pertanyaan tentang Ketentuan ini, atau bantuan layanan, kirim email ke alamat berikut. Untuk catatan yang dikelola gereja, Anda juga dapat menghubungi administrator organisasi. Jangan menyertakan kata sandi atau informasi sensitif yang tidak diperlukan dalam pesan Anda."
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "home": "Back to home",
+  "navigation": "Legal documents",
+  "updated": "Last updated: September 30, 2026",
+  "draft": "Draft for review. Hosting locations and retention periods must be confirmed before these documents take effect.",
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "This policy explains how Gembala handles personal data when churches and their authorized users use the service to manage their communities. It also covers people whose information is entered by a church, even if they do not have a Gembala account.",
+    "sections": [
+      {
+        "title": "Scope and responsibilities",
+        "body": "Your church or organization decides why member information is collected, what is recorded, and who may access it. Gembala provides the tools used to process that information on the organization’s instructions. Account administration and operation of the service also involve processing personal data. Contact your organization’s administrator first about church records or to identify the operator responsible for your deployment."
+      },
+      {
+        "title": "Information processed",
+        "body": "Information may include account names, email addresses, password hashes, organization membership, roles, and access permissions; member contact details, birth dates, addresses, photos, family information, and tags; group membership, attendance, events, and service schedules; and pastoral notes, prayer and care requests, spiritual milestones, course participation, and leadership assessments. These records may reveal religious beliefs, health information, or information about children. Only enter information necessary for the intended purpose."
+      },
+      {
+        "title": "Sources and purposes",
+        "body": "Information comes from you, authorized church users, imports, and integrations you choose to use. It is processed to manage accounts, authenticate users, maintain church records, coordinate activities and care, respond to requests, troubleshoot problems, and protect the service. Your organization must identify an appropriate legal basis for its processing and provide any required notices or obtain consent. Accepting the Terms does not by itself constitute consent to every use of personal data."
+      },
+      {
+        "title": "Access and disclosure",
+        "body": "Organization administrators manage access through roles and scopes. Authorized users may see records within their permissions, including care information associated with those records. Do not assume a note is visible only to its author. Hosting and other service providers may process information to deliver the service. Information may also be disclosed where required by applicable law or necessary to address misuse or protect legal rights, subject to applicable safeguards."
+      },
+      {
+        "title": "Telegram and AI features",
+        "body": "When the optional Telegram integration is used, Telegram processes messages and account identifiers. The assistant sends conversation content and data retrieved to answer requests through OpenRouter to the configured AI provider. This can include member and group information available within the user’s permissions. Providers apply their own terms and privacy practices, and processing may occur outside your country. Check your organization’s authorization before using the integration and avoid sending unnecessary sensitive information. Unlinking Telegram stops future linked access; it does not automatically erase messages or data already held by external providers."
+      },
+      {
+        "title": "Browser storage",
+        "body": "Gembala uses browser local storage to keep the authentication token and language preference. Interface preferences may also be stored in your browser. Clearing browser storage can sign you out or reset preferences; it does not delete church records held by the service."
+      },
+      {
+        "title": "Retention and security",
+        "body": "Retention depends on the purpose of the record, the organization’s instructions, and applicable legal obligations. Account closure or removal of a user’s access does not automatically delete the organization’s member records. Deletion requests must consider related records, required retention, and any backup lifecycle. Gembala uses authentication and permission checks to restrict access, but no system can guarantee absolute security. Keep credentials private and report suspected unauthorized access to your administrator promptly."
+      },
+      {
+        "title": "Your rights and requests",
+        "body": "Subject to applicable law, you may request information about processing, access to or a copy of your data, correction, deletion, restriction, portability, or withdrawal of consent where consent is the basis for processing. Contact your church administrator about member records and ask them to coordinate with the service operator where necessary. Identity and authority may need to be verified. If a request cannot be fulfilled, the responsible party should explain the applicable reason. You may also raise a complaint with the competent authority."
+      },
+      {
+        "title": "Children and sensitive records",
+        "body": "Authorized adults must handle children’s information with particular care and obtain parent or guardian consent where required. Organizations must provide an appropriate basis and safeguards for sensitive information, limit access, and avoid collecting excessive pastoral or health details. Gembala is not intended for children to independently create administrative accounts."
+      },
+      {
+        "title": "International processing and changes",
+        "body": "Before using a deployment or integration, organizations should confirm its providers, processing locations, and lawful safeguards for international transfers. This policy may be revised to reflect changes in the service or applicable requirements. The updated date identifies the latest version; material changes should be communicated before they take effect where required."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms and Conditions",
+    "intro": "These Terms govern access to and use of Gembala, a service for church administration, community coordination, and pastoral care records. “You” means the user and, when acting with authority, the organization they represent.",
+    "sections": [
+      {
+        "title": "Agreement and authority",
+        "body": "By creating an account or using the service after these Terms take effect, you agree to them. If you act for an organization, you must have authority to do so. If you do not agree, do not use the service. Any separately agreed written service terms apply to the matters they expressly cover."
+      },
+      {
+        "title": "Accounts and organization administration",
+        "body": "Provide accurate account information, protect your credentials, and use only accounts you are authorized to access. Administrators are responsible for invitations, roles, permission scopes, and promptly removing access when responsibilities change. Notify your administrator of suspected compromise or unauthorized activity."
+      },
+      {
+        "title": "Permitted use",
+        "body": "Use Gembala only for lawful, authorized purposes. Do not bypass access restrictions, access another organization’s records without permission, upload malicious content, disrupt the service, impersonate others, or use personal data for harassment, discrimination, unsolicited marketing, or unrelated purposes. Do not probe the service for vulnerabilities without authorization."
+      },
+      {
+        "title": "Your data and responsibilities",
+        "body": "Your organization retains its rights in the content it provides. You authorize processing of that content as needed to deliver the service and follow lawful instructions. You are responsible for having the necessary rights and legal basis to collect, upload, use, and share information, including information about members, children, and people who do not have accounts. Keep records accurate, limit sensitive content, and configure appropriate access."
+      },
+      {
+        "title": "Privacy and confidentiality",
+        "body": "The Privacy Policy describes personal data processing. You must respect confidentiality and your organization’s privacy obligations, including when downloading, exporting, or sharing records. Access to a record does not grant permission to disclose it for unrelated purposes."
+      },
+      {
+        "title": "Third-party services and AI",
+        "body": "Optional integrations may be subject to separate provider terms and may transfer data to those providers. Use them only with appropriate authorization. AI responses may be inaccurate or incomplete; verify information and proposed changes before relying on them. Gembala and its assistant do not provide medical, mental-health, legal, or emergency services. Seek appropriate professional or emergency assistance when needed."
+      },
+      {
+        "title": "Service and intellectual property",
+        "body": "Subject to these Terms, you may use the service for its intended purpose. Rights in the Gembala software, branding, and service materials remain with their respective owners, subject to any applicable open-source licenses. Availability and features may change, and maintenance or outages may interrupt access. No particular uptime, result, or feature is promised unless separately agreed in writing."
+      },
+      {
+        "title": "Fees",
+        "body": "Any paid plan, price, billing cycle, renewal, cancellation, or refund conditions must be disclosed and agreed separately before a charge is incurred. These Terms alone do not authorize a payment or establish a subscription."
+      },
+      {
+        "title": "Suspension and ending use",
+        "body": "Access may be restricted or suspended for unauthorized use, security risks, violation of these Terms, or legal requirements. Where practicable and lawful, the affected organization should receive notice and an opportunity to address the issue. You may stop using the service at any time. Contact your administrator to arrange removal of access and any authorized data retrieval or deletion. Ending access does not automatically erase church records or override lawful retention requirements."
+      },
+      {
+        "title": "Warranties and liability",
+        "body": "To the extent permitted by applicable law, the service is provided as available without a guarantee that it will be uninterrupted, error-free, or suitable for every purpose. Each party remains responsible for its obligations under applicable law. Nothing in these Terms excludes liability that cannot lawfully be excluded or limits mandatory consumer or personal data rights."
+      },
+      {
+        "title": "Disputes, updates, and language",
+        "body": "Raise service issues with your organization’s administrator for coordination with the operator. The parties should seek a good-faith resolution without restricting any right to use a competent authority or court. Applicable mandatory law continues to apply. Material changes to these Terms should be communicated before taking effect where required. English and Bahasa Indonesia versions are intended to have the same meaning; discrepancies should be clarified consistently with applicable law."
+      }
+    ]
+  },
+  "contact": {
+    "title": "Contact",
+    "body": "Gembala is currently operated without a registered legal entity. For privacy requests, questions about these Terms, or service support, email the contact below. For church-managed records, you may also contact your organization’s administrator. Do not include passwords or unnecessary sensitive information in your message."
+  }
+}

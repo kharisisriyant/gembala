@@ -32,6 +32,9 @@ import careRequestsId from "./locales/id/care-requests.json"
 import journeyEn from "./locales/en/journey.json"
 import journeyId from "./locales/id/journey.json"
 
+import legalEn from "./locales/en/legal.json"
+import legalId from "./locales/id/legal.json"
+
 export const defaultNS = "common"
 
 void i18n
@@ -41,6 +44,7 @@ void i18n
     resources: {
       en: {
         common: commonEn,
+        legal: legalEn,
         landing: landingEn,
         dashboard: dashboardEn,
         members: membersEn,
@@ -58,6 +62,7 @@ void i18n
       },
       id: {
         common: commonId,
+        legal: legalId,
         landing: landingId,
         dashboard: dashboardId,
         members: membersId,

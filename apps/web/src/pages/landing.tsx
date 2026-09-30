@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LegalLinks } from "@/components/legal-links"
 import { LanguageToggle } from "@/components/language-toggle"
 import { useAuth } from "@/lib/auth"
 
@@ -386,7 +387,8 @@ function Footer() {
           <img src="/logo.png" alt="" className="size-4 object-contain" />
           <span>© {new Date().getFullYear()} gembala</span>
         </div>
-        <div className="flex gap-6">
+        <div className="flex flex-wrap justify-center gap-6">
+          <LegalLinks />
           <Link to="/login" className="hover:text-foreground transition-colors">
             {t("footer.signIn")}
           </Link>

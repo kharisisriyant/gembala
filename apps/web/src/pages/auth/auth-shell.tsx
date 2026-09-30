@@ -1,5 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
+import { LegalLinks } from "@/components/legal-links"
+
 export function AuthShell({
   title,
   description,
@@ -29,6 +31,7 @@ export function AuthShell({
           <CardContent>{children}</CardContent>
         </Card>
         {footer && <div className="text-muted-foreground mt-4 text-center text-sm">{footer}</div>}
+        <div className="mt-6"><LegalLinks /></div>
       </div>
     </div>
   )
