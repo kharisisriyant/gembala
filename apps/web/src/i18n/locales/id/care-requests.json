@@ -1,12 +1,12 @@
 {
-  "title": "Permintaan Doa & Kepedulian",
+  "title": "Permintaan Doa & Perhatian",
   "subtitle": "Kebutuhan doa dan penggembalaan untuk jemaat yang Anda layani.",
   "newRequest": "Permintaan baru",
   "empty": "Tidak ada permintaan.",
   "closeNotePrefix": "Catatan penutup:",
   "type": {
     "prayer": "Doa",
-    "care": "Kepedulian"
+    "care": "Perhatian"
   },
   "status": {
     "open": "Terbuka",
@@ -30,7 +30,7 @@
     "delete": "Hapus permintaan"
   },
   "memberSection": {
-    "title": "Permintaan doa & kepedulian",
+    "title": "Permintaan doa & perhatian",
     "add": "Tambah",
     "empty": "Belum ada permintaan untuk jemaat ini."
   },
