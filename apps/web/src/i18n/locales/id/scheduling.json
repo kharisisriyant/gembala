@@ -16,7 +16,18 @@
   },
   "assignment": {
     "add": "Tambah",
-    "empty": "—"
+    "empty": "—",
+    "placeholder": "Ketik nama atau tim…",
+    "inputLabel": "Tambah petugas untuk {{role}} pada {{instance}}",
+    "suggestions": "Saran petugas",
+    "members": "Jemaat",
+    "freeText": "Teks bebas",
+    "useText": "Tambahkan “{{text}}”",
+    "noMembers": "Tidak ada jemaat yang cocok",
+    "loading": "Mencari jemaat…",
+    "searchError": "Gagal memuat jemaat",
+    "highlight": "Sorot petugas {{name}}",
+    "edit": "Ubah petugas {{name}}"
   },
   "menu": {
     "edit": "Ubah jadwal",

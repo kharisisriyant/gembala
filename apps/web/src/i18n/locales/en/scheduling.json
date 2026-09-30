@@ -16,7 +16,18 @@
   },
   "assignment": {
     "add": "Add",
-    "empty": "—"
+    "empty": "—",
+    "placeholder": "Type a name or team…",
+    "inputLabel": "Add assignment for {{role}} in {{instance}}",
+    "suggestions": "Assignment suggestions",
+    "members": "Members",
+    "freeText": "Free text",
+    "useText": "Add “{{text}}”",
+    "noMembers": "No matching members",
+    "loading": "Searching members…",
+    "searchError": "Could not load members",
+    "highlight": "Highlight assignments for {{name}}",
+    "edit": "Edit assignment for {{name}}"
   },
   "menu": {
     "edit": "Edit event",

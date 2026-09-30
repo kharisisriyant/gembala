@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { toast } from "sonner"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
@@ -33,6 +34,7 @@ export function SchedulingPage() {
   const canManage = hasPermission("scheduling", "update") || hasPermission("scheduling", "delete")
   const { data: events = [], isLoading } = useScheduleEvents()
   const { data: roleTemplates = [] } = useRoleTemplates()
+  const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
   const deleteEvent = useDeleteScheduleEvent()
   const deleteInstance = useDeleteServiceInstance()
 
@@ -155,6 +157,8 @@ export function SchedulingPage() {
                                 (a) => a.roleTemplateId === role.id,
                               )}
                               canManage={canManage}
+                              highlightedKey={highlightedKey}
+                              onHighlight={(key) => setHighlightedKey((current) => current === key ? null : key)}
                             />
                           </TableCell>
                         ))}
