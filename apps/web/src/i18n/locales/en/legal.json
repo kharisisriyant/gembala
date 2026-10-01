@@ -29,7 +29,7 @@
       },
       {
         "title": "Browser storage",
-        "body": "Gembala uses browser local storage to keep the authentication token and language preference. Interface preferences may also be stored in your browser. Clearing browser storage can sign you out or reset preferences; it does not delete church records held by the service."
+        "body": "Gembala keeps your refresh session in a secure browser cookie and keeps the short-lived access token only in memory. Language and interface preferences may be stored in your browser. Clearing browser data can sign you out or reset preferences; it does not delete church records held by the service."
       },
       {
         "title": "Retention and security",

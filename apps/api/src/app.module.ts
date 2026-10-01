@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common"
 import { APP_GUARD, APP_PIPE } from "@nestjs/core"
 import { ConfigModule, ConfigService } from "@nestjs/config"
-import { JwtModule, type JwtSignOptions } from "@nestjs/jwt"
+import { JwtModule } from "@nestjs/jwt"
 import { ZodValidationPipe } from "nestjs-zod"
 import { validateEnv } from "./config/env"
 import { DrizzleModule } from "./db/drizzle.module"
@@ -30,12 +30,13 @@ import { JourneyModule } from "./journey/journey.module"
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.getOrThrow<string>("JWT_SECRET"),
-        signOptions: {
-          expiresIn: config.getOrThrow<string>("JWT_EXPIRES_IN") as JwtSignOptions["expiresIn"],
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const activeKid = config.getOrThrow<string>("JWT_ACTIVE_KID")
+        const active = config.getOrThrow<string>("JWT_SIGNING_KEYS").split(",")
+          .map((entry) => entry.split(":", 2)).find(([kid]) => kid === activeKid)?.[1]
+        if (!active) throw new Error("JWT_ACTIVE_KID is not present in JWT_SIGNING_KEYS")
+        return { secret: active }
+      },
     }),
     DrizzleModule,
     AuthzModule,

@@ -29,7 +29,7 @@
       },
       {
         "title": "Penyimpanan di peramban",
-        "body": "Gembala menggunakan penyimpanan lokal peramban untuk menyimpan token autentikasi dan pilihan bahasa. Preferensi antarmuka juga dapat disimpan di peramban Anda. Menghapus penyimpanan peramban dapat mengeluarkan Anda dari akun atau mengatur ulang preferensi; tindakan ini tidak menghapus catatan gereja yang disimpan oleh layanan."
+        "body": "Gembala menyimpan sesi penyegaran di cookie peramban yang aman dan menyimpan token akses berumur pendek hanya di memori. Pilihan bahasa dan antarmuka dapat disimpan di peramban Anda. Menghapus data peramban dapat mengeluarkan Anda dari akun atau mengatur ulang preferensi; tindakan ini tidak menghapus catatan gereja yang disimpan oleh layanan."
       },
       {
         "title": "Penyimpanan dan keamanan",

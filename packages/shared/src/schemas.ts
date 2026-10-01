@@ -122,9 +122,11 @@ export type MeResponse = {
 }
 
 export type AuthResponse = {
-  token: string
+  accessToken: string
   me: MeResponse
 }
+
+export type CsrfResponse = { csrfToken: string }
 
 // ---------------------------------------------------------------------------
 // Roles

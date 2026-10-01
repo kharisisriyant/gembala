@@ -35,6 +35,16 @@ function makeRepo(): jest.Mocked<AuthRepository> {
     inviteScopeTagIds: jest.fn(),
     inviteRoleIds: jest.fn(),
     markInviteAccepted: jest.fn(),
+    createSession: jest.fn(),
+    createRefreshToken: jest.fn(),
+    recordSecurityEvent: jest.fn(),
+    consumeRateLimit: jest.fn().mockResolvedValue(true),
+    revokeSessionsForUser: jest.fn(),
+    revokeSession: jest.fn(),
+    findRefreshToken: jest.fn(),
+    rotateRefreshToken: jest.fn(),
+    touchSession: jest.fn(),
+    updateSessionCsrfTokenHash: jest.fn(),
   } as unknown as jest.Mocked<AuthRepository>
 }
 
@@ -51,7 +61,20 @@ describe("AuthService", () => {
     jest.clearAllMocks()
     auth = makeRepo()
     jwt = { signAsync: jest.fn().mockResolvedValue("jwt-token") } as any
-    config = { get: jest.fn().mockReturnValue(""), getOrThrow: jest.fn().mockReturnValue("https://app.example.com") } as any
+    config = {
+      get: jest.fn().mockReturnValue(""),
+      getOrThrow: jest.fn((key: string) => ({
+        WEB_ORIGIN: "https://app.example.com",
+        JWT_SIGNING_KEYS: "default:01234567890123456789012345678901",
+        JWT_ACTIVE_KID: "default",
+        JWT_ISSUER: "gembala-api",
+        JWT_AUDIENCE: "gembala-web",
+        JWT_ACCESS_TTL_SECONDS: 900,
+        JWT_REFRESH_TTL_SECONDS: 2592000,
+        AUTH_LOGIN_RATE_LIMIT: 5,
+        AUTH_REFRESH_RATE_LIMIT: 30,
+      }[key])),
+    } as any
     mail = { sendPasswordReset: jest.fn(), sendInvite: jest.fn() } as any
     authContext = { load: jest.fn() } as any
     db = { transaction: jest.fn((cb: any) => cb(db)) } as any
@@ -159,7 +182,7 @@ describe("AuthService", () => {
       expect(auth.insertMembershipRole).toHaveBeenCalledWith("m1", "admin-role", db)
       expect(auth.insertRolePermissions).toHaveBeenCalledWith("leader-role", expect.any(Array), db)
       expect(auth.insertRootDirectoryTag).toHaveBeenCalledWith("org1", db)
-      expect(jwt.signAsync).toHaveBeenCalledWith({ sub: "u1" })
+      expect(jwt.signAsync).toHaveBeenCalledWith(expect.objectContaining({ sub: "u1", sid: expect.any(String) }), expect.any(Object))
     })
   })
 

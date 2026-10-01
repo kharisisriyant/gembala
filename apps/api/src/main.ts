@@ -9,7 +9,7 @@ async function bootstrap() {
   const config = app.get(ConfigService)
 
   app.setGlobalPrefix("api")
-  app.enableCors({ origin: config.getOrThrow<string>("WEB_ORIGIN") })
+  app.enableCors({ origin: config.getOrThrow<string>("WEB_ORIGIN"), credentials: true })
   app.enableShutdownHooks()
   setupSwagger(app)
 

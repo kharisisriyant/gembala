@@ -16,6 +16,7 @@ import {
   memberStatusSchema,
   type AttendanceHeatmapResponse,
   type AuthResponse,
+  type CsrfResponse,
   type OrganizationInviteResponse,
   type CareRequestResponse,
   type CourseResponse,
@@ -70,9 +71,13 @@ export const meResponseSchema = z.object({
 }) satisfies z.ZodType<MeResponse>
 
 export const authResponseSchema = z.object({
-  token: z.string().describe("JWT bearer token"),
+  accessToken: z.string().describe("Short-lived JWT bearer token"),
   me: meResponseSchema,
 }) satisfies z.ZodType<AuthResponse>
+
+export const csrfResponseSchema = z.object({
+  csrfToken: z.string().describe("Synchronizer token required to refresh a cookie session"),
+}) satisfies z.ZodType<CsrfResponse>
 
 export const roleResponseSchema = z.object({
   id: z.string().uuid(),

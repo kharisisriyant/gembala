@@ -2,6 +2,7 @@ import { createZodDto } from "nestjs-zod"
 import {
   attendanceHeatmapResponseSchema,
   authResponseSchema,
+  csrfResponseSchema,
   organizationInviteResponseSchema,
   careRequestResponseSchema,
   courseResponseSchema,
@@ -39,6 +40,7 @@ import {
 // what controllers return. Request DTOs live next to their controllers.
 
 export class AuthResponseDto extends createZodDto(authResponseSchema) {}
+export class CsrfResponseDto extends createZodDto(csrfResponseSchema) {}
 export class MeResponseDto extends createZodDto(meResponseSchema) {}
 export class RoleResponseDto extends createZodDto(roleResponseSchema) {}
 export class TeamMemberResponseDto extends createZodDto(teamMemberResponseSchema) {}

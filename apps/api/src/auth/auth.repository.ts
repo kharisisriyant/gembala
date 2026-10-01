@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { and, eq, gt, isNull } from "drizzle-orm"
+import { and, eq, gt, inArray, isNull } from "drizzle-orm"
 import { InjectDb, type Db, type Tx } from "../db/drizzle.module"
 import {
   invites,
@@ -15,9 +15,14 @@ import {
   rolePermissions,
   tags,
   users,
+  authRefreshTokens,
+  authSecurityEvents,
+  authSessions,
+  authRateLimits,
 } from "../db/schema"
 
 export type UserInsert = { email: string; name: string; passwordHash: string }
+export type RequestMetadata = { ipAddress?: string; userAgent?: string }
 
 @Injectable()
 export class AuthRepository {
@@ -55,6 +60,87 @@ export class AuthRepository {
 
   async updateUserPasswordHash(userId: string, passwordHash: string, tx: Db | Tx = this.db) {
     await tx.update(users).set({ passwordHash }).where(eq(users.id, userId))
+  }
+
+  async createSession(input: {
+    id: string; userId: string; csrfTokenHash: string; expiresAt: Date
+  } & RequestMetadata, tx: Db | Tx = this.db) {
+    const [row] = await tx.insert(authSessions).values(input).returning()
+    return row
+  }
+
+  async createRefreshToken(input: { id: string; sessionId: string; tokenHash: string; expiresAt: Date }, tx: Db | Tx = this.db) {
+    const [row] = await tx.insert(authRefreshTokens).values(input).returning()
+    return row
+  }
+
+  async findRefreshToken(id: string, tx: Db | Tx = this.db) {
+    const [row] = await tx.select({
+      refresh: authRefreshTokens,
+      session: authSessions,
+      user: users,
+    }).from(authRefreshTokens)
+      .innerJoin(authSessions, eq(authSessions.id, authRefreshTokens.sessionId))
+      .innerJoin(users, eq(users.id, authSessions.userId))
+      .where(eq(authRefreshTokens.id, id))
+    return row
+  }
+
+  async findActiveSession(sessionId: string, userId: string, tx: Db | Tx = this.db) {
+    const [row] = await tx.select({ session: authSessions, authStatus: users.authStatus })
+      .from(authSessions).innerJoin(users, eq(users.id, authSessions.userId))
+      .where(and(eq(authSessions.id, sessionId), eq(authSessions.userId, userId), isNull(authSessions.revokedAt), gt(authSessions.expiresAt, new Date())))
+    return row
+  }
+
+  async rotateRefreshToken(tokenId: string, tx: Db | Tx = this.db) {
+    const [row] = await tx.update(authRefreshTokens).set({ rotatedAt: new Date() })
+      .where(and(eq(authRefreshTokens.id, tokenId), isNull(authRefreshTokens.rotatedAt), isNull(authRefreshTokens.revokedAt)))
+      .returning()
+    return row
+  }
+
+  async touchSession(id: string, tx: Db | Tx = this.db) {
+    await tx.update(authSessions).set({ lastUsedAt: new Date() }).where(eq(authSessions.id, id))
+  }
+
+  async updateSessionCsrfTokenHash(id: string, csrfTokenHash: string, tx: Db | Tx = this.db) {
+    await tx.update(authSessions).set({ csrfTokenHash }).where(eq(authSessions.id, id))
+  }
+
+  async revokeSession(sessionId: string, reason: string, tx: Db | Tx = this.db) {
+    const [row] = await tx.update(authSessions).set({ revokedAt: new Date(), revokedReason: reason })
+      .where(and(eq(authSessions.id, sessionId), isNull(authSessions.revokedAt))).returning()
+    if (row) await tx.update(authRefreshTokens).set({ revokedAt: new Date() })
+      .where(and(eq(authRefreshTokens.sessionId, sessionId), isNull(authRefreshTokens.revokedAt)))
+    return row
+  }
+
+  async revokeSessionsForUser(userId: string, reason: string, tx: Db | Tx = this.db) {
+    const rows = await tx.update(authSessions).set({ revokedAt: new Date(), revokedReason: reason })
+      .where(and(eq(authSessions.userId, userId), isNull(authSessions.revokedAt))).returning({ id: authSessions.id })
+    if (rows.length) await tx.update(authRefreshTokens).set({ revokedAt: new Date() })
+      .where(and(isNull(authRefreshTokens.revokedAt), inArray(authRefreshTokens.sessionId, rows.map((row) => row.id))))
+    return rows
+  }
+
+  async recordSecurityEvent(input: {
+    userId?: string; sessionId?: string; type: typeof authSecurityEvents.$inferInsert.type; metadata?: Record<string, unknown>
+  } & RequestMetadata, tx: Db | Tx = this.db) {
+    await tx.insert(authSecurityEvents).values({ ...input, metadata: input.metadata ?? {} })
+  }
+
+  async consumeRateLimit(key: string, limit: number, windowMs: number, tx: Db | Tx = this.db): Promise<boolean> {
+    const now = new Date()
+    const [row] = await tx.select().from(authRateLimits).where(eq(authRateLimits.key, key))
+    if (!row || row.windowStartedAt.getTime() + windowMs <= now.getTime()) {
+      if (row) await tx.update(authRateLimits).set({ count: 1, windowStartedAt: now, updatedAt: now }).where(eq(authRateLimits.key, key))
+      else await tx.insert(authRateLimits).values({ key, count: 1, windowStartedAt: now, updatedAt: now })
+      return true
+    }
+    if (row.count >= limit) return false
+    await tx.update(authRateLimits).set({ count: row.count + 1, updatedAt: now }).where(eq(authRateLimits.key, key))
+    return true
   }
 
   async findUserById(id: string, tx: Db | Tx = this.db) {

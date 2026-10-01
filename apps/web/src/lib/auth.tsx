@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { Navigate, useLocation } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
@@ -11,7 +11,7 @@ import type {
   RegisterInput,
 } from "@gembala/shared"
 import { permissionKey } from "@gembala/shared"
-import { apiFetch, clearToken, getToken, setToken } from "./api"
+import { apiFetch, authenticate, clearToken, getToken, logoutRequest, restoreSession, setToken } from "./api"
 
 type AuthContextValue = {
   me: MeResponse | null
@@ -30,6 +30,16 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient()
   const [hasToken, setHasToken] = useState(() => Boolean(getToken()))
+  const [isRestoring, setIsRestoring] = useState(true)
+
+  useEffect(() => {
+    void restoreSession().then((session) => {
+      if (session) {
+        setHasToken(true)
+        queryClient.setQueryData(["me"], session.me)
+      }
+    }).finally(() => setIsRestoring(false))
+  }, [queryClient])
 
   const { data: me = null, isLoading } = useQuery({
     queryKey: ["me"],
@@ -41,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const applyAuth = useCallback(
     (res: AuthResponse) => {
-      setToken(res.token)
+      setToken(res.accessToken)
       setHasToken(true)
       queryClient.setQueryData(["me"], res.me)
       // fresh identity = fresh scope: drop everything cached
@@ -52,26 +62,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     async (input: LoginInput) => {
-      applyAuth(await apiFetch<AuthResponse>("/auth/login", { method: "POST", body: input }))
+      applyAuth(await authenticate("/auth/login", input))
     },
     [applyAuth],
   )
 
   const register = useCallback(
     async (input: RegisterInput) => {
-      applyAuth(await apiFetch<AuthResponse>("/auth/register", { method: "POST", body: input }))
+      applyAuth(await authenticate("/auth/register", input))
     },
     [applyAuth],
   )
 
   const acceptInvite = useCallback(
     async (input: AcceptInviteInput) => {
-      applyAuth(await apiFetch<AuthResponse>("/auth/accept-invite", { method: "POST", body: input }))
+      applyAuth(await authenticate("/auth/accept-invite", input))
     },
     [applyAuth],
   )
 
   const logout = useCallback(() => {
+    void logoutRequest().catch(() => undefined)
     clearToken()
     setHasToken(false)
     queryClient.clear()
@@ -89,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         me,
-        isLoading: hasToken && isLoading,
+        isLoading: isRestoring || (hasToken && isLoading),
         isSystemAdmin,
         permissions,
         hasPermission,
@@ -114,7 +125,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { me, isLoading } = useAuth()
   const location = useLocation()
 
-  if (!getToken()) {
+  if (!getToken() && !isLoading) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   if (isLoading) {
