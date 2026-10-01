@@ -8,6 +8,7 @@ import {
   membershipRoles,
   membershipScopeTags,
   organizations,
+  organizationInvites,
   orgMemberships,
   passwordResetTokens,
   roles,
@@ -21,6 +22,21 @@ export type UserInsert = { email: string; name: string; passwordHash: string }
 @Injectable()
 export class AuthRepository {
   constructor(@InjectDb() private readonly db: Db) {}
+
+  async insertOrganizationInvite(input: typeof organizationInvites.$inferInsert) {
+    const [row] = await this.db.insert(organizationInvites).values(input).returning()
+    return row
+  }
+
+  async consumeOrganizationInvite(tokenHash: string, email: string, tx: Db | Tx): Promise<typeof organizationInvites.$inferSelect | undefined> {
+    const [row] = await tx.update(organizationInvites).set({ acceptedAt: new Date() }).where(and(
+      eq(organizationInvites.tokenHash, tokenHash),
+      eq(organizationInvites.email, email),
+      isNull(organizationInvites.acceptedAt),
+      gt(organizationInvites.expiresAt, new Date()),
+    )).returning()
+    return row
+  }
 
   async findUserIdByEmail(email: string, tx: Db | Tx = this.db) {
     const [row] = await tx.select({ id: users.id }).from(users).where(eq(users.email, email))

@@ -1,6 +1,8 @@
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 import LanguageDetector from "i18next-browser-languagedetector"
+import authEn from "./locales/en/auth.json"
+import authId from "./locales/id/auth.json"
 import commonEn from "./locales/en/common.json"
 import commonId from "./locales/id/common.json"
 import landingEn from "./locales/en/landing.json"
@@ -43,6 +45,7 @@ void i18n
   .init({
     resources: {
       en: {
+        auth: authEn,
         common: commonEn,
         legal: legalEn,
         landing: landingEn,
@@ -61,6 +64,7 @@ void i18n
         journey: journeyEn,
       },
       id: {
+        auth: authId,
         common: commonId,
         legal: legalId,
         landing: landingId,

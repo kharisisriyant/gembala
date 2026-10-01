@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common"
@@ -13,6 +14,8 @@ import type {
   LoginInput,
   MeResponse,
   RegisterInput,
+  OrganizationInviteCreateInput,
+  OrganizationInviteResponse,
   ResetPasswordInput,
   UpdateProfileInput,
 } from "@gembala/shared"
@@ -53,12 +56,33 @@ export class AuthService {
       org: { id: auth.orgId, name: auth.orgName },
       roles: auth.roles,
       isSystemAdmin: auth.isSystemAdmin,
+      isPlatformAdmin: this.isPlatformAdmin(auth),
       permissions: [...auth.permissions],
       scopeTags: auth.scopeTagNames,
     }
   }
 
+  private isPlatformAdmin(auth: AuthContext): boolean {
+    const emails = this.config.get<string>("PLATFORM_ADMIN_EMAILS", "")
+      .split(",").map((email) => email.trim().toLowerCase()).filter(Boolean)
+    return auth.isSystemAdmin && emails.includes(auth.userEmail.toLowerCase())
+  }
+
+  async createOrganizationInvite(auth: AuthContext, input: OrganizationInviteCreateInput): Promise<OrganizationInviteResponse> {
+    if (!this.isPlatformAdmin(auth)) throw new ForbiddenException("platform admin access required")
+    const email = input.email.toLowerCase()
+    if (await this.auth.findUserIdByEmail(email)) throw new ConflictException("an account with this email already exists")
+    const token = randomBytes(32).toString("hex")
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const row = await this.auth.insertOrganizationInvite({ email, tokenHash: sha256(token), invitedBy: auth.userId, expiresAt })
+    const url = new URL("/register", this.config.getOrThrow<string>("WEB_ORIGIN"))
+    url.searchParams.set("token", token)
+    url.searchParams.set("email", email)
+    return { id: row.id, email, url: url.toString(), expiresAt: expiresAt.toISOString() }
+  }
+
   async register(input: RegisterInput): Promise<AuthResponse> {
+    if (!input.token) throw new UnauthorizedException("an organization invite is required")
     const email = input.email.toLowerCase()
     const existing = await this.auth.findUserIdByEmail(email)
     if (existing) throw new ConflictException("an account with this email already exists")
@@ -66,6 +90,8 @@ export class AuthService {
     const passwordHash = await argon2.hash(input.password)
 
     const created = await this.db.transaction(async (tx) => {
+      const invite = await this.auth.consumeOrganizationInvite(sha256(input.token), email, tx)
+      if (!invite) throw new UnauthorizedException("invalid, expired, or already used organization invite")
       const user = await this.auth.insertUser({ email, name: input.name, passwordHash }, tx)
       const org = await this.auth.insertOrganization(input.organizationName, tx)
       const membership = await this.auth.insertMembership(org.id, user.id, tx)

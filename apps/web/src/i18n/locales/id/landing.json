@@ -5,13 +5,13 @@
     "privasi": "Privasi",
     "openDashboard": "Buka dashboard",
     "signIn": "Masuk",
-    "signUpFree": "Daftar gratis"
+    "signUpFree": "Minta undangan"
   },
   "hero": {
     "badge": "Untuk gereja dan komsel di Indonesia",
     "title": "Gerejanya bertumbuh. Administrasinya jangan ikut rumit.",
     "body": "gembala menyatukan data jemaat, kelompok kecil, jadwal pelayanan, ibadah, dan event dalam satu platform, supaya Anda bisa fokus pada yang paling penting: jemaat.",
-    "cta": "Coba gratis",
+    "cta": "Minta undangan",
     "ctaSecondary": "Lihat demo",
     "note": "Siap dipakai dalam 15 menit. Tanpa instalasi."
   },
@@ -115,7 +115,7 @@
   },
   "footer": {
     "signIn": "Masuk",
-    "signUp": "Daftar"
+    "signUp": "Minta undangan"
   },
   "pain": {
     "body": "Jadwal pelayanan di Excel. Konfirmasi lewat 5 grup WhatsApp. Data jemaat tersebar di buku sekretariat. Pemusik baru tahu dia bertugas hari Sabtu malam.",

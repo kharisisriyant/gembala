@@ -66,6 +66,7 @@ const password = z.string().min(8, "password must be at least 8 characters").max
 // ---------------------------------------------------------------------------
 
 export const registerSchema = z.object({
+  token: z.string().min(1).max(256),
   name: z.string().min(1).max(100),
   email: z.string().email().max(255),
   password,
@@ -113,6 +114,7 @@ export type MeResponse = {
   org: { id: string; name: string }
   roles: { id: string; name: string }[]
   isSystemAdmin: boolean
+  isPlatformAdmin: boolean
   // full resolved "resource:action" set; irrelevant (and empty) when isSystemAdmin is true
   permissions: string[]
   // null = full access (isSystemAdmin), mirrors the prototype's Viewer.scopeTags
@@ -776,3 +778,9 @@ export type TelegramLinkStatusResponse =
       botConfigured: boolean
       botUsername: string | null
     }
+
+export const organizationInviteCreateSchema = z.object({
+  email: z.string().email().max(255),
+})
+export type OrganizationInviteCreateInput = z.infer<typeof organizationInviteCreateSchema>
+export type OrganizationInviteResponse = { id: string; email: string; url: string; expiresAt: string }

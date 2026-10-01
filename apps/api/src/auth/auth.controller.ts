@@ -1,8 +1,8 @@
 import { Body, Controller, Get, HttpCode, Patch, Post } from "@nestjs/common"
-import type { AuthResponse, MeResponse } from "@gembala/shared"
-import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger"
-import { AuthResponseDto, MeResponseDto } from "../swagger/response-dtos"
-import { CurrentAuth, Public } from "../authz/decorators"
+import { organizationInviteCreateSchema, type OrganizationInviteResponse, type AuthResponse, type MeResponse } from "@gembala/shared"
+import { ApiForbiddenResponse, ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger"
+import { OrganizationInviteResponseDto, AuthResponseDto, MeResponseDto } from "../swagger/response-dtos"
+import { CurrentAuth, Public, RequireSystemAdmin } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthService } from "./auth.service"
 import {
@@ -15,12 +15,27 @@ import {
   UpdateProfileDto,
 } from "./dto"
 
+import { createZodDto } from "nestjs-zod"
+
+class OrganizationInviteCreateDto extends createZodDto(organizationInviteCreateSchema) {}
+
 @ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
-  @ApiOperation({ summary: "Register a new organization and its first admin user" })
+  @ApiOperation({ summary: "Create a seven-day organization invite link (platform admins only)" })
+  @ApiCreatedResponse({ type: OrganizationInviteResponseDto })
+  @ApiForbiddenResponse({ description: "Requires an organization admin listed in PLATFORM_ADMIN_EMAILS" })
+  @ApiConflictResponse({ description: "An account with this email already exists" })
+  @RequireSystemAdmin()
+  @Post("organization-invites")
+  createOrganizationInvite(@CurrentAuth() auth: AuthContext, @Body() dto: OrganizationInviteCreateDto): Promise<OrganizationInviteResponse> {
+    return this.auth.createOrganizationInvite(auth, dto)
+  }
+
+  @ApiOperation({ summary: "Redeem a single-use organization invite and create its first admin user" })
+  @ApiUnauthorizedResponse({ description: "Missing, invalid, expired, used, or email-mismatched organization invite" })
   @ApiCreatedResponse({ type: AuthResponseDto })
   @ApiConflictResponse({ description: "An account with this email already exists" })
   @Public()

@@ -1,3 +1,4 @@
+import { OrganizationInviteForm } from "@/components/organization-invite-form"
 import { useState } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -143,7 +144,7 @@ function InviteDialog() {
 
 export function InvitesPage() {
   const { t } = useTranslation("invites")
-  const { hasPermission } = useAuth()
+  const { hasPermission, me } = useAuth()
   const { data: invites = [], isLoading } = useInvites()
   const revoke = useRevokeInvite()
 
@@ -154,6 +155,8 @@ export function InvitesPage() {
         subtitle={t("page.subtitle")}
         action={hasPermission("invites", "create") ? <InviteDialog /> : undefined}
       />
+
+      {me?.isPlatformAdmin && <OrganizationInviteForm />}
 
       <Card className="overflow-hidden py-0">
         <Table>

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, UnauthorizedException } from "@nestjs/common"
+import { BadRequestException, ForbiddenException, ConflictException, UnauthorizedException } from "@nestjs/common"
 import * as argon2 from "argon2"
 import { AuthService } from "./auth.service"
 import type { AuthRepository } from "./auth.repository"
@@ -12,6 +12,8 @@ jest.mock("argon2")
 
 function makeRepo(): jest.Mocked<AuthRepository> {
   return {
+    insertOrganizationInvite: jest.fn(),
+    consumeOrganizationInvite: jest.fn().mockResolvedValue({ id: "invite" }),
     findUserIdByEmail: jest.fn(),
     findUserByEmail: jest.fn(),
     findUserById: jest.fn(),
@@ -49,7 +51,7 @@ describe("AuthService", () => {
     jest.clearAllMocks()
     auth = makeRepo()
     jwt = { signAsync: jest.fn().mockResolvedValue("jwt-token") } as any
-    config = { getOrThrow: jest.fn().mockReturnValue("https://app.example.com") } as any
+    config = { get: jest.fn().mockReturnValue(""), getOrThrow: jest.fn().mockReturnValue("https://app.example.com") } as any
     mail = { sendPasswordReset: jest.fn(), sendInvite: jest.fn() } as any
     authContext = { load: jest.fn() } as any
     db = { transaction: jest.fn((cb: any) => cb(db)) } as any
@@ -58,7 +60,54 @@ describe("AuthService", () => {
     ;(argon2.verify as jest.Mock).mockResolvedValue(true)
   })
 
+  describe("organization invites", () => {
+    const ctx = { userId: "operator", userEmail: "owner@example.com", isSystemAdmin: true } as any
+
+    it("denies ordinary organization admins", async () => {
+      await expect(service.createOrganizationInvite(ctx, { email: "new@example.com" })).rejects.toThrow(ForbiddenException)
+      expect(auth.insertOrganizationInvite).not.toHaveBeenCalled()
+    })
+
+    it("denies allowlisted users without the organization admin role", async () => {
+      config.get.mockReturnValue("owner@example.com")
+      await expect(service.createOrganizationInvite({ ...ctx, isSystemAdmin: false }, { email: "new@example.com" })).rejects.toThrow(ForbiddenException)
+    })
+
+    it("issues an email-bound link and stores only its hash", async () => {
+      config.get.mockReturnValue(" OWNER@example.com ")
+      auth.insertOrganizationInvite.mockResolvedValue({ id: "invite" } as any)
+      const result = await service.createOrganizationInvite(ctx, { email: "NEW@example.com" })
+      const token = new URL(result.url).searchParams.get("token")!
+      expect(token).toMatch(/^[a-f0-9]{64}$/)
+      expect(result.email).toBe("new@example.com")
+      expect(auth.insertOrganizationInvite).toHaveBeenCalledWith(expect.objectContaining({
+        email: "new@example.com", invitedBy: "operator", tokenHash: expect.not.stringMatching(token),
+      }))
+      expect(new Date(result.expiresAt).getTime() - Date.now()).toBeGreaterThan(6 * 24 * 60 * 60 * 1000)
+    })
+
+    it("rejects invites for existing accounts", async () => {
+      config.get.mockReturnValue("owner@example.com")
+      auth.findUserIdByEmail.mockResolvedValue({ id: "existing" })
+      await expect(service.createOrganizationInvite(ctx, { email: "new@example.com" })).rejects.toThrow(ConflictException)
+      expect(auth.insertOrganizationInvite).not.toHaveBeenCalled()
+    })
+  })
+
   describe("register", () => {
+    it("rejects registration without an invite", async () => {
+      await expect(service.register({ email: "a@x.com" } as any)).rejects.toThrow(UnauthorizedException)
+      expect(auth.insertUser).not.toHaveBeenCalled()
+    })
+
+    it("rejects an invite that cannot be atomically consumed", async () => {
+      auth.consumeOrganizationInvite.mockResolvedValue(undefined)
+      await expect(service.register({ token: "invalid", email: "a@x.com", password: "password", name: "A", organizationName: "Org" })).rejects.toThrow(UnauthorizedException)
+      expect(auth.consumeOrganizationInvite).toHaveBeenCalledWith(expect.any(String), "a@x.com", db)
+      expect(auth.insertUser).not.toHaveBeenCalled()
+      expect(auth.insertOrganization).not.toHaveBeenCalled()
+    })
+
     it("rejects a duplicate email", async () => {
       auth.findUserIdByEmail.mockResolvedValue({ id: "u1" } as any)
 
@@ -68,6 +117,7 @@ describe("AuthService", () => {
           password: "pw",
           name: "A",
           organizationName: "Org",
+          token: "invite-token",
         } as any),
       ).rejects.toThrow(ConflictException)
       expect(db.transaction).not.toHaveBeenCalled()
@@ -98,6 +148,7 @@ describe("AuthService", () => {
         password: "pw",
         name: "A",
         organizationName: "Org",
+          token: "invite-token",
       } as any)
 
       expect(db.transaction).toHaveBeenCalled()

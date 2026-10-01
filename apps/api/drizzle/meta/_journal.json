@@ -64,6 +64,13 @@
       "when": 1790590858971,
       "tag": "0008_premium_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790787639179,
+      "tag": "0009_mature_winter_soldier",
+      "breakpoints": true
     }
   ]
 }

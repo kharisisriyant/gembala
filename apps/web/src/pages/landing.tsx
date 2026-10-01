@@ -70,7 +70,7 @@ function Nav() {
                 <Link to="/login">{t("nav.signIn")}</Link>
               </Button>
               <Button asChild>
-                <Link to="/register">{t("nav.signUpFree")}</Link>
+                <a href="mailto:kharisisriyant@gmail.com">{t("nav.signUpFree")}</a>
               </Button>
             </>
           )}
@@ -150,9 +150,9 @@ function Hero() {
         <p className="text-muted-foreground mt-4 max-w-prose text-lg">{t("hero.body")}</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg" className="h-11">
-            <Link to="/register">
+            <a href="mailto:kharisisriyant@gmail.com">
               {t("hero.cta")} <ArrowRight />
-            </Link>
+            </a>
           </Button>
           <Button asChild size="lg" variant="outline" className="h-11">
             <a href="#telegram">{t("hero.ctaSecondary")}</a>
@@ -369,9 +369,9 @@ function FinalCta() {
         <p className="text-muted-foreground max-w-prose text-lg">{t("finalCta.body")}</p>
         <p className="font-serif text-lg italic">{t("finalCta.madeBy")}</p>
         <Button asChild size="lg" className="h-11">
-          <Link to="/register">
+          <a href="mailto:kharisisriyant@gmail.com">
             {t("hero.cta")} <ArrowRight />
-          </Link>
+          </a>
         </Button>
       </Card>
     </section>
@@ -392,9 +392,9 @@ function Footer() {
           <Link to="/login" className="hover:text-foreground transition-colors">
             {t("footer.signIn")}
           </Link>
-          <Link to="/register" className="hover:text-foreground transition-colors">
+          <a href="mailto:kharisisriyant@gmail.com" className="hover:text-foreground transition-colors">
             {t("footer.signUp")}
-          </Link>
+          </a>
         </div>
       </div>
     </footer>

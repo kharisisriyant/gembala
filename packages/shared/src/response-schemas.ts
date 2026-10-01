@@ -16,6 +16,7 @@ import {
   memberStatusSchema,
   type AttendanceHeatmapResponse,
   type AuthResponse,
+  type OrganizationInviteResponse,
   type CareRequestResponse,
   type CourseResponse,
   type DashboardResponse,
@@ -57,6 +58,7 @@ import {
 const idName = z.object({ id: z.string().uuid(), name: z.string() })
 
 export const meResponseSchema = z.object({
+  isPlatformAdmin: z.boolean(),
   user: z.object({ id: z.string().uuid(), name: z.string(), email: z.string() }),
   org: idName,
   roles: z.array(idName),
@@ -386,3 +388,7 @@ export const pipelineRowResponseSchema = z.object({
     .object({ level: leadershipLevelSchema, targetRole: leadershipTargetRoleSchema })
     .nullable(),
 }) satisfies z.ZodType<PipelineRowResponse>
+
+export const organizationInviteResponseSchema = z.object({
+  id: z.string().uuid(), email: z.string().email(), url: z.string().url(), expiresAt: z.string(),
+}) satisfies z.ZodType<OrganizationInviteResponse>

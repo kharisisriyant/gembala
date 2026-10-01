@@ -102,3 +102,25 @@ packages/shared/src/
 
 Environment: copy `apps/api/.env.example` to `apps/api/.env`. The web app reads
 `VITE_API_URL` from `apps/web/.env.development`.
+
+### Invite-only organization registration
+
+Public signup requires a single-use organization invite, bound to the invited
+email address and valid for seven days. Existing organization member invites
+continue to work independently.
+
+Apply the database migration with `pnpm --filter @gembala/api db:migrate`.
+Set `PLATFORM_ADMIN_EMAILS=kharisisriyant@gmail.com` in the API environment
+(comma-separated for multiple operators), then restart the API. The allowlist
+is empty by default. An operator must already have an account with the existing
+organization Admin role; the allowlist does not create an account or grant that
+role. The existing `isSystemAdmin` flag means organization administrator, not
+platform-wide access.
+
+Sign in as an allowlisted admin and open **Settings → Invites**. Under
+**New organization invites**, enter the recipient's email, create a link, and
+copy it to share manually. The recipient chooses their organization name and
+password. The API stores only the token hash and atomically consumes it during
+registration. New organization admins do not gain platform-admin privileges.
+Requests for access on the landing and login pages go to
+`kharisisriyant@gmail.com`.

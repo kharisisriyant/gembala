@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -8,6 +9,7 @@ import { useAuth } from "@/lib/auth"
 import { AuthShell } from "./auth-shell"
 
 export function LoginPage() {
+  const { t } = useTranslation("auth")
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -24,7 +26,7 @@ export function LoginPage() {
       await login({ email, password })
       navigate(from, { replace: true })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Login failed")
+      toast.error(err instanceof Error ? err.message : t("loginError"))
     } finally {
       setBusy(false)
     }
@@ -32,20 +34,20 @@ export function LoginPage() {
 
   return (
     <AuthShell
-      title="Welcome back"
-      description="Sign in to shepherd your people."
+      title={t("welcome")}
+      description={t("loginDescription")}
       footer={
         <>
-          New church?{" "}
-          <Link to="/register" className="text-foreground font-medium hover:underline">
-            Create an organization
-          </Link>
+          {t("inviteOnly")}{" "}
+          <a href="mailto:kharisisriyant@gmail.com" className="text-foreground font-medium hover:underline">
+            {t("requestInvite")}
+          </a>
         </>
       }
     >
       <form onSubmit={submit} className="space-y-4">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("email")}</Label>
           <Input
             id="email"
             type="email"
@@ -57,9 +59,9 @@ export function LoginPage() {
         </div>
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("password")}</Label>
             <Link to="/forgot-password" className="text-muted-foreground text-xs hover:underline">
-              Forgot password?
+              {t("forgot")}
             </Link>
           </div>
           <Input
@@ -72,7 +74,7 @@ export function LoginPage() {
           />
         </div>
         <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Signing in…" : "Sign in"}
+          {busy ? t("signingIn") : t("signIn")}
         </Button>
       </form>
     </AuthShell>

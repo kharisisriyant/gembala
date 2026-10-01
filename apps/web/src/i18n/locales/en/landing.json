@@ -5,13 +5,13 @@
     "privasi": "Privacy",
     "openDashboard": "Open dashboard",
     "signIn": "Sign in",
-    "signUpFree": "Sign up free"
+    "signUpFree": "Request an invite"
   },
   "hero": {
     "badge": "For churches and small groups in Indonesia",
     "title": "Your church is growing. Its admin shouldn't grow with it.",
     "body": "gembala brings members, small groups, service schedules, worship, and events into one platform, so you can focus on what matters most: your people.",
-    "cta": "Try it free",
+    "cta": "Request an invite",
     "ctaSecondary": "See the demo",
     "note": "Ready to use in 15 minutes. No install."
   },
@@ -115,7 +115,7 @@
   },
   "footer": {
     "signIn": "Sign in",
-    "signUp": "Sign up"
+    "signUp": "Request an invite"
   },
   "pain": {
     "body": "Service rosters in Excel. Confirmations across 5 WhatsApp groups. Member data scattered through the office ledger. The drummer finds out Saturday night that he's on.",
