@@ -19,6 +19,7 @@ import {
   authSecurityEvents,
   authSessions,
   authRateLimits,
+  journeyStages,
 } from "../db/schema"
 
 export type UserInsert = { email: string; name: string; passwordHash: string }
@@ -155,6 +156,12 @@ export class AuthRepository {
   async insertOrganization(name: string, tx: Db | Tx = this.db) {
     const [row] = await tx.insert(organizations).values({ name }).returning()
     return row
+  }
+
+  async insertDefaultJourneyStages(orgId: string, tx: Db | Tx = this.db) {
+    await tx.insert(journeyStages).values([
+      { orgId, name: "Newcomer follow-up", rule: "newcomer_followup", reminderDays: 30, sortOrder: 0 },
+    ])
   }
 
   async insertMembership(orgId: string, userId: string, tx: Db | Tx = this.db) {

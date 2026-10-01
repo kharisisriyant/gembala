@@ -24,6 +24,7 @@ import {
   type MilestoneRow,
 } from "./journey.repository"
 import { computePipeline } from "./pipeline"
+import { JourneyStagesRepository } from "./journey-stages.repository"
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
@@ -35,6 +36,7 @@ export class JourneyService {
     private readonly courses: CoursesRepository,
     private readonly members: MembersRepository,
     private readonly scope: ScopeService,
+    private readonly stages?: JourneyStagesRepository,
   ) {}
 
   private userRef(id: string | null, name: string | null) {
@@ -212,18 +214,37 @@ export class JourneyService {
     return this.assessmentResponse((await this.journey.findAssessmentById(auth.orgId, id))!)
   }
 
+  // ---- manual stage assignments ------------------------------------------
+
+  async assignStage(auth: AuthContext, stageId: string, memberId: string): Promise<void> {
+    await this.visibleMember(auth, memberId)
+    const stage = await this.stages!.find(auth.orgId, stageId)
+    if (!stage) throw new NotFoundException("journey stage not found")
+    if (await this.stages!.assignment(stageId, memberId)) throw new ConflictException("member is already in this stage")
+    await this.stages!.addAssignment({ orgId: auth.orgId, stageId, memberId, assignedByUserId: auth.userId })
+  }
+
+  async unassignStage(auth: AuthContext, stageId: string, memberId: string): Promise<void> {
+    await this.visibleMember(auth, memberId)
+    if (!(await this.stages!.find(auth.orgId, stageId))) throw new NotFoundException("journey stage not found")
+    await this.stages!.removeAssignment(auth.orgId, stageId, memberId)
+  }
+
   // ---- pipeline ------------------------------------------------------------
 
   async pipeline(auth: AuthContext, query: PipelineQuery): Promise<PipelineRowResponse[]> {
-    const [allMembers, tagRows, enrollments, milestones, grouped, assessments, scope] = await Promise.all([
+    const [allMembers, tagRows, enrollments, milestones, grouped, assessments, assignments, stage, scope] = await Promise.all([
       this.journey.orgMembers(auth.orgId),
       this.journey.orgTagNames(auth.orgId),
       this.journey.orgEnrollments(auth.orgId),
       this.journey.orgMilestones(auth.orgId),
       this.journey.orgGroupedMemberIds(auth.orgId),
       this.journey.orgAssessments(auth.orgId),
+      this.stages?.assignments(auth.orgId) ?? Promise.resolve([]),
+      this.stages?.find(auth.orgId, query.stage) ?? Promise.resolve(undefined),
       this.scope.expandedScope(auth),
     ])
+    if (this.stages && (!stage || !stage.active)) throw new NotFoundException("journey stage not found")
     const tagsByMember = new Map<string, string[]>()
     for (const t of tagRows) {
       const list = tagsByMember.get(t.memberId) ?? []
@@ -238,9 +259,10 @@ export class JourneyService {
         milestones,
         groupedMemberIds: new Set(grouped),
         assessments,
+        assignments,
       },
-      query.stage,
-      query.followUpDays,
+      stage ?? query.stage as any,
+      query.followUpDays ?? 30,
       new Date(),
     )
   }

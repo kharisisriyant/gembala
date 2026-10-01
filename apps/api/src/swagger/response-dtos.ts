@@ -11,6 +11,7 @@ import {
   memberJourneyResponseSchema,
   milestoneResponseSchema,
   pipelineRowResponseSchema,
+  journeyStageResponseSchema,
   dashboardResponseSchema,
   eventResponseSchema,
   groupDetailResponseSchema,
@@ -72,5 +73,6 @@ export class EnrollmentResponseDto extends createZodDto(enrollmentResponseSchema
 export class LeadershipAssessmentResponseDto extends createZodDto(leadershipAssessmentResponseSchema) {}
 export class MemberJourneyResponseDto extends createZodDto(memberJourneyResponseSchema) {}
 export class PipelineRowResponseDto extends createZodDto(pipelineRowResponseSchema) {}
+export class JourneyStageResponseDto extends createZodDto(journeyStageResponseSchema) {}
 
 export class OrganizationInviteResponseDto extends createZodDto(organizationInviteResponseSchema) {}

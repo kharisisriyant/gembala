@@ -1,4 +1,4 @@
-import { date, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { boolean, date, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 import { organizations, users } from "../auth/auth.schema"
 import { members } from "../members/members.schema"
 
@@ -24,6 +24,37 @@ export const leadershipTargetRole = pgEnum("leadership_target_role", [
   "cell_leader",
   "ministry_coordinator",
 ])
+export const journeyStageRule = pgEnum("journey_stage_rule", ["manual", "newcomer_followup", "course_completed", "leadership_ready"])
+
+export const journeyStages = pgTable(
+  "journey_stages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    rule: journeyStageRule("rule").notNull().default("manual"),
+    reminderDays: integer("reminder_days").notNull().default(0),
+    courseKind: courseKind("course_kind"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("journey_stages_org_name_uq").on(t.orgId, t.name), index("journey_stages_org_idx").on(t.orgId)],
+)
+
+export const journeyStageAssignments = pgTable(
+  "journey_stage_assignments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    stageId: uuid("stage_id").notNull().references(() => journeyStages.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+    assignedByUserId: uuid("assigned_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("journey_stage_assignments_stage_member_uq").on(t.stageId, t.memberId), index("journey_stage_assignments_member_idx").on(t.memberId)],
+)
 
 export const memberMilestones = pgTable(
   "member_milestones",

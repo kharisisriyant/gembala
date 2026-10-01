@@ -37,6 +37,9 @@ async function main() {
 
   await db.transaction(async (tx) => {
     const [org] = await tx.insert(schema.organizations).values({ name: ORG_NAME }).returning()
+    await tx.insert(schema.journeyStages).values([
+      { orgId: org.id, name: "Newcomer follow-up", rule: "newcomer_followup", reminderDays: 30, sortOrder: 0 },
+    ])
 
     const LEADER_BASELINE_PERMISSIONS = [
       "members:read", "members:create", "members:update",

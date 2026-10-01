@@ -2,6 +2,7 @@
   "title": "Pertumbuhan Rohani",
   "subtitle": "Pantau jemaat baru, kemajuan kelas, kesiapan baptis dan sidi, serta calon pemimpin.",
   "manageCourses": "Kelola kelas",
+  "manageStages": "Kelola tahap",
   "empty": "Tidak ada jemaat pada tahap ini.",
   "followUpAfter": "Tindak lanjut setelah (hari)",
   "days_other": "{{count}} hari",
@@ -12,11 +13,19 @@
     "leader_candidate": "Calon pemimpin"
   },
   "stageHelp": {
+    "manual": "Anggota dapat ditambahkan ke tahap ini secara manual.",
     "newcomer_followup": "Jemaat baru yang melewati masa tindak lanjut dan belum ikut kelas, komsel, atau tahap apa pun. Dihitung sejak tanggal bergabung.",
     "baptism_ready": "Sudah menyelesaikan kelas baptis dan belum dibaptis. Dihitung sejak kelas selesai.",
     "sidi_ready": "Sudah menyelesaikan kelas sidi dan belum tercatat sidi. Dihitung sejak kelas selesai.",
     "leader_candidate": "Penilaian kepemimpinan terbaru adalah \"siap\". Dihitung sejak penilaian."
   },
+  "stageRule": {
+    "manual": "Hanya manual",
+    "newcomer_followup": "Tindak lanjut pendatang baru",
+    "course_completed": "Kelas selesai",
+    "leadership_ready": "Siap memimpin"
+  },
+  "stages": { "title": "Tahap pertumbuhan", "description": "Atur aturan otomatis dan pengingat tindak lanjut. Anggota juga dapat ditambahkan secara manual.", "name": "Nama tahap", "add": "Tambah", "added": "Tahap ditambahkan", "updated": "Tahap diperbarui", "deleted": "Tahap dihapus", "error": "Tahap tidak dapat disimpan", "days_one": "{{count}} hari", "days_other": "{{count}} hari" },
   "table": {
     "member": "Jemaat",
     "tags": "Tag",
@@ -62,6 +71,10 @@
     "noCourses": "Belum mengikuti kelas apa pun.",
     "noAssessment": "Belum dinilai.",
     "addMilestone": "Tahapan",
+    "addToStage": "Tambahkan ke tahap",
+    "stagePlaceholder": "Pilih tahap",
+    "stageAdded": "Anggota ditambahkan ke tahap",
+    "stageError": "Anggota tidak dapat ditambahkan ke tahap",
     "enroll": "Daftarkan",
     "assess": "Nilai",
     "recordedBy": "oleh {{name}}",

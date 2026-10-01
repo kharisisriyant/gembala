@@ -620,6 +620,40 @@ export const pipelineStageSchema = z.enum([
 ])
 export type PipelineStage = z.infer<typeof pipelineStageSchema>
 
+// Configurable journey stages.  A stage can surface members automatically from
+// a rule, and can always also contain explicit manual assignments.
+export const journeyStageRuleSchema = z.enum([
+  "manual",
+  "newcomer_followup",
+  "course_completed",
+  "leadership_ready",
+])
+export type JourneyStageRule = z.infer<typeof journeyStageRuleSchema>
+
+const journeyStageFields = z.object({
+    name: z.string().trim().min(1, "name is required").max(100),
+    description: z.string().trim().max(500).optional(),
+    rule: journeyStageRuleSchema.default("manual"),
+    reminderDays: z.number().int().min(0).max(365).default(0),
+    courseKind: courseKindSchema.optional(),
+    sortOrder: z.number().int().min(0).max(999).default(0),
+    active: z.boolean().default(true),
+  })
+
+export const journeyStageCreateSchema = journeyStageFields
+  .superRefine((value, ctx) => {
+    if (value.rule === "course_completed" && !value.courseKind) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["courseKind"], message: "course kind is required" })
+    }
+  })
+export type JourneyStageCreateInput = z.infer<typeof journeyStageCreateSchema>
+
+export const journeyStageUpdateSchema = journeyStageFields.partial()
+export type JourneyStageUpdateInput = z.infer<typeof journeyStageUpdateSchema>
+
+export const journeyStageAssignmentCreateSchema = z.object({ memberId: z.string().uuid() })
+export type JourneyStageAssignmentCreateInput = z.infer<typeof journeyStageAssignmentCreateSchema>
+
 export const courseCreateSchema = z.object({
   name: z.string().trim().min(1, "name is required").max(100),
   kind: courseKindSchema,
@@ -658,8 +692,10 @@ export const leadershipAssessmentCreateSchema = z.object({
 export type LeadershipAssessmentCreateInput = z.infer<typeof leadershipAssessmentCreateSchema>
 
 export const pipelineQuerySchema = z.object({
-  stage: pipelineStageSchema,
-  followUpDays: z.coerce.number().int().min(1).max(365).default(30),
+  stage: z.string().uuid(),
+  // Kept during the transition for older API consumers; the configured stage
+  // owns its actual reminder delay.
+  followUpDays: z.coerce.number().int().min(1).max(365).optional(),
 })
 export type PipelineQuery = z.infer<typeof pipelineQuerySchema>
 
@@ -710,10 +746,21 @@ export type PipelineRowResponse = {
   memberId: string
   memberName: string
   tags: string[]
-  stage: PipelineStage
+  stage: string
   daysSince: number | null
   courseName: string | null
   leadership: { level: LeadershipLevel; targetRole: LeadershipTargetRole } | null
+}
+
+export type JourneyStageResponse = {
+  id: string
+  name: string
+  description: string | null
+  rule: JourneyStageRule
+  reminderDays: number
+  courseKind: CourseKind | null
+  sortOrder: number
+  active: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -765,6 +812,26 @@ export type DashboardResponse = {
   }[]
   tagHistogram: { tag: string; count: number }[]
   prayerNotes: { groupName: string; date: string; notes: string }[]
+  upcomingBirthdays: {
+    memberId: string
+    name: string
+    photoUrl: string
+    dateOfBirth: string
+    daysUntil: number
+  }[]
+  membersWithoutGroup: {
+    memberId: string
+    name: string
+    photoUrl: string
+  }[]
+  attendanceAlerts: {
+    memberId: string
+    name: string
+    photoUrl: string
+    groupId: string
+    groupName: string
+    missedMeetings: number
+  }[]
 }
 
 // ---------------------------------------------------------------------------

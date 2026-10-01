@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { AssessmentDialog, EnrollDialog, MilestoneDialog } from "@/components/journey-dialogs"
 import { useAuth } from "@/lib/auth"
-import { useDeleteMilestone, useMemberJourney, useUpdateEnrollment } from "@/lib/queries"
+import { useAssignJourneyStage, useDeleteMilestone, useJourneyStages, useMemberJourney, useUpdateEnrollment } from "@/lib/queries"
 import { formatDate } from "@/lib/helpers"
 
 function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
@@ -42,6 +42,8 @@ export function MemberJourney({ memberId, memberName }: { memberId: string; memb
   const { data: journey } = useMemberJourney(memberId, canRead)
   const removeMilestone = useDeleteMilestone()
   const updateEnrollment = useUpdateEnrollment()
+  const assignStage = useAssignJourneyStage()
+  const { data: stages = [] } = useJourneyStages()
 
   if (!canRead) return null
 
@@ -67,9 +69,28 @@ export function MemberJourney({ memberId, memberName }: { memberId: string; memb
   const enrollments = journey?.enrollments ?? []
   const current = journey?.assessments[0]
 
+  const addToStage = async (stageId: string) => {
+    try {
+      await assignStage.mutateAsync({ stageId, memberId })
+      toast.success(t("memberSection.stageAdded"))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("memberSection.stageError"))
+    }
+  }
+
   return (
     <div className="space-y-5">
       <div className="text-sm font-semibold">{t("memberSection.title")}</div>
+
+      {canCreate && stages.length > 0 && (
+        <div className="flex items-center gap-2 rounded-md border p-2">
+          <span className="text-sm">{t("memberSection.addToStage")}</span>
+          <Select onValueChange={addToStage}>
+            <SelectTrigger className="h-8 flex-1"><SelectValue placeholder={t("memberSection.stagePlaceholder")} /></SelectTrigger>
+            <SelectContent>{stages.filter((s) => s.active).map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div>
         <SectionHeader

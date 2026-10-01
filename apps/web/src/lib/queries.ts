@@ -23,6 +23,9 @@ import type {
   MilestoneResponse,
   PipelineRowResponse,
   PipelineStage,
+  JourneyStageResponse,
+  JourneyStageCreateInput,
+  JourneyStageUpdateInput,
   DashboardResponse,
   EventCreateInput,
   EventResponse,
@@ -661,13 +664,36 @@ export function useMemberJourney(memberId: string, enabled = true) {
   })
 }
 
-export function usePipeline(stage: PipelineStage, followUpDays?: number) {
+export function usePipeline(stage: string) {
   const params = new URLSearchParams({ stage })
-  if (followUpDays) params.set("followUpDays", String(followUpDays))
   return useQuery({
-    queryKey: ["journey", "pipeline", stage, followUpDays ?? null],
+    queryKey: ["journey", "pipeline", stage],
     queryFn: () => apiFetch<PipelineRowResponse[]>(`/journey/pipeline?${params.toString()}`),
   })
+}
+
+export function useJourneyStages() {
+  return useQuery({ queryKey: ["journey", "stages"], queryFn: () => apiFetch<JourneyStageResponse[]>("/journey/stages") })
+}
+
+export function useCreateJourneyStage() {
+  const qc = useQueryClient()
+  return useMutation({ mutationFn: (input: JourneyStageCreateInput) => apiFetch<JourneyStageResponse>("/journey/stages", { method: "POST", body: input }), onSuccess: () => void qc.invalidateQueries({ queryKey: ["journey"] }) })
+}
+
+export function useUpdateJourneyStage() {
+  const qc = useQueryClient()
+  return useMutation({ mutationFn: ({ id, ...input }: JourneyStageUpdateInput & { id: string }) => apiFetch<JourneyStageResponse>(`/journey/stages/${id}`, { method: "PATCH", body: input }), onSuccess: () => void qc.invalidateQueries({ queryKey: ["journey"] }) })
+}
+
+export function useDeleteJourneyStage() {
+  const qc = useQueryClient()
+  return useMutation({ mutationFn: (id: string) => apiFetch<void>(`/journey/stages/${id}`, { method: "DELETE" }), onSuccess: () => void qc.invalidateQueries({ queryKey: ["journey"] }) })
+}
+
+export function useAssignJourneyStage() {
+  const qc = useQueryClient()
+  return useMutation({ mutationFn: ({ stageId, memberId }: { stageId: string; memberId: string }) => apiFetch<void>(`/journey/stages/${stageId}/assignments`, { method: "POST", body: { memberId } }), onSuccess: () => void qc.invalidateQueries({ queryKey: ["journey"] }) })
 }
 
 export function useCourses(enabled = true) {

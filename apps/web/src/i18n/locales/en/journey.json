@@ -2,6 +2,7 @@
   "title": "Spiritual Journey",
   "subtitle": "Follow newcomers, class progress, baptism and sidi readiness, and emerging leaders.",
   "manageCourses": "Manage courses",
+  "manageStages": "Manage stages",
   "empty": "No members at this stage.",
   "followUpAfter": "Follow up after (days)",
   "days_one": "{{count}} day",
@@ -13,11 +14,19 @@
     "leader_candidate": "Leader candidates"
   },
   "stageHelp": {
+    "manual": "Members can be added to this stage manually.",
     "newcomer_followup": "Newcomers past the follow-up window with no class, group or milestone yet. Counted from their join date.",
     "baptism_ready": "Completed a baptism class and not yet baptized. Counted from class completion.",
     "sidi_ready": "Completed a sidi class and no sidi milestone yet. Counted from class completion.",
     "leader_candidate": "Latest leadership assessment is \"ready\". Counted from the assessment."
   },
+  "stageRule": {
+    "manual": "Manual only",
+    "newcomer_followup": "Newcomer follow-up",
+    "course_completed": "Course completed",
+    "leadership_ready": "Leadership ready"
+  },
+  "stages": { "title": "Journey stages", "description": "Configure automatic rules and follow-up reminders. Members can also be added manually.", "name": "Stage name", "add": "Add", "added": "Stage added", "updated": "Stage updated", "deleted": "Stage deleted", "error": "Could not save stage", "days_one": "{{count}} day", "days_other": "{{count}} days" },
   "table": {
     "member": "Member",
     "tags": "Tags",
@@ -63,6 +72,10 @@
     "noCourses": "Not enrolled in any class.",
     "noAssessment": "Not assessed yet.",
     "addMilestone": "Milestone",
+    "addToStage": "Add to stage",
+    "stagePlaceholder": "Choose a stage",
+    "stageAdded": "Member added to stage",
+    "stageError": "Could not add member to stage",
     "enroll": "Enroll",
     "assess": "Assess",
     "recordedBy": "by {{name}}",

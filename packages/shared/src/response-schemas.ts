@@ -9,6 +9,7 @@ import {
   leadershipTargetRoleSchema,
   milestoneTypeSchema,
   pipelineStageSchema,
+  journeyStageRuleSchema,
   memberBaptismStatusSchema,
   memberGenderSchema,
   memberMaritalStatusSchema,
@@ -30,6 +31,7 @@ import {
   type InvitePreviewResponse,
   type InviteResponse,
   type LeadershipAssessmentResponse,
+  type JourneyStageResponse,
   type MeResponse,
   type MemberDetailResponse,
   type MemberImportResult,
@@ -305,6 +307,28 @@ export const dashboardResponseSchema = z.object({
   ),
   tagHistogram: z.array(z.object({ tag: z.string(), count: z.number().int() })),
   prayerNotes: z.array(z.object({ groupName: z.string(), date: z.string(), notes: z.string() })),
+  upcomingBirthdays: z.array(
+    z.object({
+      memberId: z.string().uuid(),
+      name: z.string(),
+      photoUrl: z.string(),
+      dateOfBirth: z.string(),
+      daysUntil: z.number().int(),
+    }),
+  ),
+  membersWithoutGroup: z.array(
+    z.object({ memberId: z.string().uuid(), name: z.string(), photoUrl: z.string() }),
+  ),
+  attendanceAlerts: z.array(
+    z.object({
+      memberId: z.string().uuid(),
+      name: z.string(),
+      photoUrl: z.string(),
+      groupId: z.string().uuid(),
+      groupName: z.string(),
+      missedMeetings: z.number().int(),
+    }),
+  ),
 }) satisfies z.ZodType<DashboardResponse>
 
 export const telegramLinkStatusResponseSchema = z.discriminatedUnion("linked", [
@@ -393,6 +417,12 @@ export const pipelineRowResponseSchema = z.object({
     .object({ level: leadershipLevelSchema, targetRole: leadershipTargetRoleSchema })
     .nullable(),
 }) satisfies z.ZodType<PipelineRowResponse>
+
+export const journeyStageResponseSchema = z.object({
+  id: z.string().uuid(), name: z.string(), description: z.string().nullable(),
+  rule: journeyStageRuleSchema, reminderDays: z.number().int(), courseKind: courseKindSchema.nullable(),
+  sortOrder: z.number().int(), active: z.boolean(),
+}) satisfies z.ZodType<JourneyStageResponse>
 
 export const organizationInviteResponseSchema = z.object({
   id: z.string().uuid(), email: z.string().email(), url: z.string().url(), expiresAt: z.string(),

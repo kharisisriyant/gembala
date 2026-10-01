@@ -70,7 +70,7 @@ export class AuthService {
       const invite = await this.auth.consumeOrganizationInvite(sha256(input.token), email, tx)
       if (!invite) throw new UnauthorizedException("invalid, expired, or already used organization invite")
       const created = await this.auth.insertUser({ email, name: input.name, passwordHash }, tx)
-      const org = await this.auth.insertOrganization(input.organizationName, tx); const membership = await this.auth.insertMembership(org.id, created.id, tx)
+      const org = await this.auth.insertOrganization(input.organizationName, tx); await this.auth.insertDefaultJourneyStages?.(org.id, tx); const membership = await this.auth.insertMembership(org.id, created.id, tx)
       const admin = await this.auth.insertRole({ orgId: org.id, name: "Admin", description: "Full access to everything.", isSystemAdmin: true }, tx)
       const leader = await this.auth.insertRole({ orgId: org.id, name: "Leader", description: "Read/write members and groups; read-only elsewhere." }, tx)
       await this.auth.insertRolePermissions(leader.id, LEADER_BASELINE_PERMISSIONS, tx); await this.auth.insertMembershipRole(membership.id, admin.id, tx); await this.auth.insertRootDirectoryTag(org.id, tx)

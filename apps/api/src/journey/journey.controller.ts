@@ -26,6 +26,7 @@ import {
   enrollmentUpdateSchema,
   leadershipAssessmentCreateSchema,
   milestoneCreateSchema,
+  journeyStageAssignmentCreateSchema,
   pipelineQuerySchema,
   type EnrollmentResponse,
   type LeadershipAssessmentResponse,
@@ -49,6 +50,7 @@ class EnrollmentCreateDto extends createZodDto(enrollmentCreateSchema) {}
 class EnrollmentUpdateDto extends createZodDto(enrollmentUpdateSchema) {}
 class LeadershipAssessmentCreateDto extends createZodDto(leadershipAssessmentCreateSchema) {}
 class PipelineQueryDto extends createZodDto(pipelineQuerySchema) {}
+class JourneyStageAssignmentCreateDto extends createZodDto(journeyStageAssignmentCreateSchema) {}
 
 const MEMBER_NOT_FOUND = "Member not found or outside the caller's tag scope"
 
@@ -132,18 +134,31 @@ export class JourneyController {
     return this.journey.addAssessment(auth, id, dto)
   }
 
+  @ApiOperation({ summary: "Manually add a member to a journey stage" })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ description: "Member or journey stage not found" })
+  @ApiConflictResponse({ description: "Member is already in this stage" })
+  @RequirePermission("journey", "create")
+  @HttpCode(204)
+  @Post("journey/stages/:stageId/assignments")
+  assignStage(@CurrentAuth() auth: AuthContext, @Param("stageId", ParseUUIDPipe) stageId: string, @Body() dto: JourneyStageAssignmentCreateDto): Promise<void> {
+    return this.journey.assignStage(auth, stageId, dto.memberId)
+  }
+
+  @ApiOperation({ summary: "Remove a member's manual journey-stage assignment" })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ description: "Member or journey stage not found" })
+  @RequirePermission("journey", "delete")
+  @HttpCode(204)
+  @Delete("journey/stages/:stageId/assignments/:memberId")
+  unassignStage(@CurrentAuth() auth: AuthContext, @Param("stageId", ParseUUIDPipe) stageId: string, @Param("memberId", ParseUUIDPipe) memberId: string): Promise<void> {
+    return this.journey.unassignStage(auth, stageId, memberId)
+  }
+
   @ApiOperation({ summary: "Members currently at a pipeline stage, within the caller's tag scope" })
-  @ApiQuery({
-    name: "stage",
-    required: true,
-    enum: ["newcomer_followup", "baptism_ready", "sidi_ready", "leader_candidate"],
-  })
-  @ApiQuery({
-    name: "followUpDays",
-    required: false,
-    description: "Newcomer follow-up threshold in days since joining (default 30)",
-  })
+  @ApiQuery({ name: "stage", required: true, description: "Journey stage UUID" })
   @ApiOkResponse({ type: [PipelineRowResponseDto] })
+  @ApiNotFoundResponse({ description: "Journey stage not found" })
   @RequirePermission("journey", "read")
   @Get("journey/pipeline")
   pipeline(@CurrentAuth() auth: AuthContext, @Query() query: PipelineQueryDto): Promise<PipelineRowResponse[]> {
