@@ -12,6 +12,32 @@
     "newcomers": "Jemaat baru",
     "newcomersHint": "60 hari terakhir"
   },
+  "attention": {
+    "title": "Perhatian & tindak lanjut",
+    "subtitle": "Orang-orang yang mungkin membutuhkan perhatian pribadi.",
+    "viewMembers": "Lihat jemaat"
+  },
+  "birthdays": {
+    "title": "Ulang tahun mendatang",
+    "subtitle": "30 hari ke depan",
+    "today": "Hari ini",
+    "inDays_one": "Dalam {{count}} hari",
+    "inDays_other": "Dalam {{count}} hari",
+    "empty": "Tidak ada ulang tahun dalam 30 hari ke depan."
+  },
+  "withoutGroup": {
+    "title": "Belum di komsel",
+    "subtitle": "Jemaat aktif tanpa komsel",
+    "needsGroup": "Perlu komsel",
+    "empty": "Semua jemaat aktif sudah terhubung ke komsel."
+  },
+  "attendanceAlerts": {
+    "title": "Tidak hadir di komsel",
+    "subtitle": "Absen pada 3 pertemuan terakhir",
+    "missed_one": "{{count}} kali absen",
+    "missed_other": "{{count}} kali absen",
+    "empty": "Tidak ada sinyal tindak lanjut dari pertemuan terbaru."
+  },
   "recentMeetings": {
     "title": "Pertemuan komsel terbaru",
     "subtitle": "Kehadiran & topik dari komsel Anda",

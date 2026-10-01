@@ -1,4 +1,14 @@
-import { Users, Sprout, CalendarCheck, UserPlus, TrendingUp, HeartHandshake } from "lucide-react"
+import {
+  Users,
+  Sprout,
+  CalendarCheck,
+  UserPlus,
+  TrendingUp,
+  HeartHandshake,
+  CalendarDays,
+  CircleAlert,
+  UserRoundX,
+} from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -87,6 +97,90 @@ export function DashboardPage() {
           hint={t("stats.newcomersHint")}
         />
       </div>
+
+      <section className="mt-6">
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-heading text-xl font-semibold">{t("attention.title")}</h2>
+            <p className="text-muted-foreground text-sm">{t("attention.subtitle")}</p>
+          </div>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/members">{t("attention.viewMembers")}</Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CalendarDays className="text-primary size-4" /> {t("birthdays.title")}
+              </CardTitle>
+              <CardDescription>{t("birthdays.subtitle")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {data.upcomingBirthdays.map((member) => (
+                <div key={member.memberId} className="flex items-center gap-3">
+                  <MemberAvatar name={member.name} photoUrl={member.photoUrl} className="size-8" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{member.name}</span>
+                  <Badge variant={member.daysUntil === 0 ? "success" : "secondary"}>
+                    {member.daysUntil === 0
+                      ? t("birthdays.today")
+                      : t("birthdays.inDays", { count: member.daysUntil })}
+                  </Badge>
+                </div>
+              ))}
+              {data.upcomingBirthdays.length === 0 && (
+                <p className="text-muted-foreground text-sm">{t("birthdays.empty")}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <UserRoundX className="text-primary size-4" /> {t("withoutGroup.title")}
+              </CardTitle>
+              <CardDescription>{t("withoutGroup.subtitle")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {data.membersWithoutGroup.map((member) => (
+                <div key={member.memberId} className="flex items-center gap-3">
+                  <MemberAvatar name={member.name} photoUrl={member.photoUrl} className="size-8" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{member.name}</span>
+                  <Badge variant="secondary">{t("withoutGroup.needsGroup")}</Badge>
+                </div>
+              ))}
+              {data.membersWithoutGroup.length === 0 && (
+                <p className="text-muted-foreground text-sm">{t("withoutGroup.empty")}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CircleAlert className="text-primary size-4" /> {t("attendanceAlerts.title")}
+              </CardTitle>
+              <CardDescription>{t("attendanceAlerts.subtitle")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {data.attendanceAlerts.map((member) => (
+                <Link key={`${member.memberId}-${member.groupId}`} to={`/groups/${member.groupId}`} className="hover:bg-accent/40 -mx-1 flex items-center gap-3 rounded-md px-1 py-0.5 transition-colors">
+                  <MemberAvatar name={member.name} photoUrl={member.photoUrl} className="size-8" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{member.name}</div>
+                    <div className="text-muted-foreground truncate text-xs">{member.groupName}</div>
+                  </div>
+                  <Badge variant="secondary">{t("attendanceAlerts.missed", { count: member.missedMeetings })}</Badge>
+                </Link>
+              ))}
+              {data.attendanceAlerts.length === 0 && (
+                <p className="text-muted-foreground text-sm">{t("attendanceAlerts.empty")}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">

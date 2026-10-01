@@ -12,6 +12,32 @@
     "newcomers": "Newcomers",
     "newcomersHint": "last 60 days"
   },
+  "attention": {
+    "title": "Care & follow-up",
+    "subtitle": "People who may need a personal touch.",
+    "viewMembers": "View members"
+  },
+  "birthdays": {
+    "title": "Upcoming birthdays",
+    "subtitle": "The next 30 days",
+    "today": "Today",
+    "inDays_one": "In {{count}} day",
+    "inDays_other": "In {{count}} days",
+    "empty": "No birthdays in the next 30 days."
+  },
+  "withoutGroup": {
+    "title": "Not in a small group",
+    "subtitle": "Active people without a group",
+    "needsGroup": "Needs group",
+    "empty": "Everyone active is connected to a group."
+  },
+  "attendanceAlerts": {
+    "title": "Missing from group",
+    "subtitle": "Absent from the last 3 meetings",
+    "missed_one": "{{count}} missed",
+    "missed_other": "{{count}} missed",
+    "empty": "No follow-up signals from recent meetings."
+  },
   "recentMeetings": {
     "title": "Recent group meetings",
     "subtitle": "Attendance & topics from your groups",

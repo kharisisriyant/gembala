@@ -23,6 +23,8 @@ export class DashboardService {
     const visibleGroups = await this.groups.list(auth)
 
     const memberNameById = new Map(visibleMembers.map((m) => [m.id, m.name]))
+    const memberById = new Map(visibleMembers.map((m) => [m.id, m]))
+    const visibleMemberIds = new Set(visibleMembers.map((m) => m.id))
 
     const sessions = (
       await Promise.all(
@@ -34,6 +36,54 @@ export class DashboardService {
     )
       .flat()
       .sort((a, b) => b.date.localeCompare(a.date))
+
+    const groupIdsByMemberId = new Map<string, string[]>()
+    for (const group of visibleGroups) {
+      for (const member of group.members) {
+        if (!visibleMemberIds.has(member.id)) continue
+        const groupIds = groupIdsByMemberId.get(member.id) ?? []
+        groupIds.push(group.id)
+        groupIdsByMemberId.set(member.id, groupIds)
+      }
+    }
+
+    const today = new Date()
+    const upcomingBirthdays = visibleMembers
+      .filter((member) => member.dateOfBirth)
+      .map((member) => ({
+        memberId: member.id,
+        name: member.name,
+        photoUrl: member.photoUrl,
+        dateOfBirth: member.dateOfBirth!,
+        daysUntil: daysUntilBirthday(member.dateOfBirth!, today),
+      }))
+      .filter((member) => member.daysUntil <= 30)
+      .sort((a, b) => a.daysUntil - b.daysUntil || a.name.localeCompare(b.name))
+      .slice(0, 6)
+
+    const membersWithoutGroup = visibleMembers
+      .filter((member) => member.status !== "inactive" && member.status !== "moved")
+      .filter((member) => !groupIdsByMemberId.has(member.id))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, 6)
+      .map((member) => ({ memberId: member.id, name: member.name, photoUrl: member.photoUrl }))
+
+    const attendanceAlerts = visibleGroups.flatMap((group) => {
+      const recentGroupSessions = sessions.filter((session) => session.groupId === group.id).slice(0, 3)
+      if (recentGroupSessions.length < 3) return []
+
+      return group.members
+        .filter((member) => visibleMemberIds.has(member.id))
+        .filter((member) => recentGroupSessions.every((session) => !session.presentIds.includes(member.id)))
+        .map((member) => ({
+          memberId: member.id,
+          name: member.name,
+          photoUrl: memberById.get(member.id)?.photoUrl ?? "",
+          groupId: group.id,
+          groupName: group.name,
+          missedMeetings: recentGroupSessions.length,
+        }))
+    }).slice(0, 6)
 
     const avgAttendance =
       sessions.length === 0
@@ -75,6 +125,18 @@ export class DashboardService {
         date: s.date,
         notes: s.prayerNotes,
       })),
+      upcomingBirthdays,
+      membersWithoutGroup,
+      attendanceAlerts,
     }
   }
+}
+
+function daysUntilBirthday(dateOfBirth: string, today: Date): number {
+  const [, month, day] = dateOfBirth.split("-").map(Number)
+  const currentYear = today.getFullYear()
+  let birthday = new Date(currentYear, month - 1, day)
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  if (birthday < startOfToday) birthday = new Date(currentYear + 1, month - 1, day)
+  return Math.round((birthday.getTime() - startOfToday.getTime()) / 86_400_000)
 }
