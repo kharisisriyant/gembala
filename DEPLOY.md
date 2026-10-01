@@ -27,6 +27,9 @@ environment that points at a different API host (staging vs production).
 | `JWT_EXPIRES_IN` | `7d` |
 | `PORT` | `3000` |
 | `WEB_ORIGIN` | `https://app.staging.gembala.dev` (CORS allow-list, exact match) |
+| `RESEND_API_KEY` | `re_...` API key from Resend |
+| `RESEND_FROM_EMAIL` | `noreply@example.com` — address at a Resend-verified domain |
+| `RESEND_FROM_NAME` | `Gembala` |
 
 **web (build-time only)**
 
@@ -47,6 +50,8 @@ export POSTGRES_PASSWORD=...          # or put these in a .env file
 export DATABASE_URL=postgres://gembala:$POSTGRES_PASSWORD@db:5432/gembala
 export JWT_SECRET=$(openssl rand -hex 32)
 export WEB_ORIGIN=https://app.example.com
+export RESEND_API_KEY=re_...
+export RESEND_FROM_EMAIL=noreply@app.example.com
 export VITE_API_URL=https://api.example.com/api
 
 docker compose -f docker-compose.prod.yml build
@@ -102,12 +107,13 @@ front of `web:8080` and `api:3000` for TLS and to route
 
 - [ ] `JWT_SECRET` set, unique per environment, not reused from dev
 - [ ] `WEB_ORIGIN` matches the exact web origin (CORS is exact-match, not wildcard)
+- [ ] Resend sender domain verified; `RESEND_API_KEY` and `RESEND_FROM_EMAIL` configured
 - [ ] `VITE_API_URL` matches the environment the web image was built for
 - [ ] `migrate` run against the target DB before `api` serves traffic
 - [ ] Postgres reachable and backed up (managed service recommended)
 - [ ] TLS terminated in front of both `api` and `web` (reverse proxy or platform LB)
-- [ ] Mailer: `apps/api/src/mail` currently logs to console in dev — wire a
-      real provider before production, or invites/password-resets go nowhere
+- [ ] Resend is configured in production; without `RESEND_API_KEY`, mail is
+      logged to the API console for local development
 
 ## Rolling back
 
