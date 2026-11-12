@@ -545,16 +545,24 @@ export type CareRequestStatus = z.infer<typeof careRequestStatusSchema>
 export const careRequestSourceSchema = z.enum(["leader", "member"])
 export type CareRequestSource = z.infer<typeof careRequestSourceSchema>
 
+// Calendar date (no time zone): "due Friday" means the same day for everyone.
+export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD")
+
 export const careRequestCreateSchema = z.object({
   memberId: z.string().uuid(),
   type: careRequestTypeSchema,
   body: z.string().trim().min(1, "body is required").max(2000),
+  // Defaults (service): assignee = caller, due = today + 7 days.
+  assignedToUserId: z.string().uuid().optional(),
+  dueAt: isoDateSchema.optional(),
 })
 export type CareRequestCreateInput = z.infer<typeof careRequestCreateSchema>
 
 export const careRequestUpdateSchema = z.object({
   type: careRequestTypeSchema.optional(),
   body: z.string().trim().min(1, "body is required").max(2000).optional(),
+  assignedToUserId: z.string().uuid().nullable().optional(),
+  dueAt: isoDateSchema.nullable().optional(),
 })
 export type CareRequestUpdateInput = z.infer<typeof careRequestUpdateSchema>
 
@@ -572,12 +580,18 @@ export type CareRequestResponse = {
   status: CareRequestStatus
   source: CareRequestSource
   submittedBy: { id: string; name: string } | null
+  assignedTo: { id: string; name: string } | null
+  dueAt: string | null
+  // Derived: open and past its due date (Asia/Jakarta calendar day).
+  overdue: boolean
   closedAt: string | null
   closedBy: { id: string; name: string } | null
   closeNote: string | null
   createdAt: string
   updatedAt: string
 }
+
+export type CareRequestAssigneeResponse = { id: string; name: string }
 
 // ---------------------------------------------------------------------------
 // Spiritual journey (milestones, discipleship courses, leadership potential)
@@ -853,3 +867,25 @@ export const organizationInviteCreateSchema = z.object({
 })
 export type OrganizationInviteCreateInput = z.infer<typeof organizationInviteCreateSchema>
 export type OrganizationInviteResponse = { id: string; email: string; url: string; expiresAt: string }
+
+// ---------------------------------------------------------------------------
+// Weekly leader digest
+// ---------------------------------------------------------------------------
+
+export const digestLocaleSchema = z.enum(["en", "id"])
+export type DigestLocale = z.infer<typeof digestLocaleSchema>
+
+export const digestPreferencesSchema = z.object({
+  enabled: z.boolean(),
+  locale: digestLocaleSchema,
+})
+export type DigestPreferencesInput = z.infer<typeof digestPreferencesSchema>
+export type DigestPreferencesResponse = DigestPreferencesInput
+
+export type DigestPreviewResponse = {
+  kind: "personal" | "admin"
+  // true = nothing to report this week, so no message would be sent
+  empty: boolean
+  subject: string
+  text: string
+}

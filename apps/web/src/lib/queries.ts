@@ -4,12 +4,16 @@ import type {
   MeResponse,
   UpdateProfileInput,
   AttendanceHeatmapResponse,
+  CareRequestAssigneeResponse,
   CareRequestCloseInput,
   CareRequestCreateInput,
   CareRequestResponse,
   CareRequestStatus,
   CareRequestType,
   CareRequestUpdateInput,
+  DigestPreferencesInput,
+  DigestPreferencesResponse,
+  DigestPreviewResponse,
   CourseCreateInput,
   CourseResponse,
   CourseUpdateInput,
@@ -179,6 +183,40 @@ export type CareRequestFilters = {
   status?: CareRequestStatus
   type?: CareRequestType
   memberId?: string
+  assignedToUserId?: string // user id or "me"
+  overdue?: boolean
+}
+
+export function useCareRequestAssignees(memberId: string) {
+  return useQuery({
+    queryKey: ["care-request-assignees", memberId],
+    queryFn: () => apiFetch<CareRequestAssigneeResponse[]>(`/care-requests/assignees?memberId=${memberId}`),
+    enabled: Boolean(memberId),
+  })
+}
+
+export function useDigestPreferences() {
+  return useQuery({
+    queryKey: ["digest", "preferences"],
+    queryFn: () => apiFetch<DigestPreferencesResponse>("/digest/preferences"),
+  })
+}
+
+export function useSaveDigestPreferences() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: DigestPreferencesInput) =>
+      apiFetch<DigestPreferencesResponse>("/digest/preferences", { method: "PUT", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["digest"] }),
+  })
+}
+
+export function useDigestPreview(enabled: boolean) {
+  return useQuery({
+    queryKey: ["digest", "preview"],
+    queryFn: () => apiFetch<DigestPreviewResponse>("/digest/preview"),
+    enabled,
+  })
 }
 
 export function useCareRequests(filters: CareRequestFilters = {}, enabled = true) {
@@ -186,6 +224,8 @@ export function useCareRequests(filters: CareRequestFilters = {}, enabled = true
   if (filters.status) params.set("status", filters.status)
   if (filters.type) params.set("type", filters.type)
   if (filters.memberId) params.set("memberId", filters.memberId)
+  if (filters.assignedToUserId) params.set("assignedToUserId", filters.assignedToUserId)
+  if (filters.overdue) params.set("overdue", "true")
   const qs = params.toString()
   return useQuery({
     queryKey: ["care-requests", filters],

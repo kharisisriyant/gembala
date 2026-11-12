@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common"
-import { and, desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, inArray, lt } from "drizzle-orm"
 import { alias } from "drizzle-orm/pg-core"
 import { InjectDb, type Db, type Tx } from "../db/drizzle.module"
-import { careRequests, members, memberTags, tags, users } from "../db/schema"
+import { careRequests, members, memberTags, orgMemberships, tags, users } from "../db/schema"
 
 export type CareRequestInsert = typeof careRequests.$inferInsert
 export type CareRequestPatch = Partial<typeof careRequests.$inferInsert>
@@ -10,10 +10,14 @@ export type CareRequestFilters = {
   status?: "open" | "closed"
   type?: "prayer" | "care"
   memberId?: string
+  assignedToUserId?: string
+  // Open requests due before this calendar day (YYYY-MM-DD).
+  overdueBefore?: string
 }
 
 const submitter = alias(users, "submitter")
 const closer = alias(users, "closer")
+const assignee = alias(users, "assignee")
 
 const rowShape = {
   id: careRequests.id,
@@ -25,6 +29,9 @@ const rowShape = {
   source: careRequests.source,
   submittedById: careRequests.submittedByUserId,
   submittedByName: submitter.name,
+  assignedToId: careRequests.assignedToUserId,
+  assignedToName: assignee.name,
+  dueAt: careRequests.dueAt,
   closedAt: careRequests.closedAt,
   closedById: careRequests.closedByUserId,
   closedByName: closer.name,
@@ -43,6 +50,9 @@ export type CareRequestRow = {
   source: "leader" | "member"
   submittedById: string | null
   submittedByName: string | null
+  assignedToId: string | null
+  assignedToName: string | null
+  dueAt: string | null
   closedAt: Date | null
   closedById: string | null
   closedByName: string | null
@@ -62,6 +72,7 @@ export class CareRequestsRepository {
       .innerJoin(members, eq(members.id, careRequests.memberId))
       .leftJoin(submitter, eq(submitter.id, careRequests.submittedByUserId))
       .leftJoin(closer, eq(closer.id, careRequests.closedByUserId))
+      .leftJoin(assignee, eq(assignee.id, careRequests.assignedToUserId))
   }
 
   async list(orgId: string, filters: CareRequestFilters, tx: Db | Tx = this.db): Promise<CareRequestRow[]> {
@@ -69,6 +80,10 @@ export class CareRequestsRepository {
     if (filters.status) conds.push(eq(careRequests.status, filters.status))
     if (filters.type) conds.push(eq(careRequests.type, filters.type))
     if (filters.memberId) conds.push(eq(careRequests.memberId, filters.memberId))
+    if (filters.assignedToUserId) conds.push(eq(careRequests.assignedToUserId, filters.assignedToUserId))
+    if (filters.overdueBefore) {
+      conds.push(eq(careRequests.status, "open"), lt(careRequests.dueAt, filters.overdueBefore))
+    }
     return this.baseSelect(tx).where(and(...conds)).orderBy(desc(careRequests.createdAt))
   }
 
@@ -88,6 +103,16 @@ export class CareRequestsRepository {
       .from(members)
       .where(and(eq(members.orgId, orgId), eq(members.id, memberId)))
     return row
+  }
+
+  // Active users of the org, for the assignee picker and assignee validation.
+  async orgUsers(orgId: string, tx: Db | Tx = this.db): Promise<{ id: string; name: string }[]> {
+    return tx
+      .select({ id: users.id, name: users.name })
+      .from(orgMemberships)
+      .innerJoin(users, eq(users.id, orgMemberships.userId))
+      .where(and(eq(orgMemberships.orgId, orgId), eq(users.authStatus, "active")))
+      .orderBy(users.name)
   }
 
   async tagNamesByMemberIds(memberIds: string[], tx: Db | Tx = this.db) {

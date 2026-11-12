@@ -4,6 +4,9 @@ import {
   authResponseSchema,
   csrfResponseSchema,
   organizationInviteResponseSchema,
+  careRequestAssigneeResponseSchema,
+  digestPreferencesResponseSchema,
+  digestPreviewResponseSchema,
   careRequestResponseSchema,
   courseResponseSchema,
   enrollmentResponseSchema,
@@ -67,6 +70,7 @@ export class InviteResponseDto extends createZodDto(inviteResponseSchema) {}
 export class InvitePreviewResponseDto extends createZodDto(invitePreviewResponseSchema) {}
 export class DashboardResponseDto extends createZodDto(dashboardResponseSchema) {}
 export class CareRequestResponseDto extends createZodDto(careRequestResponseSchema) {}
+export class CareRequestAssigneeResponseDto extends createZodDto(careRequestAssigneeResponseSchema) {}
 export class CourseResponseDto extends createZodDto(courseResponseSchema) {}
 export class MilestoneResponseDto extends createZodDto(milestoneResponseSchema) {}
 export class EnrollmentResponseDto extends createZodDto(enrollmentResponseSchema) {}
@@ -76,3 +80,5 @@ export class PipelineRowResponseDto extends createZodDto(pipelineRowResponseSche
 export class JourneyStageResponseDto extends createZodDto(journeyStageResponseSchema) {}
 
 export class OrganizationInviteResponseDto extends createZodDto(organizationInviteResponseSchema) {}
+export class DigestPreferencesResponseDto extends createZodDto(digestPreferencesResponseSchema) {}
+export class DigestPreviewResponseDto extends createZodDto(digestPreviewResponseSchema) {}

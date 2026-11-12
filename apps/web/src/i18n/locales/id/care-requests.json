@@ -14,14 +14,19 @@
   },
   "filters": {
     "allStatuses": "Semua status",
-    "allTypes": "Semua jenis"
+    "allTypes": "Semua jenis",
+    "allOwners": "Semua permintaan",
+    "mine": "Ditugaskan ke saya",
+    "overdueOnly": "Hanya yang terlambat"
   },
   "table": {
     "member": "Jemaat",
     "type": "Jenis",
     "request": "Permintaan",
     "status": "Status",
-    "submitted": "Diajukan"
+    "submitted": "Diajukan",
+    "owner": "Penanggung jawab",
+    "due": "Tenggat"
   },
   "menu": {
     "edit": "Ubah permintaan",
@@ -48,7 +53,10 @@
     "created": "Permintaan ditambahkan",
     "updated": "Permintaan diperbarui",
     "createError": "Gagal menambahkan permintaan",
-    "updateError": "Gagal memperbarui permintaan"
+    "updateError": "Gagal memperbarui permintaan",
+    "assignee": "Penanggung jawab",
+    "assigneePlaceholder": "Siapa yang menindaklanjuti",
+    "dueAt": "Tenggat"
   },
   "close": {
     "title": "Selesaikan permintaan",
@@ -66,5 +74,8 @@
   "delete": {
     "success": "Permintaan dihapus",
     "error": "Gagal menghapus permintaan"
-  }
+  },
+  "overdue": "Terlambat",
+  "unassigned": "Belum ditugaskan",
+  "dueOn": "Tenggat {{date}}"
 }

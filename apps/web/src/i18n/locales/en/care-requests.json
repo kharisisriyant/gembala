@@ -14,14 +14,19 @@
   },
   "filters": {
     "allStatuses": "All statuses",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "allOwners": "Everyone's requests",
+    "mine": "Assigned to me",
+    "overdueOnly": "Overdue only"
   },
   "table": {
     "member": "Member",
     "type": "Type",
     "request": "Request",
     "status": "Status",
-    "submitted": "Submitted"
+    "submitted": "Submitted",
+    "owner": "Owner",
+    "due": "Due"
   },
   "menu": {
     "edit": "Edit request",
@@ -48,7 +53,10 @@
     "created": "Request added",
     "updated": "Request updated",
     "createError": "Could not add request",
-    "updateError": "Could not update request"
+    "updateError": "Could not update request",
+    "assignee": "Owner",
+    "assigneePlaceholder": "Who follows up",
+    "dueAt": "Due date"
   },
   "close": {
     "title": "Close request",
@@ -66,5 +74,8 @@
   "delete": {
     "success": "Request deleted",
     "error": "Could not delete request"
-  }
+  },
+  "overdue": "Overdue",
+  "unassigned": "Unassigned",
+  "dueOn": "Due {{date}}"
 }

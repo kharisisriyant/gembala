@@ -6,5 +6,6 @@ import { CareRequestsRepository } from "./care-requests.repository"
 @Module({
   controllers: [CareRequestsController],
   providers: [CareRequestsService, CareRequestsRepository],
+  exports: [CareRequestsService],
 })
 export class CareRequestsModule {}

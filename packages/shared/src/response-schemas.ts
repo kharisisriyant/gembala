@@ -1,6 +1,7 @@
 import { z } from "zod"
 import {
   careRequestSourceSchema,
+  digestPreferencesSchema,
   careRequestStatusSchema,
   careRequestTypeSchema,
   courseKindSchema,
@@ -19,6 +20,9 @@ import {
   type AuthResponse,
   type CsrfResponse,
   type OrganizationInviteResponse,
+  type CareRequestAssigneeResponse,
+  type DigestPreferencesResponse,
+  type DigestPreviewResponse,
   type CareRequestResponse,
   type CourseResponse,
   type DashboardResponse,
@@ -353,12 +357,17 @@ export const careRequestResponseSchema = z.object({
   status: careRequestStatusSchema,
   source: careRequestSourceSchema,
   submittedBy: careRequestUserRefSchema.nullable(),
+  assignedTo: careRequestUserRefSchema.nullable(),
+  dueAt: z.string().nullable().describe("YYYY-MM-DD"),
+  overdue: z.boolean(),
   closedAt: z.string().nullable().describe("ISO 8601 timestamp"),
   closedBy: careRequestUserRefSchema.nullable(),
   closeNote: z.string().nullable(),
   createdAt: z.string().describe("ISO 8601 timestamp"),
   updatedAt: z.string().describe("ISO 8601 timestamp"),
 }) satisfies z.ZodType<CareRequestResponse>
+
+export const careRequestAssigneeResponseSchema = careRequestUserRefSchema satisfies z.ZodType<CareRequestAssigneeResponse>
 
 const journeyUserRefSchema = z.object({ id: z.string().uuid(), name: z.string() })
 
@@ -427,3 +436,12 @@ export const journeyStageResponseSchema = z.object({
 export const organizationInviteResponseSchema = z.object({
   id: z.string().uuid(), email: z.string().email(), url: z.string().url(), expiresAt: z.string(),
 }) satisfies z.ZodType<OrganizationInviteResponse>
+
+export const digestPreferencesResponseSchema = digestPreferencesSchema satisfies z.ZodType<DigestPreferencesResponse>
+
+export const digestPreviewResponseSchema = z.object({
+  kind: z.enum(["personal", "admin"]),
+  empty: z.boolean().describe("True when there is nothing to report, so no message would be sent"),
+  subject: z.string(),
+  text: z.string(),
+}) satisfies z.ZodType<DigestPreviewResponse>

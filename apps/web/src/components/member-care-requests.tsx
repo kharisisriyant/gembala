@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Plus } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CareRequestDialog } from "@/components/care-request-dialog"
 import { CareRequestActions } from "@/components/care-request-actions"
@@ -40,6 +41,7 @@ export function MemberCareRequests({ memberId }: { memberId: string }) {
               <div className="flex items-center gap-2">
                 <CareRequestTypeBadge type={r.type} />
                 <CareRequestStatusBadge status={r.status} />
+                {r.overdue && <Badge variant="warning">{t("overdue")}</Badge>}
               </div>
               <CareRequestActions request={r} />
             </div>
@@ -52,6 +54,8 @@ export function MemberCareRequests({ memberId }: { memberId: string }) {
             <div className="text-muted-foreground mt-1 text-xs">
               {formatDate(r.createdAt.slice(0, 10))}
               {r.submittedBy ? ` · ${r.submittedBy.name}` : ""}
+              {` · ${r.assignedTo?.name ?? t("unassigned")}`}
+              {r.dueAt ? ` · ${t("dueOn", { date: formatDate(r.dueAt) })}` : ""}
             </div>
           </div>
         ))}

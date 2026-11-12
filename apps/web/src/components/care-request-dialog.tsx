@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import type { CareRequestResponse, CareRequestType } from "@gembala/shared"
+import { addDays, todayInZone, type CareRequestResponse, type CareRequestType } from "@gembala/shared"
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -22,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useCreateCareRequest, useMembers, useUpdateCareRequest } from "@/lib/queries"
+import { useAuth } from "@/lib/auth"
+import { useCareRequestAssignees, useCreateCareRequest, useMembers, useUpdateCareRequest } from "@/lib/queries"
 
 // Create when `request` is omitted (member fixed via `memberId`, or picked in
 // the form); edit type/body when `request` is given.
@@ -43,16 +45,23 @@ export function CareRequestDialog({
   const [pickedMemberId, setPickedMemberId] = useState(memberId ?? "")
   const [type, setType] = useState<CareRequestType>(request?.type ?? "prayer")
   const [body, setBody] = useState(request?.body ?? "")
+  const defaultDue = () => request?.dueAt ?? addDays(todayInZone(), 7)
+  const { me } = useAuth()
+  const [assignee, setAssignee] = useState(request?.assignedTo?.id ?? me?.user.id ?? "")
+  const [dueAt, setDueAt] = useState(defaultDue())
 
   const isEdit = Boolean(request)
   const pending = create.isPending || update.isPending
-  const targetMemberId = memberId ?? pickedMemberId
+  const targetMemberId = request?.memberId ?? memberId ?? pickedMemberId
+  const { data: assignees = [] } = useCareRequestAssignees(open ? targetMemberId : "")
 
   const onOpenChange = (v: boolean) => {
     if (v) {
       setPickedMemberId(memberId ?? "")
       setType(request?.type ?? "prayer")
       setBody(request?.body ?? "")
+      setAssignee(request?.assignedTo?.id ?? me?.user.id ?? "")
+      setDueAt(defaultDue())
     }
     setOpen(v)
   }
@@ -60,10 +69,16 @@ export function CareRequestDialog({
   const save = async () => {
     try {
       if (request) {
-        await update.mutateAsync({ id: request.id, type, body })
+        await update.mutateAsync({ id: request.id, type, body, assignedToUserId: assignee || null, dueAt: dueAt || null })
         toast.success(t("form.updated"))
       } else {
-        await create.mutateAsync({ memberId: targetMemberId, type, body })
+        await create.mutateAsync({
+          memberId: targetMemberId,
+          type,
+          body,
+          assignedToUserId: assignee || undefined,
+          dueAt: dueAt || undefined,
+        })
         toast.success(t("form.created"))
       }
       setOpen(false)
@@ -120,6 +135,27 @@ export function CareRequestDialog({
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label>{t("form.assignee")}</Label>
+              <Select value={assignee} onValueChange={setAssignee} disabled={!targetMemberId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("form.assigneePlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {assignees.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="care-due">{t("form.dueAt")}</Label>
+              <Input id="care-due" type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+            </div>
           </div>
         </div>
         <DialogFooter>
