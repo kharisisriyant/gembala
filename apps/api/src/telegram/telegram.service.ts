@@ -173,6 +173,27 @@ export class TelegramService implements OnModuleInit {
     await this.reply(chatId, "Connected! Your gembala account is now linked.")
   }
 
+  // Outbound push to a linked user (the weekly digest). False = not delivered
+  // (no link, bot unconfigured, or Telegram refused, e.g. the user blocked the
+  // bot) so the caller can fall back to another channel.
+  async sendToUser(userId: string, text: string): Promise<boolean> {
+    if (!this.token) return false
+    const link = await this.links.findActiveLinkForUser(userId)
+    if (!link) return false
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: link.telegramChatId, text, disable_web_page_preview: true }),
+      })
+      if (!res.ok) this.logger.warn(`sendMessage to user ${userId} failed: HTTP ${res.status}`)
+      return res.ok
+    } catch (err) {
+      this.logger.warn(`sendMessage to user ${userId} failed: ${err instanceof Error ? err.message : String(err)}`)
+      return false
+    }
+  }
+
   private async reply(chatId: string, text: string, opts?: { markdown?: boolean }): Promise<void> {
     if (!this.token) return
     await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {

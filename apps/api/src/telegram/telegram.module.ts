@@ -10,5 +10,6 @@ import { TelegramRepository } from "./telegram.repository"
   imports: [MembersModule, GroupsModule],
   controllers: [TelegramController],
   providers: [TelegramService, TelegramAgentService, TelegramRepository],
+  exports: [TelegramService],
 })
 export class TelegramModule {}

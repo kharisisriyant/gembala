@@ -14,4 +14,8 @@ export class ConsoleMailService extends MailService {
   async sendInvite(to: string, orgName: string, link: string): Promise<void> {
     this.logger.log(`\n┌─ Invite for ${to} to join "${orgName}"\n└─ ${link}`)
   }
+
+  async sendWeeklyDigest(to: string, message: { subject: string; text: string }): Promise<void> {
+    this.logger.log(`\n┌─ Weekly digest for ${to}: ${message.subject}\n${message.text}`)
+  }
 }

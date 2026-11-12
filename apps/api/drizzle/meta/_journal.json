@@ -92,6 +92,13 @@
       "when": 1794464418359,
       "tag": "0012_care_request_ownership",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794464673335,
+      "tag": "0013_weekly_digest",
+      "breakpoints": true
     }
   ]
 }

@@ -39,5 +39,20 @@
     "submitting": "Memperbarui…",
     "success": "Kata sandi diperbarui",
     "error": "Gagal mengubah kata sandi"
+  },
+  "digest": {
+    "title": "Rangkuman mingguan",
+    "description": "Setiap Senin pagi: orang-orang yang perlu perhatianmu minggu itu. Dikirim ke Telegram jika terhubung, jika tidak lewat email.",
+    "enabled": "Kirim rangkuman mingguan kepada saya",
+    "language": "Bahasa",
+    "english": "English",
+    "indonesian": "Bahasa Indonesia",
+    "save": "Simpan",
+    "saving": "Menyimpan…",
+    "saved": "Pengaturan rangkuman disimpan",
+    "error": "Gagal menyimpan pengaturan rangkuman",
+    "preview": "Pratinjau minggu ini",
+    "hidePreview": "Sembunyikan pratinjau",
+    "previewEmpty": "Saat ini tidak ada yang perlu dilaporkan, jadi tidak ada rangkuman yang dikirim minggu ini."
   }
 }

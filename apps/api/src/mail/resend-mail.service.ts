@@ -43,6 +43,10 @@ export class ResendMailService extends MailService {
     })
   }
 
+  async sendWeeklyDigest(to: string, message: { subject: string; text: string; html: string }): Promise<void> {
+    await this.send({ to, ...message })
+  }
+
   private async send(message: { to: string; subject: string; text: string; html: string }): Promise<void> {
     const { error } = await this.resend.emails.send({ from: this.from, ...message })
     if (!error) return

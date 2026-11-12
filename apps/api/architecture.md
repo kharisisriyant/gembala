@@ -278,6 +278,26 @@ serialize output.
 Union responses (e.g. Telegram link status) can't be a DTO class; describe
 them inline with `@ApiOkResponse({ schema: { oneOf: [...] } })`.
 
+## State machines
+
+Every lifecycle in the app, so nobody has to rediscover them. Guarded ones live
+in `packages/shared/src/lifecycle.ts` (`canTransition` + a table) and are used by
+both the API (reject with 409) and the web (hide the action). Add a new guarded
+lifecycle there, not inline.
+
+| Entity | States | Kind | Rule |
+| --- | --- | --- | --- |
+| Care request | `open` ⇄ `closed` | stored, guarded | `careRequestLifecycle`; editing only while open; close/reopen set/clear `closedAt`, `closedByUserId`, `closeNote`. `overdue` is derived: open and `dueAt` before today (Asia/Jakarta) |
+| Weekly digest (per user, week) | `pending` → `sent` / `failed` | stored in `digest_log` | unique `(user_id, week_start)`; `DigestRepository.claim` retakes `failed` and stale `pending` rows, so the Monday 07:00 and 09:00 runs never double-send |
+| Invite | `pending` → `accepted` / `revoked` / `expired` | derived from `acceptedAt`/`revokedAt`/`expiresAt` | `deriveInviteStatus`, `inviteLifecycle`; terminal states are final; revoke is atomic (`revokePending`) |
+| Course enrollment | `enrolled`, `completed`, `dropped` | stored, free (any → any) | `completedAt` is set on `completed` (kept if already set) and cleared otherwise |
+| Pipeline stage | per `journey_stages` rule | derived, never stored | `journey/pipeline.ts` computes from milestones, enrollments, assessments |
+| Baptism | `members.baptismStatus` ↔ `baptism` milestone | stored twice, kept in step | milestone add/remove syncs the member in one transaction; a direct `baptismStatus` PATCH can still diverge |
+| Member status | `active`, `newcomer`, `inactive`, `moved` | stored, free | `inactive`/`moved` members drop out of the pipeline and dashboard |
+| Auth user | `active`, `disabled`, `locked`, `suspended` | stored | only `active` may log in/refresh; nothing sets the other three yet |
+| Auth session / refresh token | live → revoked / expired / reuse-detected | derived from `revokedAt`/`expiresAt` | refresh rotation in `auth.service` |
+| Telegram link | code (TTL) → link → revoked | derived from `expiresAt`/`revokedAt` | partial unique index on active chat id |
+
 ## Cross-cutting modules
 
 `authz` owns no tables but does run queries against other modules'
@@ -288,3 +308,16 @@ repository imports schema from the modules whose tables it reads.
 
 `dashboard` aggregates other modules' services and `mail` has no DB
 access — neither needs a repository unless that changes.
+
+`attention` is the single definition of "who needs a leader's attention"
+(absent streaks, birthdays, an `AttentionService.forUser` for care, newcomers and
+next steps). The pure rules in `attention/attention.ts` are shared by `dashboard`
+and `digest`; the service computes everything through the given user's own scope.
+It has no tables.
+
+`digest` sends one message per leader every Monday (07:00 Asia/Jakarta, retry
+09:00) by Telegram when linked, else email, skipping weeks with nothing to report.
+Admins get an org-wide summary instead. Rendering (`digest.render.ts`) is pure
+and locale-aware (`en`/`id`); messages carry names and request types only, never
+request text. Preferences live in `digest_preferences` (no row = enabled, `id`).
+"Today" is always `todayInZone()` from `@gembala/shared` (fixed Asia/Jakarta).
