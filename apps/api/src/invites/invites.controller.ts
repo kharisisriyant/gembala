@@ -5,7 +5,7 @@ import {
   type InvitePreviewResponse,
   type InviteResponse,
 } from "@gembala/shared"
-import { ApiCreatedResponse, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { InvitePreviewResponseDto, InviteResponseDto } from "../swagger/response-dtos"
 import { CurrentAuth, Public, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
@@ -38,6 +38,7 @@ export class InvitesController {
   @ApiOperation({ summary: "Revoke a pending invite" })
   @ApiNoContentResponse({ description: "Revoked" })
   @ApiNotFoundResponse({ description: "Invite not found" })
+  @ApiConflictResponse({ description: "Invite is not pending (accepted, revoked or expired)" })
   @RequirePermission("invites", "delete")
   @HttpCode(204)
   @Delete(":id")
