@@ -4,6 +4,7 @@ import type {
   NotificationItemResponse,
   NotificationListResponse,
   NotificationReadAllResponse,
+  NotificationUnsubscribePreviewResponse,
   NotificationUnreadCountResponse,
   ChangePasswordInput,
   MeResponse,
@@ -875,5 +876,22 @@ export function useMarkAllNotificationsRead() {
   return useMutation({
     mutationFn: () => apiFetch<NotificationReadAllResponse>("/notifications/read-all", { method: "POST" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["notifications"] }),
+  })
+}
+
+// Public (no login): the signed token in the email link is the credential.
+export function useUnsubscribePreview(token: string) {
+  return useQuery({
+    queryKey: ["notifications", "unsubscribe", token],
+    queryFn: () => apiFetch<NotificationUnsubscribePreviewResponse>(`/notifications/unsubscribe?token=${encodeURIComponent(token)}`),
+    enabled: token.length > 0,
+    retry: false,
+  })
+}
+
+export function useUnsubscribe() {
+  return useMutation({
+    mutationFn: (token: string) =>
+      apiFetch<void>(`/notifications/unsubscribe?token=${encodeURIComponent(token)}`, { method: "POST" }),
   })
 }

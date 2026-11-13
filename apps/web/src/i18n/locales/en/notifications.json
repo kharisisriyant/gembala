@@ -24,5 +24,13 @@
     "unread": "{{count}} unread",
     "viewAll": "View all notifications"
   },
-  "unavailable": "This item is no longer available."
+  "unavailable": "This item is no longer available.",
+  "unsubscribe": {
+    "title": "Unsubscribe from emails",
+    "confirm": "Stop sending {{category}} emails to you? You'll still see these in your Gembala inbox.",
+    "button": "Unsubscribe",
+    "done": "You've been unsubscribed from {{category}} emails.",
+    "invalid": "This unsubscribe link is not valid or has been changed.",
+    "manage": "Manage all notification preferences"
+  }
 }

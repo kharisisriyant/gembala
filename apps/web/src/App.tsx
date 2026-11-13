@@ -18,6 +18,7 @@ import { TeamPage } from "@/pages/team"
 import { ProfilePage } from "@/pages/profile"
 import { TelegramPage } from "@/pages/telegram"
 import { CareRequestsPage } from "@/pages/care-requests"
+import { UnsubscribePage } from "@/pages/unsubscribe"
 import { NotificationsPage } from "@/pages/notifications"
 import { JourneyPage } from "@/pages/journey"
 import { LoginPage } from "@/pages/auth/login"
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/privacy-policy" element={<LegalPage document="privacy" />} />
         <Route path="/terms-and-conditions" element={<LegalPage document="terms" />} />
+        <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

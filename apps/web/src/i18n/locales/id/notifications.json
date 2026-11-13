@@ -24,5 +24,13 @@
     "unread": "{{count}} belum dibaca",
     "viewAll": "Lihat semua notifikasi"
   },
-  "unavailable": "Item ini sudah tidak tersedia."
+  "unavailable": "Item ini sudah tidak tersedia.",
+  "unsubscribe": {
+    "title": "Berhenti berlangganan email",
+    "confirm": "Hentikan email {{category}} untuk Anda? Anda tetap melihatnya di kotak masuk Gembala.",
+    "button": "Berhenti berlangganan",
+    "done": "Anda sudah berhenti berlangganan email {{category}}.",
+    "invalid": "Tautan ini tidak valid atau sudah diubah.",
+    "manage": "Kelola semua preferensi notifikasi"
+  }
 }
