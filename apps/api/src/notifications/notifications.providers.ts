@@ -1,6 +1,9 @@
 import type { Provider } from "@nestjs/common"
 import { CHANNEL_ADAPTERS } from "./notifications.adapter"
 import { NOTIFICATION_CATALOG, notificationTypes } from "./notifications.catalog"
+import { EmailAdapter } from "./email.adapter"
+import { EndpointsRepository } from "./endpoints.repository"
+import { PreferencesRepository } from "./preferences.repository"
 import { InAppAdapter } from "./inapp.adapter"
 import { NotificationsDispatcher } from "./notifications.dispatcher"
 import { DeliveryProcessor } from "./notifications.processor"
@@ -19,7 +22,10 @@ export const notificationProviders: Provider[] = [
   NotificationsDispatcher,
   NotificationsRunner,
   InAppAdapter,
+  EmailAdapter,
+  EndpointsRepository,
+  PreferencesRepository,
   { provide: NOTIFICATION_CATALOG, useValue: notificationTypes },
-  // Channels register here as their slices land (email, telegram).
-  { provide: CHANNEL_ADAPTERS, useFactory: (inapp: InAppAdapter) => [inapp], inject: [InAppAdapter] },
+  // Channels register here as their slices land (telegram next).
+  { provide: CHANNEL_ADAPTERS, useFactory: (inapp: InAppAdapter, email: EmailAdapter) => [inapp, email], inject: [InAppAdapter, EmailAdapter] },
 ]

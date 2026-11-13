@@ -54,3 +54,5 @@ export type NotificationListResponse = {
 
 export type NotificationUnreadCountResponse = { count: number }
 export type NotificationReadAllResponse = { updated: number }
+
+export type NotificationUnsubscribePreviewResponse = { category: NotificationCategory }

@@ -1,4 +1,4 @@
-import type { NotificationChannel } from "@gembala/shared"
+import type { NotificationCategory, NotificationChannel } from "@gembala/shared"
 
 export type SendContext = {
   deliveryId: string
@@ -8,6 +8,7 @@ export type SendContext = {
     orgId: string
     userId: string
     typeKey: string
+    category: NotificationCategory
     title: string
     body: string
     link: string | null

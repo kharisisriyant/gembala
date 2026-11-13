@@ -5,6 +5,7 @@ import {
   type NotificationListResponse,
   type NotificationReadAllResponse,
   type NotificationUnreadCountResponse,
+  type NotificationUnsubscribePreviewResponse,
 } from "./notifications.js"
 import {
   careRequestSourceSchema,
@@ -476,3 +477,7 @@ export const notificationUnreadCountResponseSchema = z.object({
 export const notificationReadAllResponseSchema = z.object({
   updated: z.number().int(),
 }) satisfies z.ZodType<NotificationReadAllResponse>
+
+export const notificationUnsubscribePreviewResponseSchema = z.object({
+  category: z.enum(NOTIFICATION_CATEGORIES),
+}) satisfies z.ZodType<NotificationUnsubscribePreviewResponse>

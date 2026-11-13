@@ -61,6 +61,7 @@ export class DeliveryProcessor {
         orgId: notification.orgId,
         userId: notification.userId,
         typeKey: notification.typeKey,
+        category: notification.category,
         title: notification.title,
         body: notification.body,
         link: notification.link,

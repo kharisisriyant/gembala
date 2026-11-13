@@ -1,8 +1,14 @@
 import { Test } from "@nestjs/testing"
 import { ConfigModule } from "@nestjs/config"
 import type { INestApplication } from "@nestjs/common"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 import { z } from "zod"
+import { createHmac } from "node:crypto"
+import { MailService } from "../src/mail/mail.service"
+import { signLink } from "../src/notifications/notifications.links"
+import { ResendWebhookService } from "../src/notifications/resend-webhook.service"
+import { UnsubscribeService } from "../src/notifications/unsubscribe.service"
+import { channelEndpoints, userNotificationPreferences, consentEvents } from "../src/db/schema"
 import { validateEnv } from "../src/config/env"
 import { DRIZZLE, DrizzleModule, type Db } from "../src/db/drizzle.module"
 import { notificationDeliveries, notificationEvents, notifications, orgMemberships, organizations, users } from "../src/db/schema"
@@ -23,6 +29,33 @@ notificationTypes.push({
   payload: z.object({ n: z.number() }),
   render: (_locale, p) => ({ title: `ping ${p.n}`, body: "body", link: "/x" }),
 })
+
+notificationTypes.push({
+  key: "test.remind",
+  category: "reminder",
+  priority: "normal",
+  defaultChannels: ["email"],
+  ttlMs: 3_600_000,
+  payload: z.object({ n: z.number() }),
+  render: (_locale, p) => ({ title: `remind ${p.n}`, body: "body", link: "/care" }),
+})
+
+const sent: { to: string; subject: string; headers?: Record<string, string> }[] = []
+const fakeMail = {
+  sendNotification: async (to: string, m: { subject: string; headers?: Record<string, string> }) => {
+    sent.push({ to, subject: m.subject, headers: m.headers })
+    return { id: `prov-${sent.length}` }
+  },
+}
+const webhookKey = Buffer.from("w".repeat(24))
+const webhookSecret = `whsec_${webhookKey.toString("base64")}`
+const signedEvent = (event: object) => {
+  const body = JSON.stringify(event)
+  const id = `msg_${Math.random()}`
+  const ts = String(Math.floor(Date.now() / 1000))
+  const sig = createHmac("sha256", webhookKey).update(`${id}.${ts}.${body}`).digest("base64")
+  return { body, headers: { "svix-id": id, "svix-timestamp": ts, "svix-signature": `v1,${sig}` } }
+}
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 async function until<T>(fn: () => Promise<T | undefined | false>, ms = 15_000): Promise<T> {
@@ -50,11 +83,12 @@ describe("notification pipeline (real Postgres + Redis)", () => {
       DATABASE_URL: url,
       REDIS_URL: TEST_REDIS_URL,
       NOTIFICATIONS_WORKERS: "true",
+      RESEND_WEBHOOK_SECRET: webhookSecret,
       JWT_SIGNING_KEYS: "default:" + "x".repeat(40),
     })
     const moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, validate: validateEnv }), DrizzleModule],
-      providers: [...notificationProviders, InboxService, InboxRepository],
+      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }],
     }).compile()
     app = moduleRef.createNestApplication()
     await app.init()
@@ -181,5 +215,61 @@ describe("notification pipeline (real Postgres + Redis)", () => {
     expect((await inbox.list({ userId: alice, orgId }, { limit: 50, unread: true })).items).toHaveLength(before - 1)
     expect((await inbox.markAllRead({ userId: alice, orgId })).updated).toBe(before - 1)
     expect((await inbox.unreadCount({ userId: bob, orgId })).count).toBeGreaterThan(0) // bob untouched
+  })
+
+  describe("email channel", () => {
+    const remind = (key: string, who = [alice]) =>
+      service.notify({ type: "test.remind", orgId, recipients: who, payload: { n: 1 }, idempotencyKey: key })
+    const delivery = (key: string, channel: "email" | "inapp" = "email") =>
+      until(async () => {
+        const [r] = await db
+          .select({ id: notificationDeliveries.id, status: notificationDeliveries.status, reason: notificationDeliveries.skipReason, provider: notificationDeliveries.providerMessageId })
+          .from(notificationDeliveries)
+          .innerJoin(notifications, eq(notifications.id, notificationDeliveries.notificationId))
+          .innerJoin(notificationEvents, eq(notificationEvents.id, notifications.eventId))
+          .where(and(eq(notificationEvents.idempotencyKey, key), eq(notificationDeliveries.channel, channel)))
+        return r && !["pending", "queued"].includes(r.status) ? r : undefined
+      })
+
+    it("sends through the queue with unsubscribe headers, then marks delivered on the webhook", async () => {
+      await remind("mail-1")
+      const d = await delivery("mail-1")
+      expect(d.status).toBe("sent")
+      expect(d.provider).toMatch(/^prov-/)
+      const mail = sent.find((m) => m.to === "alice@x.test" && m.subject === "remind 1")!
+      expect(mail.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click")
+
+      const { body, headers } = signedEvent({ type: "email.delivered", created_at: "x", data: { email_id: d.provider, to: ["alice@x.test"] } })
+      await app.get(ResendWebhookService).handle(body, headers)
+      const [after] = await db.select({ status: notificationDeliveries.status }).from(notificationDeliveries).where(eq(notificationDeliveries.id, d.id))
+      expect(after.status).toBe("delivered")
+    })
+
+    it("unsubscribe from the link skips later email and logs consent", async () => {
+      const token = signLink(process.env.NOTIFICATION_LINK_SECRET!, { userId: bob, category: "reminder", channel: "email" })
+      await app.get(UnsubscribeService).apply(token)
+      const prefs = await db.select().from(userNotificationPreferences).where(eq(userNotificationPreferences.userId, bob))
+      expect(prefs).toMatchObject([{ category: "reminder", channel: "email", enabled: false }])
+      const consent = await db.select().from(consentEvents).where(eq(consentEvents.userId, bob))
+      expect(consent).toMatchObject([{ source: "email_link", enabled: false }])
+
+      await remind("mail-unsub", [bob])
+      expect(await delivery("mail-unsub")).toMatchObject({ status: "skipped", reason: "preference" })
+      expect((await delivery("mail-unsub", "inapp")).status).toBe("sent") // inbox still gets it
+    })
+
+    it("a permanent bounce suppresses the address for later notifications", async () => {
+      await remind("mail-bounce")
+      const d = await delivery("mail-bounce")
+      const { body, headers } = signedEvent({ type: "email.bounced", created_at: "x", data: { email_id: d.provider, to: ["alice@x.test"], bounce: { type: "Permanent", subType: "General", message: "no such user" } } })
+      await app.get(ResendWebhookService).handle(body, headers)
+      const [endpoint] = await db.select().from(channelEndpoints).where(eq(channelEndpoints.userId, alice))
+      expect(endpoint.status).toBe("bounced")
+
+      const before = sent.length
+      await remind("mail-after-bounce")
+      expect(await delivery("mail-after-bounce")).toMatchObject({ status: "skipped", reason: "not_connected" })
+      expect(sent.length).toBe(before)
+    })
   })
 })

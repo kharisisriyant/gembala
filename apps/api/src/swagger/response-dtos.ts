@@ -3,6 +3,7 @@ import {
   notificationItemResponseSchema,
   notificationListResponseSchema,
   notificationReadAllResponseSchema,
+  notificationUnsubscribePreviewResponseSchema,
   notificationUnreadCountResponseSchema,
   attendanceHeatmapResponseSchema,
   authResponseSchema,
@@ -91,3 +92,4 @@ export class NotificationItemResponseDto extends createZodDto(notificationItemRe
 export class NotificationListResponseDto extends createZodDto(notificationListResponseSchema) {}
 export class NotificationUnreadCountResponseDto extends createZodDto(notificationUnreadCountResponseSchema) {}
 export class NotificationReadAllResponseDto extends createZodDto(notificationReadAllResponseSchema) {}
+export class NotificationUnsubscribePreviewResponseDto extends createZodDto(notificationUnsubscribePreviewResponseSchema) {}
