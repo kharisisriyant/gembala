@@ -47,6 +47,7 @@ describe("CareRequestsService", () => {
   let scope: ScopeService
   let service: CareRequestsService
   let authContext: { load: jest.Mock }
+  let notifications: { notify: jest.Mock }
 
   beforeEach(() => {
     repo = makeRepo()
@@ -70,7 +71,8 @@ describe("CareRequestsService", () => {
       { id: "u2", name: "Eli" },
       { id: "u3", name: "Yan" },
     ])
-    service = new CareRequestsService(repo, scope, authContext as unknown as AuthContextService)
+    notifications = { notify: jest.fn().mockResolvedValue(true) }
+    service = new CareRequestsService(repo, scope, authContext as unknown as AuthContextService, notifications as any)
   })
 
   afterEach(() => jest.useRealTimers())
@@ -332,6 +334,63 @@ describe("CareRequestsService", () => {
       repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "elders" }])
       await expect(service.remove(leader, "r1")).rejects.toBeInstanceOf(NotFoundException)
       expect(repo.delete).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("notifications", () => {
+    const withMember = () => {
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      repo.insert.mockResolvedValue({ id: "r1" })
+    }
+
+    it("tells a new owner (not the actor) about the assignment", async () => {
+      withMember()
+      repo.findById.mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan", dueAt: "2026-09-20" }))
+      await service.create(leader, { memberId: "m1", type: "care", body: "x", assignedToUserId: "u3" })
+      expect(notifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "care_request.assigned",
+          orgId: "org-1",
+          recipients: ["u3"],
+          actorUserId: "u1",
+          payload: expect.objectContaining({ memberId: "m1", memberName: "Jo", dueAt: "2026-09-20" }),
+          idempotencyKey: expect.stringMatching(/^care_assigned:r1:/),
+        }),
+      )
+    })
+
+    it("does not notify someone who assigned the request to themselves", async () => {
+      withMember()
+      repo.findById.mockResolvedValue(row())
+      await service.create(leader, { memberId: "m1", type: "care", body: "x" })
+      expect(notifications.notify).not.toHaveBeenCalled()
+    })
+
+    it("notifies on reassignment but not when the owner is unchanged", async () => {
+      repo.findById.mockResolvedValue(row({ assignedToId: "u1" }))
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      await service.update(admin, "r1", { assignedToUserId: "u1" })
+      expect(notifications.notify).not.toHaveBeenCalled()
+      repo.findById.mockResolvedValueOnce(row({ assignedToId: "u1" })).mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan" }))
+      await service.update(admin, "r1", { assignedToUserId: "u3" })
+      expect(notifications.notify).toHaveBeenCalledWith(expect.objectContaining({ type: "care_request.assigned", recipients: ["u3"], actorUserId: "u0" }))
+    })
+
+    it("tells the owner when someone else reopens their request", async () => {
+      repo.findById.mockResolvedValueOnce(row({ status: "closed", assignedToId: "u3", assignedToName: "Yan" })).mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan" }))
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      await service.reopen(admin, "r1")
+      expect(notifications.notify).toHaveBeenCalledWith(expect.objectContaining({ type: "care_request.reopened", recipients: ["u3"] }))
+    })
+
+    it("still saves the request when queuing the notification fails", async () => {
+      withMember()
+      repo.findById.mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan" }))
+      notifications.notify.mockRejectedValue(new Error("db down"))
+      await expect(service.create(leader, { memberId: "m1", type: "care", body: "x", assignedToUserId: "u3" })).resolves.toMatchObject({ id: "r1" })
     })
   })
 })

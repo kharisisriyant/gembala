@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common"
@@ -13,6 +14,8 @@ import type {
   CareRequestUpdateInput,
 } from "@gembala/shared"
 import { addDays, canTransition, careRequestLifecycle, daysBetweenDates, todayInZone } from "@gembala/shared"
+import { randomUUID } from "node:crypto"
+import { NotificationsService } from "../notifications/notifications.service"
 import { AuthContextService } from "../authz/auth-context.service"
 import { ScopeService } from "../authz/scope.service"
 import type { AuthContext } from "../authz/auth-context"
@@ -48,7 +51,35 @@ export class CareRequestsService {
     private readonly requests: CareRequestsRepository,
     private readonly scope: ScopeService,
     private readonly authContext: AuthContextService,
+    private readonly notifications: NotificationsService,
   ) {}
+
+  private readonly logger = new Logger("CareRequests")
+
+  // A failed notification must never fail the care request the user just saved.
+  private async notifySafely(send: () => Promise<unknown>): Promise<void> {
+    try {
+      await send()
+    } catch (err) {
+      this.logger.warn(`notification not queued: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  private notifyAssigned(auth: AuthContext, r: CareRequestResponse): Promise<void> {
+    if (!r.assignedTo || r.assignedTo.id === auth.userId) return Promise.resolve()
+    const recipient = r.assignedTo.id
+    return this.notifySafely(() =>
+      this.notifications.notify({
+        type: "care_request.assigned",
+        orgId: auth.orgId,
+        recipients: [recipient],
+        actorUserId: auth.userId,
+        payload: { memberId: r.memberId, memberName: r.memberName, type: r.type, assignedBy: auth.userName, dueAt: r.dueAt },
+        // One per assignment action (reassigning A to B to A should notify again).
+        idempotencyKey: `care_assigned:${r.id}:${randomUUID()}`,
+      }),
+    )
+  }
 
   // Default follow-up window for a new request.
   static readonly DEFAULT_DUE_DAYS = 7
@@ -118,7 +149,9 @@ export class CareRequestsService {
     if (assignedToUserId !== auth.userId) {
       await this.assertAssignee(auth.orgId, assignedToUserId, tagNames)
     }
-    return this.insert(auth.orgId, { ...input, assignedToUserId }, { source: "leader", userId: auth.userId })
+    const created = await this.insert(auth.orgId, { ...input, assignedToUserId }, { source: "leader", userId: auth.userId })
+    await this.notifyAssigned(auth, created)
+    return created
   }
 
   async openSummary(auth: AuthContext, limit = 5): Promise<CareOpenSummary> {
@@ -225,7 +258,9 @@ export class CareRequestsService {
       assignedToUserId: input.assignedToUserId,
       dueAt: input.dueAt,
     })
-    return this.get(auth, id)
+    const updated = await this.get(auth, id)
+    if (input.assignedToUserId && input.assignedToUserId !== row.assignedToId) await this.notifyAssigned(auth, updated)
+    return updated
   }
 
   async close(auth: AuthContext, id: string, input: CareRequestCloseInput): Promise<CareRequestResponse> {
@@ -249,7 +284,21 @@ export class CareRequestsService {
       closedByUserId: null,
       closeNote: null,
     })
-    return this.get(auth, id)
+    const reopened = await this.get(auth, id)
+    if (reopened.assignedTo && reopened.assignedTo.id !== auth.userId) {
+      const recipient = reopened.assignedTo.id
+      await this.notifySafely(() =>
+        this.notifications.notify({
+          type: "care_request.reopened",
+          orgId: auth.orgId,
+          recipients: [recipient],
+          actorUserId: auth.userId,
+          payload: { memberId: reopened.memberId, memberName: reopened.memberName, type: reopened.type, reopenedBy: auth.userName },
+          idempotencyKey: `care_reopened:${id}:${randomUUID()}`,
+        }),
+      )
+    }
+    return reopened
   }
 
   async remove(auth: AuthContext, id: string): Promise<void> {
