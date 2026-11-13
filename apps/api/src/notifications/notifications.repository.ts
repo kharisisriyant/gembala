@@ -3,11 +3,14 @@ import { and, asc, eq, inArray, isNotNull, isNull, lt, notInArray, or, sql } fro
 import type { DeliveryStatus, NotificationChannel, SkipReason } from "@gembala/shared"
 import { InjectDb, type Db, type Tx } from "../db/drizzle.module"
 import {
+  memberTags,
+  members,
   notificationDeliveries,
   notificationEvents,
   notificationKillSwitches,
   notifications,
   orgMemberships,
+  tags,
   userNotificationPreferences,
   userSettings,
   users,
@@ -73,6 +76,30 @@ export class NotificationsRepository {
       })
       .from(userNotificationPreferences)
       .where(inArray(userNotificationPreferences.userId, userIds))
+  }
+
+  // Tag names of a member in the org, or null when there is no such member.
+  async memberTagNames(orgId: string, memberId: string, tx: Conn = this.db): Promise<string[] | null> {
+    const [member] = await tx.select({ id: members.id }).from(members).where(and(eq(members.id, memberId), eq(members.orgId, orgId)))
+    if (!member) return null
+    const rows = await tx
+      .select({ name: tags.name })
+      .from(memberTags)
+      .innerJoin(tags, eq(tags.id, memberTags.tagId))
+      .where(eq(memberTags.memberId, memberId))
+    return rows.map((r) => r.name)
+  }
+
+  // The org a user's notifications belong to when the event isn't tied to one
+  // (account security). Null when they belong to none.
+  async primaryOrgId(userId: string, tx: Conn = this.db): Promise<string | null> {
+    const [row] = await tx
+      .select({ orgId: orgMemberships.orgId })
+      .from(orgMemberships)
+      .where(eq(orgMemberships.userId, userId))
+      .orderBy(asc(orgMemberships.createdAt))
+      .limit(1)
+    return row?.orgId ?? null
   }
 
   killSwitches(tx: Conn = this.db) {
@@ -154,9 +181,10 @@ export class NotificationsRepository {
 
   async deliveryContext(id: string, tx: Conn = this.db) {
     const [row] = await tx
-      .select({ delivery: notificationDeliveries, notification: notifications })
+      .select({ delivery: notificationDeliveries, notification: notifications, payload: notificationEvents.payload })
       .from(notificationDeliveries)
       .innerJoin(notifications, eq(notifications.id, notificationDeliveries.notificationId))
+      .innerJoin(notificationEvents, eq(notificationEvents.id, notifications.eventId))
       .where(eq(notificationDeliveries.id, id))
     return row ?? null
   }

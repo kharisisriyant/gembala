@@ -8,6 +8,7 @@ import { TelegramAdapter } from "./telegram.adapter"
 import { InAppAdapter } from "./inapp.adapter"
 import { NotificationsDispatcher } from "./notifications.dispatcher"
 import { DeliveryProcessor } from "./notifications.processor"
+import { NotificationAccess } from "./notifications.access"
 import { NotificationsRedis } from "./notifications.redis"
 import { NotificationsQueue } from "./notifications.queue"
 import { NotificationsRepository } from "./notifications.repository"
@@ -21,6 +22,7 @@ export const notificationProviders: Provider[] = [
   NotificationsService,
   DeliveryProcessor,
   NotificationsRedis,
+  NotificationAccess,
   NotificationsQueue,
   NotificationsDispatcher,
   NotificationsRunner,

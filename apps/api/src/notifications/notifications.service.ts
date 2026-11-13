@@ -4,6 +4,7 @@ import { channelEnabled, type NotificationChannel, type SkipReason } from "@gemb
 import { InjectDb, type Db, type Tx } from "../db/drizzle.module"
 import { CHANNEL_ADAPTERS, type ChannelAdapter } from "./notifications.adapter"
 import { NOTIFICATION_CATALOG, catalogByKey, type NotificationType } from "./notifications.catalog"
+import { NotificationAccess } from "./notifications.access"
 import { NotificationsRepository, type EventRow } from "./notifications.repository"
 
 export type NotifyInput = {
@@ -29,6 +30,7 @@ export class NotificationsService {
     @InjectDb() private readonly db: Db,
     @Inject(NOTIFICATION_CATALOG) types: NotificationType[],
     @Inject(CHANNEL_ADAPTERS) adapters: ChannelAdapter[],
+    private readonly access: NotificationAccess,
   ) {
     this.catalog = catalogByKey(types)
     this.adapters = new Map(adapters.map((a) => [a.channel, a]))
@@ -59,6 +61,14 @@ export class NotificationsService {
     return row !== null
   }
 
+  // For account-level events (security) that aren't about one org: files the
+  // notification under the user's primary org. False when they belong to none.
+  async notifyUser(input: Omit<NotifyInput, "orgId" | "recipients"> & { userId: string }, tx: Db | Tx = this.db): Promise<boolean> {
+    const orgId = await this.repo.primaryOrgId(input.userId, tx)
+    if (!orgId) return false
+    return this.notify({ ...input, orgId, recipients: [input.userId] }, tx)
+  }
+
   // Router: expands claimed events into notifications and deliveries. Each event
   // commits on its own so one bad event cannot block the rest. Returns events handled.
   async routePending(): Promise<number> {
@@ -84,7 +94,11 @@ export class NotificationsService {
       return
     }
     const wanted = event.recipientUserIds.filter((id) => id !== event.actorUserId) // RT-1
-    const users = await this.repo.routingUsers(wanted, event.orgId, tx)
+    const members = await this.repo.routingUsers(wanted, event.orgId, tx)
+    const users = []
+    for (const user of members) {
+      if (await this.access.allowed(type.key, user.userId, event.orgId, event.payload)) users.push(user)
+    }
     for (const id of wanted) {
       if (!users.some((u) => u.userId === id)) {
         this.log.log(`skip user=${id} reason=no_access event=${event.id} correlation=${event.correlationId}`)

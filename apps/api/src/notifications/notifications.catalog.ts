@@ -13,6 +13,12 @@ export type RenderedContent = {
 // One registered notification type (NT-1). Producers pass a key; the catalog and
 // the user's preferences decide channels (NT-2). `payload` is validated at
 // notify() time, so bad events are rejected before they are stored (TP-1).
+// Subject checks a type may need at routing and send time (RT-2).
+export interface AccessChecks {
+  // Can this user, as they are now, see the member (role permissions plus tag scope)?
+  memberVisible(userId: string, orgId: string, memberId: string): Promise<boolean>
+}
+
 export type NotificationType<P = any> = {
   key: string
   category: NotificationCategory
@@ -22,12 +28,13 @@ export type NotificationType<P = any> = {
   ttlMs: number
   payload: z.ZodType<P>
   render: (locale: NotificationLocale, payload: P) => RenderedContent
+  // Beyond "still an active member of the org". Failure skips the recipient (D15).
+  canAccess?: (args: { userId: string; orgId: string; payload: P }, access: AccessChecks) => Promise<boolean>
 }
 
 export const NOTIFICATION_CATALOG = Symbol("NOTIFICATION_CATALOG")
 
-// Types register here as producers adopt the pipeline.
-export const notificationTypes: NotificationType[] = []
+export { notificationTypes } from "./notification-types"
 
 export function catalogByKey(types: readonly NotificationType[]): Map<string, NotificationType> {
   const map = new Map<string, NotificationType>()

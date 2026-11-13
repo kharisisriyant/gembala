@@ -18,7 +18,7 @@ const event = (over = {}) => ({
   createdAt: new Date("2026-11-12T00:00:00Z"), ...over,
 })
 
-function setup(opts: { users?: any[]; overrides?: any[]; switches?: any[]; telegramAvailable?: boolean } = {}) {
+function setup(opts: { users?: any[]; overrides?: any[]; switches?: any[]; telegramAvailable?: boolean; allowed?: boolean } = {}) {
   const repo = {
     insertEvent: jest.fn().mockResolvedValue({ id: "e1" }),
     claimUnprocessedEvents: jest.fn().mockResolvedValue([event()]),
@@ -28,6 +28,7 @@ function setup(opts: { users?: any[]; overrides?: any[]; switches?: any[]; teleg
     killSwitches: jest.fn().mockResolvedValue(opts.switches ?? []),
     insertNotification: jest.fn().mockResolvedValue({ id: "n1" }),
     insertDeliveries: jest.fn(),
+    primaryOrgId: jest.fn(),
   }
   // db.transaction runs the callback with a tx that supports savepoints.
   const tx: any = { transaction: async (fn: any) => fn(tx) }
@@ -36,7 +37,8 @@ function setup(opts: { users?: any[]; overrides?: any[]; switches?: any[]; teleg
     { channel: "inapp", available: async () => true, send: jest.fn() },
     { channel: "telegram", available: async () => opts.telegramAvailable ?? true, send: jest.fn() },
   ]
-  const service = new NotificationsService(repo as any, db, [type], adapters as any)
+  const access = { allowed: jest.fn().mockResolvedValue(opts.allowed ?? true) }
+  const service = new NotificationsService(repo as any, db, [type], adapters as any, access as any)
   return { service, repo }
 }
 
@@ -106,6 +108,13 @@ describe("NotificationsService.routePending", () => {
     expect(rows(repo).find((r) => r.channel === "inapp").status).toBe("pending")
   })
 
+  it("creates nothing for recipients who can't see the subject", async () => {
+    const { service, repo } = setup({ allowed: false })
+    await service.routePending()
+    expect(repo.insertNotification).not.toHaveBeenCalled()
+    expect(repo.markEventProcessed).toHaveBeenCalled()
+  })
+
   it("creates nothing for recipients without an active membership", async () => {
     const { service, repo } = setup({ users: [] })
     await service.routePending()
@@ -125,5 +134,21 @@ describe("NotificationsService.routePending", () => {
     repo.insertNotification.mockResolvedValue(null)
     await service.routePending()
     expect(repo.insertDeliveries).not.toHaveBeenCalled()
+  })
+})
+
+describe("NotificationsService.notifyUser", () => {
+  it("files the notification under the user's primary org", async () => {
+    const { service, repo } = setup()
+    repo.primaryOrgId.mockResolvedValue("o9")
+    expect(await service.notifyUser({ type: "test.assigned", userId: "u1", payload: { name: "x" }, idempotencyKey: "k" })).toBe(true)
+    expect(repo.insertEvent.mock.calls[0][0]).toMatchObject({ orgId: "o9", recipientUserIds: ["u1"] })
+  })
+
+  it("does nothing for a user without an org", async () => {
+    const { service, repo } = setup()
+    repo.primaryOrgId.mockResolvedValue(null)
+    expect(await service.notifyUser({ type: "test.assigned", userId: "u1", payload: { name: "x" }, idempotencyKey: "k" })).toBe(false)
+    expect(repo.insertEvent).not.toHaveBeenCalled()
   })
 })

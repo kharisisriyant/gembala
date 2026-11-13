@@ -2,11 +2,12 @@ import { DeliveryProcessor } from "./notifications.processor"
 
 const NOW = new Date("2026-11-12T10:00:00Z")
 const ctx = (over: { delivery?: any; notification?: any } = {}) => ({
+  payload: { memberId: "m1" },
   delivery: { id: "d1", channel: "telegram", status: "queued", correlationId: "c1", ...over.delivery },
   notification: { id: "n1", orgId: "o", userId: "u", typeKey: "t", category: "activity", title: "T", body: "B", link: "/x", expiresAt: new Date("2026-11-12T11:00:00Z"), ...over.notification },
 })
 
-function setup(opts: { ctx?: any; switches?: any[]; users?: any[]; overrides?: any[]; available?: boolean; result?: any } = {}) {
+function setup(opts: { ctx?: any; switches?: any[]; users?: any[]; overrides?: any[]; available?: boolean; result?: any; allowed?: boolean } = {}) {
   const repo = {
     deliveryContext: jest.fn().mockResolvedValue(opts.ctx === undefined ? ctx() : opts.ctx),
     killSwitches: jest.fn().mockResolvedValue(opts.switches ?? []),
@@ -16,7 +17,8 @@ function setup(opts: { ctx?: any; switches?: any[]; users?: any[]; overrides?: a
     finishDelivery: jest.fn().mockResolvedValue(true),
   }
   const adapter = { channel: "telegram", available: jest.fn().mockResolvedValue(opts.available ?? true), send: jest.fn().mockResolvedValue(opts.result ?? { kind: "accepted", providerMessageId: "m1" }) }
-  return { processor: new DeliveryProcessor(repo as any, [adapter] as any), repo, adapter }
+  const access = { allowed: jest.fn().mockResolvedValue(opts.allowed ?? true) }
+  return { processor: new DeliveryProcessor(repo as any, [adapter] as any, access as any), repo, adapter }
 }
 
 const attempt = { made: 1, max: 6 }
@@ -39,6 +41,7 @@ describe("DeliveryProcessor.process", () => {
     ["kill_switch", { switches: [{ typeKey: "t", channel: null }] }],
     ["expired", { ctx: ctx({ notification: { expiresAt: new Date("2026-11-12T09:00:00Z") } }) }],
     ["no_access", { users: [] }],
+    ["no_access", { allowed: false }], // subject no longer visible to the recipient
     ["preference", { overrides: [{ userId: "u", category: "activity", channel: "telegram", enabled: false }] }],
     ["not_connected", { available: false }],
   ])("skips with reason %s without sending", async (reason, opts) => {

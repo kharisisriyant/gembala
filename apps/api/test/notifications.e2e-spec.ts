@@ -14,6 +14,8 @@ import { DigestRepository } from "../src/digest/digest.repository"
 import { PreferencesService } from "../src/notifications/preferences.service"
 import { digestPreferences, userSettings } from "../src/db/schema"
 import { sql } from "drizzle-orm"
+import { AuthContextService } from "../src/authz/auth-context.service"
+import { ScopeService } from "../src/authz/scope.service"
 import { validateEnv } from "../src/config/env"
 import { DRIZZLE, DrizzleModule, type Db } from "../src/db/drizzle.module"
 import { notificationDeliveries, notificationEvents, notifications, orgMemberships, organizations, users } from "../src/db/schema"
@@ -115,7 +117,7 @@ describe("notification pipeline (real Postgres + Redis)", () => {
     })
     const moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, validate: validateEnv }), DrizzleModule],
-      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }, { provide: TelegramService, useValue: { ...fakeTelegram, channelState: async () => "connected" } }, PreferencesService, DigestRepository],
+      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }, { provide: TelegramService, useValue: { ...fakeTelegram, channelState: async () => "connected" } }, PreferencesService, DigestRepository, { provide: AuthContextService, useValue: {} }, { provide: ScopeService, useValue: {} }],
     }).compile()
     app = moduleRef.createNestApplication()
     await app.init()

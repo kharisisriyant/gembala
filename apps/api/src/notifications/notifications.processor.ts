@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import { channelEnabled, type NotificationChannel, type SkipReason } from "@gembala/shared"
 import { CHANNEL_ADAPTERS, type ChannelAdapter } from "./notifications.adapter"
+import { NotificationAccess } from "./notifications.access"
 import { NotificationsRepository } from "./notifications.repository"
 
 export type ProcessOutcome =
@@ -18,6 +19,7 @@ export class DeliveryProcessor {
   constructor(
     private readonly repo: NotificationsRepository,
     @Inject(CHANNEL_ADAPTERS) adapters: ChannelAdapter[],
+    private readonly access: NotificationAccess,
   ) {
     this.adapters = new Map(adapters.map((a) => [a.channel, a]))
   }
@@ -27,7 +29,7 @@ export class DeliveryProcessor {
   async process(deliveryId: string, attempt: { made: number; max: number }, now = new Date()): Promise<ProcessOutcome> {
     const ctx = await this.repo.deliveryContext(deliveryId)
     if (!ctx) return { kind: "done" }
-    const { delivery, notification } = ctx
+    const { delivery, notification, payload } = ctx
     if (!["pending", "queued"].includes(delivery.status)) return { kind: "done" } // duplicate job
     const tag = `delivery=${delivery.id} channel=${delivery.channel} correlation=${delivery.correlationId}`
 
@@ -44,7 +46,9 @@ export class DeliveryProcessor {
     if (notification.expiresAt <= now) return skip("expired")
 
     const users = await this.repo.routingUsers([notification.userId], notification.orgId)
-    if (users.length === 0) return skip("no_access")
+    if (users.length === 0 || !(await this.access.allowed(notification.typeKey, notification.userId, notification.orgId, payload))) {
+      return skip("no_access")
+    }
 
     const overrides = await this.repo.preferenceOverrides([notification.userId])
     if (!channelEnabled(notification.category, delivery.channel, overrides)) return skip("preference")
