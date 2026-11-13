@@ -110,8 +110,8 @@ const inviteAccepted = {
   payload: z.object({ inviteeName: z.string() }),
   render: (l, p) =>
     pick(l, {
-      en: { title: `${p.inviteeName} joined your team`, body: `${p.inviteeName} accepted your invitation and can now sign in.`, link: "/team" },
-      id: { title: `${p.inviteeName} bergabung dengan tim Anda`, body: `${p.inviteeName} menerima undangan Anda dan sekarang dapat masuk.`, link: "/team" },
+      en: { title: `${p.inviteeName} joined your team`, body: `${p.inviteeName} accepted your invitation and can now sign in.`, link: "/settings/team" },
+      id: { title: `${p.inviteeName} bergabung dengan tim Anda`, body: `${p.inviteeName} menerima undangan Anda dan sekarang dapat masuk.`, link: "/settings/team" },
     }),
 } satisfies NotificationType<{ inviteeName: string }>
 
