@@ -144,3 +144,12 @@ export const consentEvents = pgTable(
   },
   (t) => [index("consent_events_user_idx").on(t.userId, t.createdAt)],
 )
+
+// Per-user settings shared across the product. Locale is the one source for
+// notification and digest language (D11); timezone is stored for phase 2.
+export const userSettings = pgTable("user_settings", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  locale: text("locale").notNull().default("id"),
+  timezone: text("timezone").notNull().default("Asia/Jakarta"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+})

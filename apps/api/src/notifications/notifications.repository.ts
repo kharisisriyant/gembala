@@ -3,13 +3,13 @@ import { and, asc, eq, inArray, isNotNull, isNull, lt, notInArray, or, sql } fro
 import type { DeliveryStatus, NotificationChannel, SkipReason } from "@gembala/shared"
 import { InjectDb, type Db, type Tx } from "../db/drizzle.module"
 import {
-  digestPreferences,
   notificationDeliveries,
   notificationEvents,
   notificationKillSwitches,
   notifications,
   orgMemberships,
   userNotificationPreferences,
+  userSettings,
   users,
 } from "../db/schema"
 
@@ -54,10 +54,10 @@ export class NotificationsRepository {
   async routingUsers(userIds: string[], orgId: string, tx: Conn = this.db) {
     if (userIds.length === 0) return []
     const rows = await tx
-      .select({ userId: users.id, locale: digestPreferences.locale })
+      .select({ userId: users.id, locale: userSettings.locale })
       .from(users)
       .innerJoin(orgMemberships, and(eq(orgMemberships.userId, users.id), eq(orgMemberships.orgId, orgId)))
-      .leftJoin(digestPreferences, eq(digestPreferences.userId, users.id))
+      .leftJoin(userSettings, eq(userSettings.userId, users.id))
       .where(and(inArray(users.id, userIds), eq(users.authStatus, "active")))
     return rows.map((r) => ({ userId: r.userId, locale: r.locale === "en" ? ("en" as const) : ("id" as const) }))
   }

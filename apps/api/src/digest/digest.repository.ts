@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { and, eq, lt, or } from "drizzle-orm"
 import { InjectDb, type Db, type Tx } from "../db/drizzle.module"
-import { digestLog, digestPreferences, orgMemberships, users } from "../db/schema"
+import { digestLog, digestPreferences, orgMemberships, userSettings, users } from "../db/schema"
 
 export type DigestRecipient = {
   userId: string
@@ -28,18 +28,25 @@ export class DigestRepository {
         name: users.name,
         email: users.email,
         enabled: digestPreferences.enabled,
-        locale: digestPreferences.locale,
+        locale: userSettings.locale,
       })
       .from(orgMemberships)
       .innerJoin(users, eq(users.id, orgMemberships.userId))
       .leftJoin(digestPreferences, eq(digestPreferences.userId, users.id))
+      .leftJoin(userSettings, eq(userSettings.userId, users.id))
       .where(eq(users.authStatus, "active"))
     return rows.map((r) => ({ ...r, enabled: r.enabled ?? true, locale: r.locale === "en" ? "en" : "id" }))
   }
 
   async findPreferences(userId: string, tx: Db | Tx = this.db) {
-    const [row] = await tx.select().from(digestPreferences).where(eq(digestPreferences.userId, userId))
-    return row
+    const [row] = await tx
+      .select({ enabled: digestPreferences.enabled, locale: userSettings.locale })
+      .from(users)
+      .leftJoin(digestPreferences, eq(digestPreferences.userId, users.id))
+      .leftJoin(userSettings, eq(userSettings.userId, users.id))
+      .where(eq(users.id, userId))
+    // No preferences row yet: let the caller apply defaults.
+    return row && (row.enabled !== null || row.locale !== null) ? { enabled: row.enabled ?? true, locale: row.locale ?? "id" } : undefined
   }
 
   async upsertPreferences(userId: string, prefs: { enabled: boolean; locale: "en" | "id" }, tx: Db | Tx = this.db) {
@@ -47,6 +54,12 @@ export class DigestRepository {
       .insert(digestPreferences)
       .values({ userId, ...prefs })
       .onConflictDoUpdate({ target: digestPreferences.userId, set: { ...prefs, updatedAt: new Date() } })
+    // Locale is shared with notifications, so it lives in user_settings (D11).
+    // digest_preferences.locale is kept in step so the change can be rolled back.
+    await tx
+      .insert(userSettings)
+      .values({ userId, locale: prefs.locale })
+      .onConflictDoUpdate({ target: userSettings.userId, set: { locale: prefs.locale, updatedAt: new Date() } })
   }
 
   // Takes ownership of (user, week) for sending. False when another run already

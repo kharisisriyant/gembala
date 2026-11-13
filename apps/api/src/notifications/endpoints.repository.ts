@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { and, eq, inArray } from "drizzle-orm"
 import { InjectDb, type Db } from "../db/drizzle.module"
-import { channelEndpoints, digestPreferences, notificationDeliveries, notifications, users } from "../db/schema"
+import { channelEndpoints, notificationDeliveries, notifications, userSettings, users } from "../db/schema"
 
 @Injectable()
 export class EndpointsRepository {
@@ -10,9 +10,9 @@ export class EndpointsRepository {
   // The user's email address, locale and whether the provider suppressed it.
   async emailTarget(userId: string) {
     const [row] = await this.db
-      .select({ address: users.email, locale: digestPreferences.locale, status: channelEndpoints.status })
+      .select({ address: users.email, locale: userSettings.locale, status: channelEndpoints.status })
       .from(users)
-      .leftJoin(digestPreferences, eq(digestPreferences.userId, users.id))
+      .leftJoin(userSettings, eq(userSettings.userId, users.id))
       .leftJoin(channelEndpoints, and(eq(channelEndpoints.userId, users.id), eq(channelEndpoints.channel, "email")))
       .where(eq(users.id, userId))
     if (!row) return null

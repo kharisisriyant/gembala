@@ -127,6 +127,13 @@
       "when": 1794547687032,
       "tag": "0017_telegram_revoked_reason",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794548070934,
+      "tag": "0018_user_settings",
+      "breakpoints": true
     }
   ]
 }
