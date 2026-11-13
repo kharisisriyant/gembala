@@ -103,16 +103,21 @@ export class AuthService {
     await this.assertRateLimit(`refresh:${metadata.ipAddress ?? "unknown"}`, this.config.getOrThrow<number>("AUTH_REFRESH_RATE_LIMIT"))
     const token = await this.validRefreshToken(refreshToken)
     if (!csrfToken || sha256(csrfToken) !== token.row.session.csrfTokenHash) throw unauthorized()
-    return this.db.transaction(async (tx) => {
-      if (!(await this.auth.rotateRefreshToken(token.row.refresh.id, tx))) {
-        await this.revokeForReuse(token.row.session.userId, token.row.session.id, metadata, tx); throw unauthorized()
-      }
+    const rotated = await this.db.transaction(async (tx) => {
+      if (!(await this.auth.rotateRefreshToken(token.row.refresh.id, tx))) return null
+
       const id = randomUUID(); const secret = opaqueSecret()
       await this.auth.createRefreshToken({ id, sessionId: token.row.session.id, tokenHash: await argon2.hash(secret), expiresAt: token.row.session.expiresAt }, tx)
       await this.auth.touchSession(token.row.session.id, tx)
       await this.auth.recordSecurityEvent({ type: "refresh_succeeded", userId: token.row.session.userId, sessionId: token.row.session.id, ...metadata }, tx)
       return { response: await this.buildAuthResponse(token.row.session.userId, token.row.session.id), refreshToken: `${id}.${secret}` }
     })
+    if (!rotated) {
+      // Reuse: revoke outside the rotation transaction, which must not roll this back with the 401.
+      await this.revokeForReuse(token.row.session.userId, token.row.session.id, metadata, this.db)
+      throw unauthorized()
+    }
+    return rotated
   }
 
   async logout(userId: string, sessionId: string, metadata: RequestMetadata = {}) { await this.db.transaction(async (tx) => { await this.auth.revokeSession(sessionId, "logout", tx); await this.auth.recordSecurityEvent({ type: "logout", userId, sessionId, ...metadata }, tx) }) }
@@ -169,6 +174,5 @@ export class AuthService {
   }
 
   private async revokeForReuse(userId: string, sessionId: string, metadata: RequestMetadata, tx: Db) { await this.auth.revokeSession(sessionId, "refresh_token_reuse", tx); await this.auth.recordSecurityEvent({ type: "refresh_reuse_detected", userId, sessionId, ...metadata }, tx)
-    // The caller rejects the request, rolling back `tx`; the alert uses its own connection so it still goes out.
-    await this.notifications.notifyUser({ type: "security.refresh_reuse", userId, payload: {}, idempotencyKey: `refresh_reuse:${sessionId}` }).catch(() => undefined) }
+    await this.notifications.notifyUser({ type: "security.refresh_reuse", userId, payload: {}, idempotencyKey: `refresh_reuse:${sessionId}` }, tx) }
 }

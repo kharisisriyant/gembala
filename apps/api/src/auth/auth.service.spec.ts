@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { BadRequestException, ForbiddenException, ConflictException, UnauthorizedException } from "@nestjs/common"
 import * as argon2 from "argon2"
 import { AuthService } from "./auth.service"
@@ -375,6 +376,38 @@ describe("AuthService", () => {
         { type: "invite.accepted", orgId: "org1", recipients: ["boss"], payload: { inviteeName: "Ana" }, idempotencyKey: "invite_accepted:i1" },
         db,
       )
+    })
+  })
+
+  const sha256 = (v: string) => createHash("sha256").update(v).digest("hex")
+
+  describe("refresh token reuse", () => {
+    it("revokes the session outside the rotation transaction and alerts the user when a concurrent rotation wins", async () => {
+      const future = new Date(Date.now() + 60_000)
+      auth.consumeRateLimit.mockResolvedValue(true)
+      ;(argon2.verify as jest.Mock).mockResolvedValue(true)
+      auth.findRefreshToken.mockResolvedValue({
+        refresh: { id: "rt1", tokenHash: "h", expiresAt: future, rotatedAt: null, revokedAt: null },
+        session: { id: "s1", userId: "u1", revokedAt: null, expiresAt: future, csrfTokenHash: sha256("csrf") },
+        user: { authStatus: "active" },
+      } as any)
+      auth.rotateRefreshToken.mockResolvedValue(undefined as any) // someone else rotated it first
+
+      const order: string[] = []
+      db.transaction.mockImplementation(async (cb: any) => {
+        order.push("tx-start")
+        try {
+          return await cb(db)
+        } finally {
+          order.push("tx-end")
+        }
+      })
+      auth.revokeSession.mockImplementation((async () => void order.push("revoke")) as any)
+
+      await expect(service.refresh("rt1.secret", "csrf")).rejects.toThrow("invalid or expired authentication session")
+      expect(order).toEqual(["tx-start", "tx-end", "revoke"]) // revoke happens after the transaction closed
+      expect(auth.revokeSession).toHaveBeenCalledWith("s1", "refresh_token_reuse", db)
+      expect(notifications.notifyUser).toHaveBeenCalledWith(expect.objectContaining({ type: "security.refresh_reuse", userId: "u1" }), db)
     })
   })
 })
