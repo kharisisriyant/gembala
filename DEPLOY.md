@@ -114,7 +114,7 @@ front of `web:8080` and `api:3000` for TLS and to route
 - [ ] `JWT_SECRET` set, unique per environment, not reused from dev
 - [ ] `WEB_ORIGIN` matches the exact web origin (CORS is exact-match, not wildcard)
 - [ ] Resend sender domain verified; `RESEND_API_KEY` and `RESEND_FROM_EMAIL` configured
-- [ ] Email deliverability (EM-2): the sending domain passes SPF, DKIM and DMARC. Check with
+- [ ] Email deliverability (EM-2; the API refuses to boot in production from `@resend.dev`): the sending domain passes SPF, DKIM and DMARC. Check with
       `dig +short TXT <domain>` (v=spf1 includes Resend), `dig +short TXT resend._domainkey.<domain>`
       and `dig +short TXT _dmarc.<domain>`; Resend's domain page must show "Verified"
 - [ ] Resend webhook created for `https://<api>/api/webhooks/resend` (delivered, bounced, complained) and

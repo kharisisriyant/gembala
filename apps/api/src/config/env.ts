@@ -45,6 +45,11 @@ export function validateEnv(config: Record<string, unknown>): Env {
   if (!keys.get(parsed.JWT_ACTIVE_KID) || [...keys.values()].some((secret) => secret.length < 32)) {
     throw new Error("JWT_SIGNING_KEYS must contain the active key and each secret must be at least 32 characters")
   }
+  // Resend's shared onboarding domain can't be authenticated for our brand (SPF/DKIM/DMARC), so mail
+  // from it lands in spam or is rejected. Production must send from a domain verified in Resend.
+  if (parsed.NODE_ENV === "production" && parsed.RESEND_API_KEY && parsed.RESEND_FROM_EMAIL.toLowerCase().endsWith("@resend.dev")) {
+    throw new Error("RESEND_FROM_EMAIL must use a domain verified in Resend in production (not @resend.dev)")
+  }
   if (!parsed.NOTIFICATION_LINK_SECRET) {
     if (parsed.NODE_ENV === "production") throw new Error("NOTIFICATION_LINK_SECRET (32+ chars) is required in production")
     // Dev/test convenience only; signed links made with this are forgeable.
