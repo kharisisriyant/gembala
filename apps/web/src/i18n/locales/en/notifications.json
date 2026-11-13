@@ -1,0 +1,28 @@
+{
+  "title": "Notifications",
+  "subtitle": "Everything sent to you in this church",
+  "empty": "You're all caught up.",
+  "emptyUnread": "No unread notifications.",
+  "markAllRead": "Mark all as read",
+  "markRead": "Mark as read",
+  "markUnread": "Mark as unread",
+  "loadMore": "Load more",
+  "filters": {
+    "all": "All",
+    "unread": "Unread",
+    "category": "Category"
+  },
+  "categories": {
+    "security": "Security",
+    "transactional": "Transactional",
+    "activity": "Activity",
+    "reminder": "Reminders",
+    "product_updates": "Product updates"
+  },
+  "bell": {
+    "label": "Notifications",
+    "unread": "{{count}} unread",
+    "viewAll": "View all notifications"
+  },
+  "unavailable": "This item is no longer available."
+}

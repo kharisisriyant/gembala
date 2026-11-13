@@ -18,6 +18,7 @@ import { TeamPage } from "@/pages/team"
 import { ProfilePage } from "@/pages/profile"
 import { TelegramPage } from "@/pages/telegram"
 import { CareRequestsPage } from "@/pages/care-requests"
+import { NotificationsPage } from "@/pages/notifications"
 import { JourneyPage } from "@/pages/journey"
 import { LoginPage } from "@/pages/auth/login"
 import { RegisterPage } from "@/pages/auth/register"
@@ -47,6 +48,7 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route
             path="/groups"
             element={

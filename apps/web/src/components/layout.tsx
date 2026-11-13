@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
+import { NotificationBell } from "@/components/notification-bell"
 import { ScopeBanner } from "@/components/scope-banner"
 
 export function Layout() {
@@ -20,6 +21,7 @@ export function Layout() {
           <Separator orientation="vertical" className="mr-2 h-6" />
           <ScopeBanner />
           <div className="ml-auto flex items-center gap-2">
+            <NotificationBell />
             <LanguageToggle />
             <ThemeToggle />
           </div>

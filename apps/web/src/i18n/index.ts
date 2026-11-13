@@ -34,6 +34,8 @@ import careRequestsId from "./locales/id/care-requests.json"
 import journeyEn from "./locales/en/journey.json"
 import journeyId from "./locales/id/journey.json"
 
+import notificationsEn from "./locales/en/notifications.json"
+import notificationsId from "./locales/id/notifications.json"
 import legalEn from "./locales/en/legal.json"
 import legalId from "./locales/id/legal.json"
 
@@ -62,6 +64,7 @@ void i18n
         profile: profileEn,
         "care-requests": careRequestsEn,
         journey: journeyEn,
+        notifications: notificationsEn,
       },
       id: {
         auth: authId,
@@ -81,6 +84,7 @@ void i18n
         profile: profileId,
         "care-requests": careRequestsId,
         journey: journeyId,
+        notifications: notificationsId,
       },
     },
     fallbackLng: "id",

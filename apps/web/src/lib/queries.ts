@@ -1,5 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
+  NotificationCategory,
+  NotificationItemResponse,
+  NotificationListResponse,
+  NotificationReadAllResponse,
+  NotificationUnreadCountResponse,
   ChangePasswordInput,
   MeResponse,
   UpdateProfileInput,
@@ -825,5 +830,50 @@ export function useDeleteCourse() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/courses/${id}`, { method: "DELETE" }),
     onSuccess: invalidate,
+  })
+}
+
+// Inbox. Unread count polls every 30s and on window focus (IA-3); live push is phase 2.
+export function useUnreadNotificationCount() {
+  return useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () => apiFetch<NotificationUnreadCountResponse>("/notifications/unread-count"),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useNotifications(filter: { unread?: boolean; category?: NotificationCategory; limit?: number } = {}) {
+  return useInfiniteQuery({
+    queryKey: ["notifications", "list", filter],
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams()
+      if (pageParam) params.set("cursor", pageParam)
+      if (filter.unread) params.set("unread", "true")
+      if (filter.category) params.set("category", filter.category)
+      if (filter.limit) params.set("limit", String(filter.limit))
+      const qs = params.toString()
+      return apiFetch<NotificationListResponse>(`/notifications${qs ? `?${qs}` : ""}`)
+    },
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useSetNotificationRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, read }: { id: string; read: boolean }) =>
+      apiFetch<NotificationItemResponse>(`/notifications/${id}/${read ? "read" : "unread"}`, { method: "PATCH" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["notifications"] }),
+  })
+}
+
+export function useMarkAllNotificationsRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch<NotificationReadAllResponse>("/notifications/read-all", { method: "POST" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["notifications"] }),
   })
 }
