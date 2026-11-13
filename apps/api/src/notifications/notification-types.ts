@@ -147,7 +147,7 @@ const weeklyDigest = {
   key: "digest.weekly",
   category: "reminder",
   priority: "low",
-  defaultChannels: ["email"],
+  defaultChannels: ["email", "telegram"],
   ttlMs: 6 * DAY,
   payload: z.object({ subject: z.string(), text: z.string() }),
   render: (_l, p) => ({ title: p.subject, body: p.text, link: "/dashboard" }),

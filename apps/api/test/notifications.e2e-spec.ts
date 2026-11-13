@@ -415,7 +415,7 @@ describe("notification pipeline (real Postgres + Redis)", () => {
   })
 
   describe("weekly digest through the pipeline", () => {
-    it("goes to email only (Telegram is not a digest channel) and is idempotent per week", async () => {
+    it("goes to every enabled channel (email and Telegram) and is idempotent per week", async () => {
       const payload = { subject: "Your week", text: "Line one\nLine two" }
       const send = () => service.notify({ type: "digest.weekly", orgId, recipients: [bob], payload, idempotencyKey: "digest:bob:2026-11-09" })
       expect(await send()).toBe(true)
@@ -429,9 +429,10 @@ describe("notification pipeline (real Postgres + Redis)", () => {
           .where(eq(notificationEvents.idempotencyKey, "digest:bob:2026-11-09"))
         return r.length > 0 && r.every((x) => !["pending", "queued"].includes(x.status)) ? r : undefined
       })
-      expect(rows.map((r) => r.channel).sort()).toEqual(["email", "inapp"])
+      expect(rows.map((r) => r.channel).sort()).toEqual(["email", "inapp", "telegram"])
       // bob unsubscribed from reminder emails earlier in this suite, so the digest respects that
       expect(rows.find((r) => r.channel === "email")).toMatchObject({ status: "skipped", reason: "preference" })
+      expect(rows.find((r) => r.channel === "telegram")?.status).toBe("sent") // Telegram-linked users keep getting the digest there
     })
   })
 })
