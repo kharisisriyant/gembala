@@ -382,30 +382,29 @@ describe("AuthService", () => {
   const sha256 = (v: string) => createHash("sha256").update(v).digest("hex")
 
   describe("refresh token reuse", () => {
-    it("revokes the session outside the rotation transaction and alerts the user when a concurrent rotation wins", async () => {
-      const future = new Date(Date.now() + 60_000)
+    const sha = (v: string) => createHash("sha256").update(v).digest("hex")
+    const future = new Date(Date.now() + 60_000)
+    const row = (refresh: object = {}) => ({
+      refresh: { id: "rt1", tokenHash: "h", expiresAt: future, rotatedAt: null, revokedAt: null, ...refresh },
+      session: { id: "s1", userId: "u1", revokedAt: null, expiresAt: future, csrfTokenHash: sha("csrf") },
+      user: { authStatus: "active" },
+    })
+    beforeEach(() => {
       auth.consumeRateLimit.mockResolvedValue(true)
       ;(argon2.verify as jest.Mock).mockResolvedValue(true)
-      auth.findRefreshToken.mockResolvedValue({
-        refresh: { id: "rt1", tokenHash: "h", expiresAt: future, rotatedAt: null, revokedAt: null },
-        session: { id: "s1", userId: "u1", revokedAt: null, expiresAt: future, csrfTokenHash: sha256("csrf") },
-        user: { authStatus: "active" },
-      } as any)
-      auth.rotateRefreshToken.mockResolvedValue(undefined as any) // someone else rotated it first
+    })
 
-      const order: string[] = []
-      db.transaction.mockImplementation(async (cb: any) => {
-        order.push("tx-start")
-        try {
-          return await cb(db)
-        } finally {
-          order.push("tx-end")
-        }
-      })
-      auth.revokeSession.mockImplementation((async () => void order.push("revoke")) as any)
-
+    it("a concurrent rotation that loses is rejected without revoking the session or alerting", async () => {
+      auth.findRefreshToken.mockResolvedValue(row() as any)
+      auth.rotateRefreshToken.mockResolvedValue(undefined as any) // the other request rotated it first
       await expect(service.refresh("rt1.secret", "csrf")).rejects.toThrow("invalid or expired authentication session")
-      expect(order).toEqual(["tx-start", "tx-end", "revoke"]) // revoke happens after the transaction closed
+      expect(auth.revokeSession).not.toHaveBeenCalled()
+      expect(notifications.notifyUser).not.toHaveBeenCalled()
+    })
+
+    it("replaying an already-rotated token revokes the session and alerts the user", async () => {
+      auth.findRefreshToken.mockResolvedValue(row({ rotatedAt: new Date() }) as any)
+      await expect(service.refresh("rt1.secret", "csrf")).rejects.toThrow("invalid or expired authentication session")
       expect(auth.revokeSession).toHaveBeenCalledWith("s1", "refresh_token_reuse", db)
       expect(notifications.notifyUser).toHaveBeenCalledWith(expect.objectContaining({ type: "security.refresh_reuse", userId: "u1" }), db)
     })
