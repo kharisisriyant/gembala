@@ -102,6 +102,25 @@ export class NotificationsRepository {
     return row?.orgId ?? null
   }
 
+  async userIdByEmail(email: string, tx: Conn = this.db): Promise<string | null> {
+    const [row] = await tx.select({ id: users.id }).from(users).where(eq(users.email, email.toLowerCase()))
+    return row?.id ?? null
+  }
+
+  listKillSwitches(tx: Conn = this.db) {
+    return tx.select().from(notificationKillSwitches).orderBy(asc(notificationKillSwitches.createdAt))
+  }
+
+  async addKillSwitch(values: { typeKey: string | null; channel: NotificationChannel | null; reason: string }, tx: Conn = this.db) {
+    const [row] = await tx.insert(notificationKillSwitches).values(values).returning()
+    return row
+  }
+
+  async removeKillSwitch(id: string, tx: Conn = this.db) {
+    const rows = await tx.delete(notificationKillSwitches).where(eq(notificationKillSwitches.id, id)).returning({ id: notificationKillSwitches.id })
+    return rows.length > 0
+  }
+
   killSwitches(tx: Conn = this.db) {
     return tx.select({ typeKey: notificationKillSwitches.typeKey, channel: notificationKillSwitches.channel }).from(notificationKillSwitches)
   }

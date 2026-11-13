@@ -159,6 +159,13 @@ export class NotificationsService {
     }
   }
 
+  // Developer preview of a template (TP-8): validates the payload like notify() and renders it.
+  preview(typeKey: string, locale: "en" | "id", payload: unknown) {
+    const type = this.catalog.get(typeKey)
+    if (!type) throw new Error(`Unknown notification type: ${typeKey}`)
+    return { category: type.category, priority: type.priority, channels: type.defaultChannels, ...type.render(locale, type.payload.parse(payload)) }
+  }
+
   purge(now = new Date()) {
     return this.repo.purge(now)
   }

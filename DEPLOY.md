@@ -127,3 +127,17 @@ Images are tagged by commit SHA — redeploy the previous tag for `api`/`web`.
 Migrations are forward-only (Drizzle); a rollback that depends on a schema
 change requires either a compensating migration or restoring the DB from
 backup.
+
+## Notification operations
+
+Operator commands run from the compiled API (`pnpm --filter @gembala/api build`, then
+`pnpm --filter @gembala/api notifications <command>`; in the container,
+`node dist/notifications/cli.js <command>`):
+
+- `replay [channel]` puts failed deliveries back in the queue (a running worker picks them up)
+- `kill list | add [--type KEY] [--channel CH] [--reason TEXT] | remove <id>` is the kill switch,
+  effective immediately and without a deploy. A matching delivery is skipped, not held
+- `preview <type> <en|id> '<json>'` renders a template; `send <type> <email> '<json>'` sends a test to one user
+
+Alert on error log lines from `NotificationDelivery` (they carry `correlation=<id>`). Delivery health
+comes from SQL over `notification_deliveries` (status, error_code, skip_reason by channel).
