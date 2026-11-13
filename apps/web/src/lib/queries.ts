@@ -3,6 +3,8 @@ import type {
   NotificationCategory,
   NotificationItemResponse,
   NotificationListResponse,
+  NotificationPreferencesResponse,
+  NotificationPreferenceUpdateInput,
   NotificationReadAllResponse,
   NotificationUnsubscribePreviewResponse,
   NotificationUnreadCountResponse,
@@ -893,5 +895,21 @@ export function useUnsubscribe() {
   return useMutation({
     mutationFn: (token: string) =>
       apiFetch<void>(`/notifications/unsubscribe?token=${encodeURIComponent(token)}`, { method: "POST" }),
+  })
+}
+
+export function useNotificationPreferences() {
+  return useQuery({
+    queryKey: ["notifications", "preferences"],
+    queryFn: () => apiFetch<NotificationPreferencesResponse>("/notification-preferences"),
+  })
+}
+
+export function useUpdateNotificationPreference() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: NotificationPreferenceUpdateInput) =>
+      apiFetch<NotificationPreferencesResponse>("/notification-preferences", { method: "PUT", body: input }),
+    onSuccess: (grid) => qc.setQueryData(["notifications", "preferences"], grid),
   })
 }

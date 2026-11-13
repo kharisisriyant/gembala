@@ -37,5 +37,34 @@
     "connect": "Hubungkan Telegram",
     "orSend": "Atau kirim kodenya secara manual:",
     "disconnected": "Telegram terputus karena bot diblokir. Hubungkan lagi untuk melanjutkan notifikasi."
+  },
+  "preferences": {
+    "title": "Preferensi notifikasi",
+    "subtitle": "Pilih apa yang sampai kepada Anda dan lewat mana.",
+    "category": "Kategori",
+    "channels": {
+      "inapp": "Dalam aplikasi",
+      "email": "Email",
+      "telegram": "Telegram"
+    },
+    "categories": {
+      "security": "Keamanan",
+      "transactional": "Transaksional",
+      "activity": "Aktivitas",
+      "reminder": "Pengingat",
+      "product_updates": "Pembaruan produk"
+    },
+    "locked": {
+      "inapp": "Kotak masuk selalu mencatat semua notifikasi.",
+      "security": "Peringatan keamanan tidak bisa dimatikan.",
+      "default": "Pengaturan ini tidak bisa diubah."
+    },
+    "notConnected": "Belum terhubung",
+    "disconnected": "Terputus",
+    "connect": "Hubungkan",
+    "reconnect": "Hubungkan ulang",
+    "emailBounced": "Kami tidak bisa mengirim ke {{address}}, sehingga notifikasi email dijeda. Periksa alamatnya atau hubungi admin.",
+    "saved": "Preferensi disimpan",
+    "telegramNote": "Pesan Telegram berupa ringkasan singkat dengan tautan kembali ke Gembala."
   }
 }

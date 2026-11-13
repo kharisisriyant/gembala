@@ -4,7 +4,8 @@
   "tabs": {
     "profile": "Profil",
     "roles": "Peran & akses",
-    "security": "Keamanan"
+    "security": "Keamanan",
+    "notifications": "Notifikasi"
   },
   "profile": {
     "title": "Data akun",

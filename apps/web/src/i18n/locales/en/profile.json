@@ -4,7 +4,8 @@
   "tabs": {
     "profile": "Profile",
     "roles": "Roles & access",
-    "security": "Security"
+    "security": "Security",
+    "notifications": "Notifications"
   },
   "profile": {
     "title": "Account details",

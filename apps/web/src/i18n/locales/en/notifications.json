@@ -37,5 +37,34 @@
     "connect": "Connect Telegram",
     "orSend": "Or send the code manually:",
     "disconnected": "Telegram was disconnected because the bot was blocked. Connect again to resume notifications."
+  },
+  "preferences": {
+    "title": "Notification preferences",
+    "subtitle": "Choose what reaches you and where.",
+    "category": "Category",
+    "channels": {
+      "inapp": "In-app",
+      "email": "Email",
+      "telegram": "Telegram"
+    },
+    "categories": {
+      "security": "Security",
+      "transactional": "Transactional",
+      "activity": "Activity",
+      "reminder": "Reminders",
+      "product_updates": "Product updates"
+    },
+    "locked": {
+      "inapp": "The inbox always records every notification.",
+      "security": "Security alerts can't be turned off.",
+      "default": "This setting can't be changed."
+    },
+    "notConnected": "Not connected",
+    "disconnected": "Disconnected",
+    "connect": "Connect",
+    "reconnect": "Reconnect",
+    "emailBounced": "We couldn't deliver to {{address}}, so email notifications are paused. Check the address or contact an admin.",
+    "saved": "Preference saved",
+    "telegramNote": "Telegram messages are short summaries with a link back to Gembala."
   }
 }

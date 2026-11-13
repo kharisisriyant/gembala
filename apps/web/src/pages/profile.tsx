@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { KeyRound, ShieldCheck, UserRound } from "lucide-react"
+import { Bell, KeyRound, ShieldCheck, UserRound } from "lucide-react"
 import { permissionResourceSchema } from "@gembala/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { NotificationPreferences } from "@/components/notification-preferences"
 import { MemberAvatar } from "@/components/member-avatar"
 import { PageHeader } from "@/components/page-header"
 import { useAuth } from "@/lib/auth"
@@ -18,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { DigestLocale } from "@gembala/shared"
 
-const TABS = ["profile", "roles", "security"] as const
+const TABS = ["profile", "roles", "notifications", "security"] as const
 type Tab = (typeof TABS)[number]
 
 export function ProfilePage() {
@@ -38,6 +39,9 @@ export function ProfilePage() {
           <TabsTrigger value="roles">
             <ShieldCheck className="size-4" /> {t("tabs.roles")}
           </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <Bell className="size-4" /> {t("tabs.notifications")}
+          </TabsTrigger>
           <TabsTrigger value="security">
             <KeyRound className="size-4" /> {t("tabs.security")}
           </TabsTrigger>
@@ -50,6 +54,9 @@ export function ProfilePage() {
         </TabsContent>
         <TabsContent value="roles" className="mt-4">
           <RolesCard />
+        </TabsContent>
+        <TabsContent value="notifications" className="mt-4">
+          <NotificationPreferences />
         </TabsContent>
         <TabsContent value="security" className="mt-4">
           <PasswordCard />
