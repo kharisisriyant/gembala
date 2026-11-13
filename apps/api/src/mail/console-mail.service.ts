@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common"
-import { MailService } from "./mail.service"
+import { MailService, type NotificationMail } from "./mail.service"
 
 // Dev mailer: logs the links instead of sending email. Swap the provider in
 // mail.module.ts for a real implementation (Resend, SMTP, ...) later.
@@ -17,5 +17,10 @@ export class ConsoleMailService extends MailService {
 
   async sendWeeklyDigest(to: string, message: { subject: string; text: string }): Promise<void> {
     this.logger.log(`\n┌─ Weekly digest for ${to}: ${message.subject}\n${message.text}`)
+  }
+
+  async sendNotification(to: string, message: NotificationMail): Promise<{ id?: string }> {
+    this.logger.log(`\n┌─ Notification for ${to}: ${message.subject}\n${message.text}`)
+    return {}
   }
 }
