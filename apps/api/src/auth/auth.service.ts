@@ -8,6 +8,7 @@ import { InjectDb, type Db } from "../db/drizzle.module"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthContextService } from "../authz/auth-context.service"
 import { MailService } from "../mail/mail.service"
+import { NotificationsService } from "../notifications/notifications.service"
 import { AuthRepository, type RequestMetadata } from "./auth.repository"
 
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex")
@@ -19,7 +20,7 @@ export type AuthenticatedSession = { response: AuthResponse; refreshToken: strin
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectDb() private readonly db: Db, private readonly auth: AuthRepository, private readonly jwt: JwtService, private readonly config: ConfigService, private readonly mail: MailService, private readonly authContext: AuthContextService) {}
+  constructor(@InjectDb() private readonly db: Db, private readonly auth: AuthRepository, private readonly jwt: JwtService, private readonly config: ConfigService, private readonly mail: MailService, private readonly authContext: AuthContextService, private readonly notifications: NotificationsService) {}
 
   private keys(): Map<string, string> {
     const keys = new Map(this.config.getOrThrow<string>("JWT_SIGNING_KEYS").split(",").map((entry) => {
@@ -121,7 +122,7 @@ export class AuthService {
   async changePassword(userId: string, input: ChangePasswordInput, metadata: RequestMetadata = {}): Promise<void> {
     const user = await this.auth.findUserById(userId); if (!user) throw new UnauthorizedException("user no longer exists")
     if (!(await argon2.verify(user.passwordHash, input.currentPassword))) throw new BadRequestException("current password is incorrect")
-    await this.db.transaction(async (tx) => { await this.auth.updateUserPasswordHash(userId, await argon2.hash(input.newPassword), tx); await this.auth.burnPasswordResetTokensForUser(userId, tx); await this.auth.revokeSessionsForUser(userId, "password_changed", tx); await this.auth.recordSecurityEvent({ type: "password_changed", userId, ...metadata }, tx) })
+    await this.db.transaction(async (tx) => { await this.auth.updateUserPasswordHash(userId, await argon2.hash(input.newPassword), tx); await this.auth.burnPasswordResetTokensForUser(userId, tx); await this.auth.revokeSessionsForUser(userId, "password_changed", tx); await this.auth.recordSecurityEvent({ type: "password_changed", userId, ...metadata }, tx); await this.notifications.notifyUser({ type: "security.password_changed", userId, payload: {}, idempotencyKey: `password_changed:${randomUUID()}` }, tx) })
   }
 
   async forgotPassword(email: string, metadata: RequestMetadata = {}): Promise<void> {
@@ -141,7 +142,7 @@ export class AuthService {
   async acceptInvite(input: AcceptInviteInput, metadata: RequestMetadata = {}): Promise<AuthenticatedSession> {
     const invite = await this.auth.findInviteByTokenHash(sha256(input.token)); if (!invite || invite.revokedAt || invite.acceptedAt || invite.expiresAt < new Date()) throw new UnauthorizedException("invalid or expired invite")
     const email = invite.email.toLowerCase(); if (await this.auth.findUserIdByEmail(email)) throw new ConflictException("this email already has an account")
-    const userId = await this.db.transaction(async (tx) => { const user = await this.auth.insertUser({ email, name: input.name, passwordHash: await argon2.hash(input.password) }, tx); const membership = await this.auth.insertMembership(invite.orgId, user.id, tx); await this.auth.insertMembershipScopeTags(membership.id, (await this.auth.inviteScopeTagIds(invite.id, tx)).map((row) => row.tagId), tx); await this.auth.insertMembershipRoles(membership.id, (await this.auth.inviteRoleIds(invite.id, tx)).map((row) => row.roleId), tx); await this.auth.markInviteAccepted(invite.id, tx); return user.id })
+    const userId = await this.db.transaction(async (tx) => { const user = await this.auth.insertUser({ email, name: input.name, passwordHash: await argon2.hash(input.password) }, tx); const membership = await this.auth.insertMembership(invite.orgId, user.id, tx); await this.auth.insertMembershipScopeTags(membership.id, (await this.auth.inviteScopeTagIds(invite.id, tx)).map((row) => row.tagId), tx); await this.auth.insertMembershipRoles(membership.id, (await this.auth.inviteRoleIds(invite.id, tx)).map((row) => row.roleId), tx); await this.auth.markInviteAccepted(invite.id, tx); if (invite.invitedBy) await this.notifications.notify({ type: "invite.accepted", orgId: invite.orgId, recipients: [invite.invitedBy], payload: { inviteeName: input.name }, idempotencyKey: `invite_accepted:${invite.id}` }, tx); return user.id })
     return this.issueSession(userId, metadata)
   }
 
@@ -167,5 +168,7 @@ export class AuthService {
     return { row }
   }
 
-  private async revokeForReuse(userId: string, sessionId: string, metadata: RequestMetadata, tx: Db) { await this.auth.revokeSession(sessionId, "refresh_token_reuse", tx); await this.auth.recordSecurityEvent({ type: "refresh_reuse_detected", userId, sessionId, ...metadata }, tx) }
+  private async revokeForReuse(userId: string, sessionId: string, metadata: RequestMetadata, tx: Db) { await this.auth.revokeSession(sessionId, "refresh_token_reuse", tx); await this.auth.recordSecurityEvent({ type: "refresh_reuse_detected", userId, sessionId, ...metadata }, tx)
+    // The caller rejects the request, rolling back `tx`; the alert uses its own connection so it still goes out.
+    await this.notifications.notifyUser({ type: "security.refresh_reuse", userId, payload: {}, idempotencyKey: `refresh_reuse:${sessionId}` }).catch(() => undefined) }
 }

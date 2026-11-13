@@ -53,6 +53,7 @@ describe("AuthService", () => {
   let jwt: jest.Mocked<JwtService>
   let config: jest.Mocked<ConfigService>
   let mail: jest.Mocked<MailService>
+  let notifications: { notifyUser: jest.Mock; notify: jest.Mock }
   let authContext: jest.Mocked<AuthContextService>
   let db: jest.Mocked<Db>
   let service: AuthService
@@ -78,7 +79,8 @@ describe("AuthService", () => {
     mail = { sendPasswordReset: jest.fn(), sendInvite: jest.fn() } as any
     authContext = { load: jest.fn() } as any
     db = { transaction: jest.fn((cb: any) => cb(db)) } as any
-    service = new AuthService(db, auth, jwt, config, mail, authContext)
+    notifications = { notifyUser: jest.fn().mockResolvedValue(true), notify: jest.fn().mockResolvedValue(true) }
+    service = new AuthService(db, auth, jwt, config, mail, authContext, notifications as any)
     ;(argon2.hash as jest.Mock).mockResolvedValue("hashed")
     ;(argon2.verify as jest.Mock).mockResolvedValue(true)
   })
@@ -248,6 +250,15 @@ describe("AuthService", () => {
       expect(auth.updateUserPasswordHash).toHaveBeenCalledWith("u1", "hashed", db)
       expect(auth.burnPasswordResetTokensForUser).toHaveBeenCalledWith("u1", db)
     })
+
+    it("queues a security notification in the same transaction", async () => {
+      auth.findUserById.mockResolvedValue({ id: "u1", passwordHash: "old" } as any)
+      await service.changePassword("u1", { currentPassword: "old", newPassword: "newpassword" })
+      expect(notifications.notifyUser).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "security.password_changed", userId: "u1", payload: {} }),
+        db,
+      )
+    })
   })
 
   describe("changePassword", () => {
@@ -348,6 +359,22 @@ describe("AuthService", () => {
       expect(auth.insertMembershipScopeTags).toHaveBeenCalledWith("m1", ["t1"], db)
       expect(auth.insertMembershipRoles).toHaveBeenCalledWith("m1", ["r1"], db)
       expect(auth.markInviteAccepted).toHaveBeenCalledWith("i1", db)
+      expect(notifications.notify).not.toHaveBeenCalled() // invite had no inviter
+    })
+
+    it("tells the inviter when the invite is accepted", async () => {
+      auth.findInviteByTokenHash.mockResolvedValue({ id: "i1", email: "a@x.com", revokedAt: null, acceptedAt: null, expiresAt: new Date(Date.now() + 1000), orgId: "org1", invitedBy: "boss" } as any)
+      auth.findUserIdByEmail.mockResolvedValue(undefined as any)
+      auth.insertUser.mockResolvedValue({ id: "u1" } as any)
+      auth.insertMembership.mockResolvedValue({ id: "m1" } as any)
+      auth.inviteScopeTagIds.mockResolvedValue([] as any)
+      auth.inviteRoleIds.mockResolvedValue([] as any)
+      authContext.load.mockResolvedValue({ userId: "u1", userName: "A", userEmail: "a@x.com", orgId: "org1", orgName: "Org", roles: [], isSystemAdmin: false, permissions: [], scopeTagNames: [] } as any)
+      await service.acceptInvite({ token: "t", name: "Ana", password: "pw" } as any)
+      expect(notifications.notify).toHaveBeenCalledWith(
+        { type: "invite.accepted", orgId: "org1", recipients: ["boss"], payload: { inviteeName: "Ana" }, idempotencyKey: "invite_accepted:i1" },
+        db,
+      )
     })
   })
 })
