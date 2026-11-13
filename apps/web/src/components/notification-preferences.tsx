@@ -50,7 +50,7 @@ export function NotificationPreferences() {
                     </Badge>
                     {channel === "telegram" && (
                       <Button asChild variant="link" size="sm" className="h-auto p-0">
-                        <Link to="/telegram">{state(channel) === "disconnected" ? t("preferences.reconnect") : t("preferences.connect")}</Link>
+                        <Link to="/settings/telegram">{state(channel) === "disconnected" ? t("preferences.reconnect") : t("preferences.connect")}</Link>
                       </Button>
                     )}
                   </div>
