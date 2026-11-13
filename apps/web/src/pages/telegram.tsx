@@ -1,4 +1,5 @@
 import { CheckCircle2, Send } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -7,6 +8,7 @@ import { PageHeader } from "@/components/page-header"
 import { useTelegramLink, useUnlinkTelegram } from "@/lib/queries"
 
 export function TelegramPage() {
+  const { t } = useTranslation("notifications")
   const { data, isLoading } = useTelegramLink()
   const unlink = useUnlinkTelegram()
 
@@ -54,6 +56,18 @@ export function TelegramPage() {
             </div>
           ) : (
             <div>
+              {data.disconnected && (
+                <p role="alert" className="text-destructive mb-3 text-sm">
+                  {t("telegram.disconnected")}
+                </p>
+              )}
+              {data.botUsername && (
+                <Button asChild className="mb-3">
+                  <a href={`https://t.me/${data.botUsername}?start=${data.code}`} target="_blank" rel="noreferrer">
+                    <Send className="size-4" /> {t("telegram.connect")}
+                  </a>
+                </Button>
+              )}
               {!data.botConfigured && (
                 <p className="text-muted-foreground mb-3 text-sm">
                   The bot isn't connected yet — check back later.
@@ -65,7 +79,7 @@ export function TelegramPage() {
                   : "Send the code below to the bot on Telegram once it's connected."}
               </p>
               <div className="bg-muted/40 rounded-lg border p-4">
-                <p className="text-muted-foreground mb-1 text-xs">Your one-time code</p>
+                <p className="text-muted-foreground mb-1 text-xs">{data.botUsername ? t("telegram.orSend") : "Your one-time code"}</p>
                 <p className="font-mono text-2xl font-bold tracking-widest">{data.code}</p>
                 <p className="text-muted-foreground mt-2 text-xs">
                   Send: /link {data.code} — expires {new Date(data.expiresAt).toLocaleTimeString()}

@@ -32,5 +32,10 @@
     "done": "You've been unsubscribed from {{category}} emails.",
     "invalid": "This unsubscribe link is not valid or has been changed.",
     "manage": "Manage all notification preferences"
+  },
+  "telegram": {
+    "connect": "Connect Telegram",
+    "orSend": "Or send the code manually:",
+    "disconnected": "Telegram was disconnected because the bot was blocked. Connect again to resume notifications."
   }
 }

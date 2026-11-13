@@ -32,5 +32,10 @@
     "done": "Anda sudah berhenti berlangganan email {{category}}.",
     "invalid": "Tautan ini tidak valid atau sudah diubah.",
     "manage": "Kelola semua preferensi notifikasi"
+  },
+  "telegram": {
+    "connect": "Hubungkan Telegram",
+    "orSend": "Atau kirim kodenya secara manual:",
+    "disconnected": "Telegram terputus karena bot diblokir. Hubungkan lagi untuk melanjutkan notifikasi."
   }
 }
