@@ -30,6 +30,8 @@ environment that points at a different API host (staging vs production).
 | `RESEND_API_KEY` | `re_...` API key from Resend |
 | `RESEND_FROM_EMAIL` | `noreply@example.com` — address at a Resend-verified domain |
 | `RESEND_FROM_NAME` | `Gembala` |
+| `REDIS_URL` | `redis://redis:6379` (compose service by default; managed Redis works by changing this only) |
+| `NOTIFICATIONS_WORKERS` | `true` to run the notification relay and workers in this process |
 
 **web (build-time only)**
 

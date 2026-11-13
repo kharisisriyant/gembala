@@ -22,6 +22,8 @@ export const envSchema = z.object({
   TELEGRAM_BOT_USERNAME: z.string().optional(),
   TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   TELEGRAM_WEBHOOK_URL: z.string().url().optional(),
+  REDIS_URL: z.string().url().optional(),
+  NOTIFICATIONS_WORKERS: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().optional(),
 })
@@ -39,6 +41,9 @@ export function validateEnv(config: Record<string, unknown>): Env {
   }))
   if (!keys.get(parsed.JWT_ACTIVE_KID) || [...keys.values()].some((secret) => secret.length < 32)) {
     throw new Error("JWT_SIGNING_KEYS must contain the active key and each secret must be at least 32 characters")
+  }
+  if (parsed.NOTIFICATIONS_WORKERS && !parsed.REDIS_URL) {
+    throw new Error("NOTIFICATIONS_WORKERS=true requires REDIS_URL")
   }
   return parsed
 }

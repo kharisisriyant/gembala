@@ -10,6 +10,15 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  # Queue only; Postgres stays the source of truth. noeviction + AOF so queued jobs
+  # are never evicted or lost on restart. Swap for managed Redis via REDIS_URL.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+
   api:
     build:
       context: .
@@ -29,11 +38,15 @@ services:
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
       TELEGRAM_WEBHOOK_URL: ${TELEGRAM_WEBHOOK_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      NOTIFICATIONS_WORKERS: ${NOTIFICATIONS_WORKERS:-true}
     ports:
       - "4000:3000"
     depends_on:
       migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_started
 
   web:
     build:
@@ -46,3 +59,6 @@ services:
       - "4001:80"
     depends_on:
       - api
+
+volumes:
+  redisdata:
