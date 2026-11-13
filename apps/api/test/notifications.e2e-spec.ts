@@ -413,4 +413,25 @@ describe("notification pipeline (real Postgres + Redis)", () => {
       expect(await titles(bob)).toEqual([])
     })
   })
+
+  describe("weekly digest through the pipeline", () => {
+    it("goes to email only (Telegram is not a digest channel) and is idempotent per week", async () => {
+      const payload = { subject: "Your week", text: "Line one\nLine two" }
+      const send = () => service.notify({ type: "digest.weekly", orgId, recipients: [bob], payload, idempotencyKey: "digest:bob:2026-11-09" })
+      expect(await send()).toBe(true)
+      expect(await send()).toBe(false)
+      const rows = await until(async () => {
+        const r = await db
+          .select({ channel: notificationDeliveries.channel, status: notificationDeliveries.status, reason: notificationDeliveries.skipReason })
+          .from(notificationDeliveries)
+          .innerJoin(notifications, eq(notifications.id, notificationDeliveries.notificationId))
+          .innerJoin(notificationEvents, eq(notificationEvents.id, notifications.eventId))
+          .where(eq(notificationEvents.idempotencyKey, "digest:bob:2026-11-09"))
+        return r.length > 0 && r.every((x) => !["pending", "queued"].includes(x.status)) ? r : undefined
+      })
+      expect(rows.map((r) => r.channel).sort()).toEqual(["email", "inapp"])
+      // bob unsubscribed from reminder emails earlier in this suite, so the digest respects that
+      expect(rows.find((r) => r.channel === "email")).toMatchObject({ status: "skipped", reason: "preference" })
+    })
+  })
 })

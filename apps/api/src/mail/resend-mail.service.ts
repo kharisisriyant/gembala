@@ -43,10 +43,6 @@ export class ResendMailService extends MailService {
     })
   }
 
-  async sendWeeklyDigest(to: string, message: { subject: string; text: string; html: string }): Promise<void> {
-    await this.send({ to, ...message })
-  }
-
   async sendNotification(to: string, message: NotificationMail): Promise<{ id?: string }> {
     let result: Awaited<ReturnType<Resend["emails"]["send"]>>
     try {

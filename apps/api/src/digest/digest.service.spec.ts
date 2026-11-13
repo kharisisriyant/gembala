@@ -7,7 +7,7 @@ const adminAuth = { ...leaderAuth, userId: "u0", isSystemAdmin: true }
 const recipient = (over = {}) => ({ userId: "u1", orgId: "o", name: "Andrew", email: "a@x.test", enabled: true, locale: "en" as const, ...over })
 const NOW = new Date("2026-11-08T23:30:00Z") // Mon 9 Nov 06:30 in Jakarta
 
-function setup(opts: { items?: any; telegram?: boolean; claim?: boolean; recipients?: any[] } = {}) {
+function setup(opts: { items?: any; claim?: boolean; recipients?: any[] } = {}) {
   const repo = {
     recipients: jest.fn().mockResolvedValue(opts.recipients ?? [recipient()]),
     claim: jest.fn().mockResolvedValue(opts.claim ?? true),
@@ -18,11 +18,10 @@ function setup(opts: { items?: any; telegram?: boolean; claim?: boolean; recipie
   const attention = { forUser: jest.fn().mockResolvedValue(opts.items ?? busy) }
   const care = { openSummary: jest.fn().mockResolvedValue({ byOwner: [], unassigned: 0, ownerCannotSee: 0, longestOverdue: [] }) }
   const authContext = { load: jest.fn(async (id: string) => (id === "u0" ? adminAuth : leaderAuth)) }
-  const telegram = { sendToUser: jest.fn().mockResolvedValue(opts.telegram ?? false) }
-  const mail = { sendWeeklyDigest: jest.fn() }
+  const notifications = { notify: jest.fn().mockResolvedValue(true) }
   const config = { getOrThrow: jest.fn().mockReturnValue("https://app.test") }
-  const service = new DigestService(repo as any, attention as any, care as any, authContext as any, telegram as any, mail as any, config as any)
-  return { service, repo, attention, care, telegram, mail }
+  const service = new DigestService(repo as any, attention as any, care as any, authContext as any, notifications as any, config as any)
+  return { service, repo, attention, care, notifications }
 }
 
 describe("weekStartOf", () => {
@@ -41,33 +40,30 @@ describe("DigestService.runWeekly", () => {
     expect(repo.claim).toHaveBeenCalledWith("u1", "2026-11-09")
   })
 
-  it("sends by email when Telegram is not linked, and records it", async () => {
-    const { service, mail, repo } = setup({ telegram: false })
+  it("hands the digest to the notification pipeline with an idempotency key, and records it", async () => {
+    const { service, notifications, repo } = setup()
     expect(await service.runWeekly(NOW)).toBe(1)
-    expect(mail.sendWeeklyDigest).toHaveBeenCalledWith("a@x.test", expect.objectContaining({ subject: expect.any(String) }))
-    expect(repo.markSent).toHaveBeenCalledWith("u1", "2026-11-09", "email")
-  })
-
-  it("prefers Telegram and does not also email", async () => {
-    const { service, mail, repo } = setup({ telegram: true })
-    await service.runWeekly(NOW)
-    expect(mail.sendWeeklyDigest).not.toHaveBeenCalled()
-    expect(repo.markSent).toHaveBeenCalledWith("u1", "2026-11-09", "telegram")
+    expect(notifications.notify).toHaveBeenCalledWith({
+      type: "digest.weekly",
+      orgId: "o",
+      recipients: ["u1"],
+      payload: { subject: expect.any(String), text: expect.stringContaining("Budi") },
+      idempotencyKey: "digest:u1:2026-11-09",
+    })
+    expect(repo.markSent).toHaveBeenCalledWith("u1", "2026-11-09")
   })
 
   it("sends nothing and writes no log row when there is nothing to report", async () => {
-    const { service, repo, mail, telegram } = setup({ items: empty })
+    const { service, repo, notifications } = setup({ items: empty })
     expect(await service.runWeekly(NOW)).toBe(0)
     expect(repo.claim).not.toHaveBeenCalled()
-    expect(mail.sendWeeklyDigest).not.toHaveBeenCalled()
-    expect(telegram.sendToUser).not.toHaveBeenCalled()
+    expect(notifications.notify).not.toHaveBeenCalled()
   })
 
   it("skips a week that was already sent or is being sent", async () => {
-    const { service, mail, telegram } = setup({ claim: false })
+    const { service, notifications } = setup({ claim: false })
     expect(await service.runWeekly(NOW)).toBe(0)
-    expect(mail.sendWeeklyDigest).not.toHaveBeenCalled()
-    expect(telegram.sendToUser).not.toHaveBeenCalled()
+    expect(notifications.notify).not.toHaveBeenCalled()
   })
 
   it("skips users who turned the digest off", async () => {
@@ -77,29 +73,29 @@ describe("DigestService.runWeekly", () => {
   })
 
   it("marks a failed delivery and keeps going with the next user", async () => {
-    const { service, repo, mail } = setup({ recipients: [recipient(), recipient({ userId: "u2", email: "b@x.test" })] })
-    mail.sendWeeklyDigest.mockRejectedValueOnce(new Error("resend down")).mockResolvedValueOnce(undefined)
+    const { service, repo, notifications } = setup({ recipients: [recipient(), recipient({ userId: "u2", email: "b@x.test" })] })
+    notifications.notify.mockRejectedValueOnce(new Error("db down")).mockResolvedValueOnce(true)
     expect(await service.runWeekly(NOW)).toBe(1)
-    expect(repo.markFailed).toHaveBeenCalledWith("u1", "2026-11-09", "resend down")
-    expect(repo.markSent).toHaveBeenCalledWith("u2", "2026-11-09", "email")
+    expect(repo.markFailed).toHaveBeenCalledWith("u1", "2026-11-09", "db down")
+    expect(repo.markSent).toHaveBeenCalledWith("u2", "2026-11-09")
   })
 
   it("gives admins the summary variant", async () => {
-    const { service, care, mail } = setup({ recipients: [recipient({ userId: "u0" })], items: empty })
+    const { service, care, notifications } = setup({ recipients: [recipient({ userId: "u0" })], items: empty })
     care.openSummary.mockResolvedValue({ byOwner: [{ name: "Lea", open: 1, overdue: 1 }], unassigned: 0, ownerCannotSee: 0, longestOverdue: [] })
     await service.runWeekly(NOW)
     expect(care.openSummary).toHaveBeenCalledWith(adminAuth)
-    expect(mail.sendWeeklyDigest).toHaveBeenCalledWith("a@x.test", expect.objectContaining({ text: expect.stringContaining("team summary") }))
+    expect(notifications.notify).toHaveBeenCalledWith(expect.objectContaining({ payload: expect.objectContaining({ text: expect.stringContaining("team summary") }) }))
   })
 })
 
 describe("DigestService.preview", () => {
   it("renders without sending and without claiming", async () => {
-    const { service, repo, mail } = setup()
+    const { service, repo, notifications } = setup()
     const res = await service.preview(leaderAuth, NOW)
     expect(res).toMatchObject({ kind: "personal", empty: false })
     expect(res.text).toContain("Budi")
     expect(repo.claim).not.toHaveBeenCalled()
-    expect(mail.sendWeeklyDigest).not.toHaveBeenCalled()
+    expect(notifications.notify).not.toHaveBeenCalled()
   })
 })

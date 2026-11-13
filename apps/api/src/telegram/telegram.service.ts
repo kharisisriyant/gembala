@@ -217,12 +217,6 @@ export class TelegramService implements OnModuleInit {
     return { kind: "permanent", code: String(res.status) }
   }
 
-  // Outbound push for the weekly digest. False = not delivered, so the caller
-  // can fall back to another channel.
-  async sendToUser(userId: string, text: string): Promise<boolean> {
-    return (await this.pushToUser(userId, { text })).kind === "sent"
-  }
-
   private async reply(chatId: string, text: string, opts?: { markdown?: boolean }): Promise<void> {
     if (!this.token) return
     await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {

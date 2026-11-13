@@ -5,8 +5,7 @@ import { AttentionService } from "../attention/attention.service"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthContextService } from "../authz/auth-context.service"
 import { CareRequestsService } from "../care-requests/care-requests.service"
-import { MailService } from "../mail/mail.service"
-import { TelegramService } from "../telegram/telegram.service"
+import { NotificationsService } from "../notifications/notifications.service"
 import { DigestRepository, type DigestRecipient } from "./digest.repository"
 import { isEmptyDigest, renderDigest, type DigestData } from "./digest.render"
 
@@ -25,8 +24,7 @@ export class DigestService {
     private readonly attention: AttentionService,
     private readonly care: CareRequestsService,
     private readonly authContext: AuthContextService,
-    private readonly telegram: TelegramService,
-    private readonly mail: MailService,
+    private readonly notifications: NotificationsService,
     private readonly config: ConfigService,
   ) {}
 
@@ -87,12 +85,16 @@ export class DigestService {
 
     const rendered = renderDigest(data, r.locale, this.webOrigin)
     try {
-      if (await this.telegram.sendToUser(r.userId, rendered.text)) {
-        await this.repo.markSent(r.userId, weekStart, "telegram")
-      } else {
-        await this.mail.sendWeeklyDigest(r.email, rendered)
-        await this.repo.markSent(r.userId, weekStart, "email")
-      }
+      // Goes through the notification pipeline: the user's channel preferences
+      // decide email/Telegram, and the idempotency key makes a rerun harmless.
+      await this.notifications.notify({
+        type: "digest.weekly",
+        orgId: r.orgId,
+        recipients: [r.userId],
+        payload: { subject: rendered.subject, text: rendered.text },
+        idempotencyKey: `digest:${r.userId}:${weekStart}`,
+      })
+      await this.repo.markSent(r.userId, weekStart)
       return true
     } catch (err) {
       await this.repo.markFailed(r.userId, weekStart, err instanceof Error ? err.message : String(err))

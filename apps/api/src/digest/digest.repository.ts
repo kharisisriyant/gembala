@@ -78,10 +78,11 @@ export class DigestRepository {
     return rows.length > 0
   }
 
-  async markSent(userId: string, weekStart: string, channel: "telegram" | "email", tx: Db | Tx = this.db) {
+  // `sent` means handed to the notification pipeline; the delivery log there records the channels.
+  async markSent(userId: string, weekStart: string, tx: Db | Tx = this.db) {
     await tx
       .update(digestLog)
-      .set({ status: "sent", channel, error: null, sentAt: new Date() })
+      .set({ status: "sent", error: null, sentAt: new Date() })
       .where(and(eq(digestLog.userId, userId), eq(digestLog.weekStart, weekStart)))
   }
 
