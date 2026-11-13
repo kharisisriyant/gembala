@@ -1,10 +1,9 @@
 import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common"
-import { ConfigService } from "@nestjs/config"
 import { Queue, UnrecoverableError, Worker, type Job } from "bullmq"
-import IORedis from "ioredis"
 import type { NotificationChannel, NotificationPriority } from "@gembala/shared"
 import { backoffDelay, type RetryableError } from "./notifications.backoff"
 import { DeliveryProcessor } from "./notifications.processor"
+import { NotificationsRedis } from "./notifications.redis"
 
 export type QueueJob = { id: string; channel: NotificationChannel; priority: NotificationPriority; sendAt: Date | null }
 
@@ -17,28 +16,18 @@ const PRIORITY: Record<NotificationPriority, number> = { high: 1, normal: 5, low
 @Injectable()
 export class NotificationsQueue implements OnModuleDestroy {
   private readonly log = new Logger("NotificationsQueue")
-  private connection?: IORedis
   private readonly queues = new Map<NotificationChannel, Queue>()
   private readonly workers: Worker[] = []
 
   constructor(
-    private readonly config: ConfigService,
+    private readonly redis: NotificationsRedis,
     private readonly processor: DeliveryProcessor,
   ) {}
-
-  private redis(): IORedis {
-    if (!this.connection) {
-      const url = this.config.get<string>("REDIS_URL")
-      if (!url) throw new Error("REDIS_URL is required to run notification workers")
-      this.connection = new IORedis(url, { maxRetriesPerRequest: null })
-    }
-    return this.connection
-  }
 
   private queue(channel: NotificationChannel): Queue {
     let q = this.queues.get(channel)
     if (!q) {
-      q = new Queue(`notif-${channel}`, { connection: this.redis() })
+      q = new Queue(`notif-${channel}`, { connection: this.redis.connection() })
       this.queues.set(channel, q)
     }
     return q
@@ -71,8 +60,10 @@ export class NotificationsQueue implements OnModuleDestroy {
   startWorkers(): void {
     for (const channel of CHANNELS) {
       const worker = new Worker(`notif-${channel}`, (job: Job<{ deliveryId: string }>) => this.handle(job), {
-        connection: this.redis(),
+        connection: this.redis.connection(),
         concurrency: 5,
+        // Telegram's overall cap is ~30 messages/second; stay under it (TG-6).
+        ...(channel === "telegram" ? { limiter: { max: 25, duration: 1000 } } : {}),
         settings: {
           backoffStrategy: (attemptsMade: number, _type?: string, err?: Error) =>
             backoffDelay(attemptsMade, (err as RetryableError | undefined)?.retryAfterMs),
@@ -98,6 +89,5 @@ export class NotificationsQueue implements OnModuleDestroy {
   async onModuleDestroy() {
     await Promise.all(this.workers.map((w) => w.close()))
     await Promise.all([...this.queues.values()].map((q) => q.close()))
-    await this.connection?.quit()
   }
 }

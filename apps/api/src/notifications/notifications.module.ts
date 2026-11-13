@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common"
+import { TelegramModule } from "../telegram/telegram.module"
 import { EmailController } from "./email.controllers"
 import { InboxController } from "./inbox.controller"
 import { InboxRepository } from "./inbox.repository"
@@ -11,6 +12,7 @@ import { ResendWebhookService } from "./resend-webhook.service"
 import { UnsubscribeService } from "./unsubscribe.service"
 
 @Module({
+  imports: [TelegramModule],
   controllers: [InboxController, EmailController],
   providers: [...notificationProviders, NotificationsScheduler, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService],
   exports: [NotificationsService, NotificationsDispatcher],

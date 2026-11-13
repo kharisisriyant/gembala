@@ -9,6 +9,7 @@ import { signLink } from "../src/notifications/notifications.links"
 import { ResendWebhookService } from "../src/notifications/resend-webhook.service"
 import { UnsubscribeService } from "../src/notifications/unsubscribe.service"
 import { channelEndpoints, userNotificationPreferences, consentEvents } from "../src/db/schema"
+import { TelegramService } from "../src/telegram/telegram.service"
 import { validateEnv } from "../src/config/env"
 import { DRIZZLE, DrizzleModule, type Db } from "../src/db/drizzle.module"
 import { notificationDeliveries, notificationEvents, notifications, orgMemberships, organizations, users } from "../src/db/schema"
@@ -39,6 +40,27 @@ notificationTypes.push({
   payload: z.object({ n: z.number() }),
   render: (_locale, p) => ({ title: `remind ${p.n}`, body: "body", link: "/care" }),
 })
+
+notificationTypes.push({
+  key: "test.alert",
+  category: "activity",
+  priority: "high",
+  defaultChannels: ["telegram"],
+  ttlMs: 3_600_000,
+  payload: z.object({ n: z.number() }),
+  render: (_locale, p) => ({ title: `alert ${p.n}`, body: "body", link: "/care" }),
+})
+
+const tgSent: { userId: string; text: string; at: number }[] = []
+let tgBlocked = false
+const fakeTelegram = {
+  hasActiveLink: async () => true,
+  pushToUser: async (userId: string, m: { text: string }) => {
+    if (tgBlocked) return { kind: "permanent", code: "blocked" }
+    tgSent.push({ userId, text: m.text, at: Date.now() })
+    return { kind: "sent", messageId: `tg-${tgSent.length}` }
+  },
+}
 
 const sent: { to: string; subject: string; headers?: Record<string, string> }[] = []
 const fakeMail = {
@@ -88,7 +110,7 @@ describe("notification pipeline (real Postgres + Redis)", () => {
     })
     const moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, validate: validateEnv }), DrizzleModule],
-      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }],
+      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }, { provide: TelegramService, useValue: fakeTelegram }],
     }).compile()
     app = moduleRef.createNestApplication()
     await app.init()
@@ -270,6 +292,39 @@ describe("notification pipeline (real Postgres + Redis)", () => {
       await remind("mail-after-bounce")
       expect(await delivery("mail-after-bounce")).toMatchObject({ status: "skipped", reason: "not_connected" })
       expect(sent.length).toBe(before)
+    })
+  })
+
+  describe("telegram channel", () => {
+    const alert = (key: string) => service.notify({ type: "test.alert", orgId, recipients: [alice], payload: { n: 1 }, idempotencyKey: key })
+    const tgDelivery = (key: string) =>
+      until(async () => {
+        const [r] = await db
+          .select({ status: notificationDeliveries.status, error: notificationDeliveries.errorCode, provider: notificationDeliveries.providerMessageId })
+          .from(notificationDeliveries)
+          .innerJoin(notifications, eq(notifications.id, notificationDeliveries.notificationId))
+          .innerJoin(notificationEvents, eq(notificationEvents.id, notifications.eventId))
+          .where(and(eq(notificationEvents.idempotencyKey, key), eq(notificationDeliveries.channel, "telegram")))
+        return r && !["pending", "queued"].includes(r.status) ? r : undefined
+      })
+
+    it("sends once and spaces messages to the same chat at least a second apart", async () => {
+      await alert("tg-1")
+      await alert("tg-2")
+      const [a, b] = await Promise.all([tgDelivery("tg-1"), tgDelivery("tg-2")])
+      expect(a.status).toBe("sent")
+      expect(b.status).toBe("sent")
+      const mine = tgSent.filter((m) => m.text.includes("alert 1")).slice(-2)
+      expect(mine).toHaveLength(2)
+      expect(Math.abs(mine[1].at - mine[0].at)).toBeGreaterThanOrEqual(900)
+    })
+
+    it("marks a blocked bot as a permanent failure and never retries", async () => {
+      tgBlocked = true
+      await alert("tg-blocked")
+      const d = await tgDelivery("tg-blocked")
+      tgBlocked = false
+      expect(d).toMatchObject({ status: "failed", error: "blocked" })
     })
   })
 })

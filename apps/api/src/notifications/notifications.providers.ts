@@ -4,9 +4,11 @@ import { NOTIFICATION_CATALOG, notificationTypes } from "./notifications.catalog
 import { EmailAdapter } from "./email.adapter"
 import { EndpointsRepository } from "./endpoints.repository"
 import { PreferencesRepository } from "./preferences.repository"
+import { TelegramAdapter } from "./telegram.adapter"
 import { InAppAdapter } from "./inapp.adapter"
 import { NotificationsDispatcher } from "./notifications.dispatcher"
 import { DeliveryProcessor } from "./notifications.processor"
+import { NotificationsRedis } from "./notifications.redis"
 import { NotificationsQueue } from "./notifications.queue"
 import { NotificationsRepository } from "./notifications.repository"
 import { NotificationsRunner } from "./notifications.runner"
@@ -18,14 +20,19 @@ export const notificationProviders: Provider[] = [
   NotificationsRepository,
   NotificationsService,
   DeliveryProcessor,
+  NotificationsRedis,
   NotificationsQueue,
   NotificationsDispatcher,
   NotificationsRunner,
   InAppAdapter,
   EmailAdapter,
+  TelegramAdapter,
   EndpointsRepository,
   PreferencesRepository,
   { provide: NOTIFICATION_CATALOG, useValue: notificationTypes },
-  // Channels register here as their slices land (telegram next).
-  { provide: CHANNEL_ADAPTERS, useFactory: (inapp: InAppAdapter, email: EmailAdapter) => [inapp, email], inject: [InAppAdapter, EmailAdapter] },
+  {
+    provide: CHANNEL_ADAPTERS,
+    useFactory: (inapp: InAppAdapter, email: EmailAdapter, telegram: TelegramAdapter) => [inapp, email, telegram],
+    inject: [InAppAdapter, EmailAdapter, TelegramAdapter],
+  },
 ]
