@@ -57,7 +57,8 @@ export const notifications = pgTable(
     readAt: timestamp("read_at", { withTimezone: true }),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     correlationId: uuid("correlation_id").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    // Millisecond precision so the inbox cursor (a JS Date) compares exactly.
+    createdAt: timestamp("created_at", { withTimezone: true, precision: 3 }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("notifications_event_user_uq").on(t.eventId, t.userId),

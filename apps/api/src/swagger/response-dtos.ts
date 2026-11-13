@@ -1,5 +1,9 @@
 import { createZodDto } from "nestjs-zod"
 import {
+  notificationItemResponseSchema,
+  notificationListResponseSchema,
+  notificationReadAllResponseSchema,
+  notificationUnreadCountResponseSchema,
   attendanceHeatmapResponseSchema,
   authResponseSchema,
   csrfResponseSchema,
@@ -82,3 +86,8 @@ export class JourneyStageResponseDto extends createZodDto(journeyStageResponseSc
 export class OrganizationInviteResponseDto extends createZodDto(organizationInviteResponseSchema) {}
 export class DigestPreferencesResponseDto extends createZodDto(digestPreferencesResponseSchema) {}
 export class DigestPreviewResponseDto extends createZodDto(digestPreviewResponseSchema) {}
+
+export class NotificationItemResponseDto extends createZodDto(notificationItemResponseSchema) {}
+export class NotificationListResponseDto extends createZodDto(notificationListResponseSchema) {}
+export class NotificationUnreadCountResponseDto extends createZodDto(notificationUnreadCountResponseSchema) {}
+export class NotificationReadAllResponseDto extends createZodDto(notificationReadAllResponseSchema) {}

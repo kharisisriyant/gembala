@@ -9,6 +9,8 @@ import { notificationDeliveries, notificationEvents, notifications, orgMembershi
 import { notificationTypes } from "../src/notifications/notifications.catalog"
 import { NotificationsDispatcher } from "../src/notifications/notifications.dispatcher"
 import { notificationProviders } from "../src/notifications/notifications.providers"
+import { InboxRepository } from "../src/notifications/inbox.repository"
+import { InboxService } from "../src/notifications/inbox.service"
 import { NotificationsService } from "../src/notifications/notifications.service"
 import { resetTestDb, TEST_REDIS_URL } from "./setup-test-db"
 
@@ -52,7 +54,7 @@ describe("notification pipeline (real Postgres + Redis)", () => {
     })
     const moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, validate: validateEnv }), DrizzleModule],
-      providers: notificationProviders,
+      providers: [...notificationProviders, InboxService, InboxRepository],
     }).compile()
     app = moduleRef.createNestApplication()
     await app.init()
@@ -149,5 +151,35 @@ describe("notification pipeline (real Postgres + Redis)", () => {
       return r
     })
     expect(row).toMatchObject({ status: "skipped", reason: "kill_switch" })
+  })
+
+  it("inbox pages newest first without gaps and keeps read state per user and org", async () => {
+    const inbox = app.get(InboxService)
+    const [other] = await db.insert(organizations).values({ name: "Other church" }).returning()
+    for (let i = 0; i < 5; i++) await ping(`inbox-${i}`)
+    await service.routePending()
+
+    const seen: string[] = []
+    let cursor: string | undefined
+    do {
+      const page = await inbox.list({ userId: alice, orgId }, { limit: 2, cursor })
+      seen.push(...page.items.map((i) => i.id))
+      cursor = page.nextCursor ?? undefined
+    } while (cursor)
+    const total = await inbox.list({ userId: alice, orgId }, { limit: 50 })
+    expect(seen).toEqual(total.items.map((i) => i.id))
+    expect(new Set(seen).size).toBe(seen.length)
+
+    // another org sees nothing, and cannot mark alice's item read
+    expect((await inbox.list({ userId: alice, orgId: other.id }, { limit: 50 })).items).toHaveLength(0)
+    await expect(inbox.setRead({ userId: alice, orgId: other.id }, seen[0], true)).rejects.toThrow()
+
+    const before = (await inbox.unreadCount({ userId: alice, orgId })).count
+    expect(before).toBe(seen.length)
+    await inbox.setRead({ userId: alice, orgId }, seen[0], true)
+    expect((await inbox.unreadCount({ userId: alice, orgId })).count).toBe(before - 1)
+    expect((await inbox.list({ userId: alice, orgId }, { limit: 50, unread: true })).items).toHaveLength(before - 1)
+    expect((await inbox.markAllRead({ userId: alice, orgId })).updated).toBe(before - 1)
+    expect((await inbox.unreadCount({ userId: bob, orgId })).count).toBeGreaterThan(0) // bob untouched
   })
 })

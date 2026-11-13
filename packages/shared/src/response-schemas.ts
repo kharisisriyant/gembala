@@ -1,5 +1,12 @@
 import { z } from "zod"
 import {
+  NOTIFICATION_CATEGORIES,
+  type NotificationItemResponse,
+  type NotificationListResponse,
+  type NotificationReadAllResponse,
+  type NotificationUnreadCountResponse,
+} from "./notifications.js"
+import {
   careRequestSourceSchema,
   digestPreferencesSchema,
   careRequestStatusSchema,
@@ -445,3 +452,27 @@ export const digestPreviewResponseSchema = z.object({
   subject: z.string(),
   text: z.string(),
 }) satisfies z.ZodType<DigestPreviewResponse>
+
+export const notificationItemResponseSchema = z.object({
+  id: z.string().uuid(),
+  typeKey: z.string(),
+  category: z.enum(NOTIFICATION_CATEGORIES),
+  title: z.string(),
+  body: z.string(),
+  link: z.string().nullable().describe("Path inside the web app; null when there is no subject to open"),
+  readAt: z.string().nullable(),
+  createdAt: z.string(),
+}) satisfies z.ZodType<NotificationItemResponse>
+
+export const notificationListResponseSchema = z.object({
+  items: z.array(notificationItemResponseSchema),
+  nextCursor: z.string().nullable().describe("Pass as `cursor` to get the next (older) page; null on the last page"),
+}) satisfies z.ZodType<NotificationListResponse>
+
+export const notificationUnreadCountResponseSchema = z.object({
+  count: z.number().int(),
+}) satisfies z.ZodType<NotificationUnreadCountResponse>
+
+export const notificationReadAllResponseSchema = z.object({
+  updated: z.number().int(),
+}) satisfies z.ZodType<NotificationReadAllResponse>

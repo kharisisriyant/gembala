@@ -34,3 +34,23 @@ export function channelEnabled(
   const override = overrides.find((o) => o.category === category && o.channel === channel)
   return override ? override.enabled : base.enabled
 }
+
+export type NotificationItemResponse = {
+  id: string
+  typeKey: string
+  category: NotificationCategory
+  title: string
+  body: string
+  // Path inside the web app, or null when the item has no subject to open.
+  link: string | null
+  readAt: string | null
+  createdAt: string
+}
+
+export type NotificationListResponse = {
+  items: NotificationItemResponse[]
+  nextCursor: string | null
+}
+
+export type NotificationUnreadCountResponse = { count: number }
+export type NotificationReadAllResponse = { updated: number }
