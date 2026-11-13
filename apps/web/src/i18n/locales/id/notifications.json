@@ -66,5 +66,21 @@
     "emailBounced": "Kami tidak bisa mengirim ke {{address}}, sehingga notifikasi email dijeda. Periksa alamatnya atau hubungi admin.",
     "saved": "Preferensi disimpan",
     "telegramNote": "Pesan Telegram berupa ringkasan singkat dengan tautan kembali ke Gembala."
+  },
+  "telegramPage": {
+    "title": "Telegram",
+    "subtitle": "Hubungkan akun Telegram Anda ke Gembala.",
+    "botTitle": "Bot Telegram",
+    "botSubtitle": "Hubungkan akun Telegram pribadi Anda.",
+    "loading": "Memuat…",
+    "connected": "Terhubung",
+    "unlink": "Putuskan Telegram",
+    "unlinking": "Memutuskan…",
+    "unlinked": "Telegram diputuskan",
+    "botNotReady": "Bot belum terhubung. Coba lagi nanti.",
+    "sendTo": "Kirim pesan ke @{{bot}} di Telegram dengan kode di bawah.",
+    "sendLater": "Kirim kode di bawah ke bot di Telegram setelah terhubung.",
+    "codeLabel": "Kode sekali pakai Anda",
+    "sendCommand": "Kirim: /link {{code}}. Kedaluwarsa {{time}}"
   }
 }

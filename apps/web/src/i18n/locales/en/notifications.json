@@ -66,5 +66,21 @@
     "emailBounced": "We couldn't deliver to {{address}}, so email notifications are paused. Check the address or contact an admin.",
     "saved": "Preference saved",
     "telegramNote": "Telegram messages are short summaries with a link back to Gembala."
+  },
+  "telegramPage": {
+    "title": "Telegram",
+    "subtitle": "Link your Telegram account to Gembala.",
+    "botTitle": "Telegram Bot",
+    "botSubtitle": "Connect your personal Telegram account.",
+    "loading": "Loading…",
+    "connected": "Connected",
+    "unlink": "Unlink Telegram",
+    "unlinking": "Unlinking…",
+    "unlinked": "Telegram unlinked",
+    "botNotReady": "The bot isn't connected yet. Check back later.",
+    "sendTo": "Message @{{bot}} on Telegram with the code below.",
+    "sendLater": "Send the code below to the bot on Telegram once it's connected.",
+    "codeLabel": "Your one-time code",
+    "sendCommand": "Send: /link {{code}}. Expires {{time}}"
   }
 }
