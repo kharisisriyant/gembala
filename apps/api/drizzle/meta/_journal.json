@@ -113,6 +113,13 @@
       "when": 1794542878871,
       "tag": "0015_notifications_created_at_ms",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794547469972,
+      "tag": "0016_notifications_email",
+      "breakpoints": true
     }
   ]
 }

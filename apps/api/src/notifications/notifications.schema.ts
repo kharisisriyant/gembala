@@ -110,3 +110,37 @@ export const notificationKillSwitches = pgTable("notification_kill_switches", {
   reason: text("reason").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 })
+
+export const endpointStatus = pgEnum("notification_endpoint_status", ["active", "bounced"])
+export const consentSource = pgEnum("notification_consent_source", ["settings", "email_link", "bot_command"])
+
+// Email reachability. No row means "use users.email, active" (the address was
+// verified by invite or registration). A row is written when the provider
+// reports a hard bounce or complaint, which suppresses further sends (EM-4).
+export const channelEndpoints = pgTable(
+  "channel_endpoints",
+  {
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    channel: notificationChannel("channel").notNull(),
+    address: text("address").notNull(),
+    status: endpointStatus("status").notNull().default("active"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("channel_endpoints_user_channel_uq").on(t.userId, t.channel)],
+)
+
+// Append-only record of every consent change (PR-7).
+export const consentEvents = pgTable(
+  "consent_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    category: notificationCategory("category").notNull(),
+    channel: notificationChannel("channel").notNull(),
+    enabled: boolean("enabled").notNull(),
+    source: consentSource("source").notNull(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("consent_events_user_idx").on(t.userId, t.createdAt)],
+)

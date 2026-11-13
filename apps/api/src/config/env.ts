@@ -22,6 +22,9 @@ export const envSchema = z.object({
   TELEGRAM_BOT_USERNAME: z.string().optional(),
   TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   TELEGRAM_WEBHOOK_URL: z.string().url().optional(),
+  API_PUBLIC_URL: z.string().url().default("http://localhost:3000/api"),
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
+  NOTIFICATION_LINK_SECRET: z.string().min(32).optional(),
   REDIS_URL: z.string().url().optional(),
   NOTIFICATIONS_WORKERS: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
   OPENROUTER_API_KEY: z.string().optional(),
@@ -41,6 +44,11 @@ export function validateEnv(config: Record<string, unknown>): Env {
   }))
   if (!keys.get(parsed.JWT_ACTIVE_KID) || [...keys.values()].some((secret) => secret.length < 32)) {
     throw new Error("JWT_SIGNING_KEYS must contain the active key and each secret must be at least 32 characters")
+  }
+  if (!parsed.NOTIFICATION_LINK_SECRET) {
+    if (parsed.NODE_ENV === "production") throw new Error("NOTIFICATION_LINK_SECRET (32+ chars) is required in production")
+    // Dev/test convenience only; signed links made with this are forgeable.
+    parsed.NOTIFICATION_LINK_SECRET = "dev-only-notification-link-secret-change-me"
   }
   if (parsed.NOTIFICATIONS_WORKERS && !parsed.REDIS_URL) {
     throw new Error("NOTIFICATIONS_WORKERS=true requires REDIS_URL")

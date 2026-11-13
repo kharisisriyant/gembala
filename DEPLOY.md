@@ -30,6 +30,9 @@ environment that points at a different API host (staging vs production).
 | `RESEND_API_KEY` | `re_...` API key from Resend |
 | `RESEND_FROM_EMAIL` | `noreply@example.com` — address at a Resend-verified domain |
 | `RESEND_FROM_NAME` | `Gembala` |
+| `NOTIFICATION_LINK_SECRET` | 32+ random chars; signs unsubscribe links (required in production) |
+| `API_PUBLIC_URL` | `https://api.staging.gembala.dev/api`, target for one-click unsubscribe |
+| `RESEND_WEBHOOK_SECRET` | `whsec_...` from the Resend webhook for `POST /api/webhooks/resend` (events: delivered, bounced, complained) |
 | `REDIS_URL` | `redis://redis:6379` (compose service by default; managed Redis works by changing this only) |
 | `NOTIFICATIONS_WORKERS` | `true` to run the notification relay and workers in this process |
 
