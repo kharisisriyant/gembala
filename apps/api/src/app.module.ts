@@ -24,6 +24,7 @@ import { TelegramModule } from "./telegram/telegram.module"
 import { CareRequestsModule } from "./care-requests/care-requests.module"
 import { JourneyModule } from "./journey/journey.module"
 import { DigestModule } from "./digest/digest.module"
+import { RemindersModule } from "./reminders/reminders.module"
 import { NotificationsModule } from "./notifications/notifications.module"
 import { ScheduleModule } from "@nestjs/schedule"
 
@@ -61,6 +62,7 @@ import { ScheduleModule } from "@nestjs/schedule"
     ScheduleModule.forRoot(),
     DigestModule,
     NotificationsModule,
+    RemindersModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

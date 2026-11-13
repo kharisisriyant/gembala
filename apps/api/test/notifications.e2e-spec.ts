@@ -14,8 +14,15 @@ import { DigestRepository } from "../src/digest/digest.repository"
 import { PreferencesService } from "../src/notifications/preferences.service"
 import { digestPreferences, userSettings } from "../src/db/schema"
 import { sql } from "drizzle-orm"
+import { AttentionService } from "../src/attention/attention.service"
+import { AuthContextRepository } from "../src/authz/auth-context.repository"
 import { AuthContextService } from "../src/authz/auth-context.service"
+import { ScopeRepository } from "../src/authz/scope.repository"
 import { ScopeService } from "../src/authz/scope.service"
+import { RemindersRepository } from "../src/reminders/reminders.repository"
+import { RemindersService } from "../src/reminders/reminders.service"
+import { careRequests, memberTags, members, membershipScopeTags, tags } from "../src/db/schema"
+import { todayInZone } from "@gembala/shared"
 import { validateEnv } from "../src/config/env"
 import { DRIZZLE, DrizzleModule, type Db } from "../src/db/drizzle.module"
 import { notificationDeliveries, notificationEvents, notifications, orgMemberships, organizations, users } from "../src/db/schema"
@@ -117,7 +124,7 @@ describe("notification pipeline (real Postgres + Redis)", () => {
     })
     const moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, validate: validateEnv }), DrizzleModule],
-      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }, { provide: TelegramService, useValue: { ...fakeTelegram, channelState: async () => "connected" } }, PreferencesService, DigestRepository, { provide: AuthContextService, useValue: {} }, { provide: ScopeService, useValue: {} }],
+      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }, { provide: TelegramService, useValue: { ...fakeTelegram, channelState: async () => "connected" } }, PreferencesService, DigestRepository, AuthContextService, AuthContextRepository, ScopeService, ScopeRepository, RemindersService, RemindersRepository, { provide: AttentionService, useValue: {} }],
     }).compile()
     app = moduleRef.createNestApplication()
     await app.init()
@@ -372,6 +379,38 @@ describe("notification pipeline (real Postgres + Redis)", () => {
       await db.execute(sql`INSERT INTO "user_settings" ("user_id", "locale") SELECT "user_id", "locale" FROM "digest_preferences" ON CONFLICT DO NOTHING`)
       const [row] = await db.select().from(userSettings).where(eq(userSettings.userId, carol.id))
       expect(row.locale).toBe("en")
+    })
+  })
+
+  describe("care reminders with subject access", () => {
+    it("queues due-today reminders and only notifies owners who can still see the member", async () => {
+      const [youth, elders] = await db.insert(tags).values([{ orgId, name: "youth" }, { orgId, name: "elders" }]).returning()
+      const [jo, eli] = await db.insert(members).values([
+        { orgId, name: "Jo", joinedAt: "2026-01-01" },
+        { orgId, name: "Eli", joinedAt: "2026-01-01" },
+      ]).returning()
+      await db.insert(memberTags).values([{ memberId: jo.id, tagId: youth.id }, { memberId: eli.id, tagId: elders.id }])
+      const memberships = await db.select().from(orgMemberships).where(eq(orgMemberships.orgId, orgId))
+      const of = (userId: string) => memberships.find((m) => m.userId === userId)!.id
+      await db.insert(membershipScopeTags).values([{ membershipId: of(alice), tagId: youth.id }, { membershipId: of(bob), tagId: elders.id }])
+
+      const today = todayInZone()
+      const base = { orgId, type: "care" as const, body: "x", source: "leader" as const, dueAt: today }
+      await db.insert(careRequests).values([
+        { ...base, memberId: jo.id, assignedToUserId: alice },  // alice sees Jo
+        { ...base, memberId: eli.id, assignedToUserId: alice }, // alice cannot see Eli
+        { ...base, memberId: jo.id, assignedToUserId: bob },    // bob cannot see Jo
+      ])
+
+      const reminders = app.get(RemindersService)
+      expect(await reminders.runCare(today)).toBe(3)
+      expect(await reminders.runCare(today)).toBe(0) // rerun: idempotent
+
+      const titles = (userId: string) =>
+        db.select({ title: notifications.title }).from(notifications).where(and(eq(notifications.userId, userId), eq(notifications.typeKey, "care_request.due_soon")))
+      await until(async () => (await db.select().from(notificationEvents).where(eq(notificationEvents.typeKey, "care_request.due_soon"))).every((e) => e.processedAt) || undefined)
+      expect(await titles(alice)).toEqual([{ title: "Tindak lanjut jatuh tempo hari ini: Jo" }])
+      expect(await titles(bob)).toEqual([])
     })
   })
 })
