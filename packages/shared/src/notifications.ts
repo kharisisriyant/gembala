@@ -1,3 +1,5 @@
+import { z } from "zod"
+
 export const NOTIFICATION_CHANNELS = ["inapp", "email", "telegram"] as const
 export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number]
 
@@ -56,3 +58,21 @@ export type NotificationUnreadCountResponse = { count: number }
 export type NotificationReadAllResponse = { updated: number }
 
 export type NotificationUnsubscribePreviewResponse = { category: NotificationCategory }
+
+export const notificationPreferenceUpdateSchema = z.object({
+  category: z.enum(NOTIFICATION_CATEGORIES),
+  channel: z.enum(NOTIFICATION_CHANNELS),
+  enabled: z.boolean(),
+})
+export type NotificationPreferenceUpdateInput = z.infer<typeof notificationPreferenceUpdateSchema>
+
+export type NotificationPreferencesResponse = {
+  categories: {
+    category: NotificationCategory
+    cells: Record<NotificationChannel, { enabled: boolean; locked: boolean }>
+  }[]
+  channels: {
+    email: { state: "connected" | "bounced"; address: string }
+    telegram: { state: "connected" | "not_connected" | "disconnected" }
+  }
+}

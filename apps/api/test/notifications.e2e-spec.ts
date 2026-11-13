@@ -10,12 +10,17 @@ import { ResendWebhookService } from "../src/notifications/resend-webhook.servic
 import { UnsubscribeService } from "../src/notifications/unsubscribe.service"
 import { channelEndpoints, userNotificationPreferences, consentEvents } from "../src/db/schema"
 import { TelegramService } from "../src/telegram/telegram.service"
+import { DigestRepository } from "../src/digest/digest.repository"
+import { PreferencesService } from "../src/notifications/preferences.service"
+import { digestPreferences, userSettings } from "../src/db/schema"
+import { sql } from "drizzle-orm"
 import { validateEnv } from "../src/config/env"
 import { DRIZZLE, DrizzleModule, type Db } from "../src/db/drizzle.module"
 import { notificationDeliveries, notificationEvents, notifications, orgMemberships, organizations, users } from "../src/db/schema"
 import { notificationTypes } from "../src/notifications/notifications.catalog"
 import { NotificationsDispatcher } from "../src/notifications/notifications.dispatcher"
 import { notificationProviders } from "../src/notifications/notifications.providers"
+import { NotificationsRepository } from "../src/notifications/notifications.repository"
 import { InboxRepository } from "../src/notifications/inbox.repository"
 import { InboxService } from "../src/notifications/inbox.service"
 import { NotificationsService } from "../src/notifications/notifications.service"
@@ -110,7 +115,7 @@ describe("notification pipeline (real Postgres + Redis)", () => {
     })
     const moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, validate: validateEnv }), DrizzleModule],
-      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }, { provide: TelegramService, useValue: fakeTelegram }],
+      providers: [...notificationProviders, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, { provide: MailService, useValue: fakeMail }, { provide: TelegramService, useValue: { ...fakeTelegram, channelState: async () => "connected" } }, PreferencesService, DigestRepository],
     }).compile()
     app = moduleRef.createNestApplication()
     await app.init()
@@ -325,6 +330,46 @@ describe("notification pipeline (real Postgres + Redis)", () => {
       const d = await tgDelivery("tg-blocked")
       tgBlocked = false
       expect(d).toMatchObject({ status: "failed", error: "blocked" })
+    })
+  })
+
+  describe("preferences and settings", () => {
+    it("a settings change reroutes later notifications and is logged as consent", async () => {
+      const prefs = app.get(PreferencesService)
+      await prefs.update(alice, { category: "activity", channel: "telegram", enabled: false })
+      const consent = await db.select().from(consentEvents).where(and(eq(consentEvents.userId, alice), eq(consentEvents.source, "settings")))
+      expect(consent).toMatchObject([{ category: "activity", channel: "telegram", enabled: false, actorUserId: alice }])
+
+      await service.notify({ type: "test.alert", orgId, recipients: [alice], payload: { n: 2 }, idempotencyKey: "pref-1" })
+      const [row] = await until(async () => {
+        const r = await db
+          .select({ status: notificationDeliveries.status, reason: notificationDeliveries.skipReason })
+          .from(notificationDeliveries)
+          .innerJoin(notifications, eq(notifications.id, notificationDeliveries.notificationId))
+          .innerJoin(notificationEvents, eq(notificationEvents.id, notifications.eventId))
+          .where(and(eq(notificationEvents.idempotencyKey, "pref-1"), eq(notificationDeliveries.channel, "telegram")))
+        return r.length ? r : undefined
+      })
+      expect(row).toMatchObject({ status: "skipped", reason: "preference" })
+      const grid = await prefs.get(alice)
+      expect(grid.categories.find((c) => c.category === "activity")!.cells.telegram.enabled).toBe(false)
+    })
+
+    it("digest locale is stored in user_settings and drives notification language", async () => {
+      const digest = app.get(DigestRepository)
+      await digest.upsertPreferences(bob, { enabled: true, locale: "en" })
+      expect(await digest.findPreferences(bob)).toEqual({ enabled: true, locale: "en" })
+      const [settings] = await db.select().from(userSettings).where(eq(userSettings.userId, bob))
+      expect(settings).toMatchObject({ locale: "en", timezone: "Asia/Jakarta" })
+      expect(await app.get(NotificationsRepository).routingUsers([bob], orgId)).toEqual([{ userId: bob, locale: "en" }])
+    })
+
+    it("the migration backfill copies existing digest locales", async () => {
+      const [carol] = await db.insert(users).values({ email: "carol@x.test", name: "Carol", passwordHash: "x" }).returning()
+      await db.insert(digestPreferences).values({ userId: carol.id, enabled: true, locale: "en" })
+      await db.execute(sql`INSERT INTO "user_settings" ("user_id", "locale") SELECT "user_id", "locale" FROM "digest_preferences" ON CONFLICT DO NOTHING`)
+      const [row] = await db.select().from(userSettings).where(eq(userSettings.userId, carol.id))
+      expect(row.locale).toBe("en")
     })
   })
 })

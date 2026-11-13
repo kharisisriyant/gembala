@@ -3,6 +3,7 @@ import {
   NOTIFICATION_CATEGORIES,
   type NotificationItemResponse,
   type NotificationListResponse,
+  type NotificationPreferencesResponse,
   type NotificationReadAllResponse,
   type NotificationUnreadCountResponse,
   type NotificationUnsubscribePreviewResponse,
@@ -482,3 +483,21 @@ export const notificationReadAllResponseSchema = z.object({
 export const notificationUnsubscribePreviewResponseSchema = z.object({
   category: z.enum(NOTIFICATION_CATEGORIES),
 }) satisfies z.ZodType<NotificationUnsubscribePreviewResponse>
+
+const notificationCellSchema = z.object({
+  enabled: z.boolean(),
+  locked: z.boolean().describe("Locked cells can't be changed (e.g. in-app, security email)"),
+})
+
+export const notificationPreferencesResponseSchema = z.object({
+  categories: z.array(
+    z.object({
+      category: z.enum(NOTIFICATION_CATEGORIES),
+      cells: z.object({ inapp: notificationCellSchema, email: notificationCellSchema, telegram: notificationCellSchema }),
+    }),
+  ),
+  channels: z.object({
+    email: z.object({ state: z.enum(["connected", "bounced"]), address: z.string() }),
+    telegram: z.object({ state: z.enum(["connected", "not_connected", "disconnected"]) }),
+  }),
+}) satisfies z.ZodType<NotificationPreferencesResponse>

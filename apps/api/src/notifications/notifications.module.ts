@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common"
 import { TelegramModule } from "../telegram/telegram.module"
 import { EmailController } from "./email.controllers"
+import { PreferencesController } from "./preferences.controller"
+import { PreferencesService } from "./preferences.service"
 import { InboxController } from "./inbox.controller"
 import { InboxRepository } from "./inbox.repository"
 import { InboxService } from "./inbox.service"
@@ -13,8 +15,8 @@ import { UnsubscribeService } from "./unsubscribe.service"
 
 @Module({
   imports: [TelegramModule],
-  controllers: [InboxController, EmailController],
-  providers: [...notificationProviders, NotificationsScheduler, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService],
+  controllers: [InboxController, EmailController, PreferencesController],
+  providers: [...notificationProviders, NotificationsScheduler, InboxService, InboxRepository, UnsubscribeService, ResendWebhookService, PreferencesService],
   exports: [NotificationsService, NotificationsDispatcher],
 })
 export class NotificationsModule {}

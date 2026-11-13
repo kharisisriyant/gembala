@@ -2,6 +2,7 @@ import { createZodDto } from "nestjs-zod"
 import {
   notificationItemResponseSchema,
   notificationListResponseSchema,
+  notificationPreferencesResponseSchema,
   notificationReadAllResponseSchema,
   notificationUnsubscribePreviewResponseSchema,
   notificationUnreadCountResponseSchema,
@@ -93,3 +94,4 @@ export class NotificationListResponseDto extends createZodDto(notificationListRe
 export class NotificationUnreadCountResponseDto extends createZodDto(notificationUnreadCountResponseSchema) {}
 export class NotificationReadAllResponseDto extends createZodDto(notificationReadAllResponseSchema) {}
 export class NotificationUnsubscribePreviewResponseDto extends createZodDto(notificationUnsubscribePreviewResponseSchema) {}
+export class NotificationPreferencesResponseDto extends createZodDto(notificationPreferencesResponseSchema) {}

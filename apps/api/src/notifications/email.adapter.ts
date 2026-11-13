@@ -40,7 +40,7 @@ export class EmailAdapter implements ChannelAdapter {
       body: ctx.notification.body,
       link: ctx.notification.link ? buildWebLink(origin, ctx.notification.link) : null,
       locale: target.locale,
-      preferencesUrl: buildWebLink(origin, "/profile"),
+      preferencesUrl: buildWebLink(origin, "/profile?tab=notifications"),
       unsubscribeUrl: token ? buildWebLink(origin, `/unsubscribe?token=${token}`) : null,
     })
     // RFC 8058 one-click: mail clients POST straight to the API, no login or page.

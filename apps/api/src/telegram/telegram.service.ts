@@ -179,6 +179,12 @@ export class TelegramService implements OnModuleInit {
     )
   }
 
+  // Where the user stands for the preferences screen: linked, previously blocked, or never linked.
+  async channelState(userId: string): Promise<"connected" | "disconnected" | "not_connected"> {
+    if (await this.hasActiveLink(userId)) return "connected"
+    return (await this.links.hasBlockedLink(userId)) ? "disconnected" : "not_connected"
+  }
+
   async hasActiveLink(userId: string): Promise<boolean> {
     return this.isConfigured && Boolean(await this.links.findActiveLinkForUser(userId))
   }
