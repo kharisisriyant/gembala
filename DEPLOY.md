@@ -33,6 +33,7 @@ environment that points at a different API host (staging vs production).
 | `NOTIFICATION_LINK_SECRET` | 32+ random chars; signs unsubscribe links (required in production) |
 | `API_PUBLIC_URL` | `https://api.staging.gembala.dev/api`, target for one-click unsubscribe |
 | `RESEND_WEBHOOK_SECRET` | `whsec_...` from the Resend webhook for `POST /api/webhooks/resend` (events: delivered, bounced, complained) |
+| `TELEGRAM_WEBHOOK_SECRET` | letters, digits, `_` and `-` only. Registered with Telegram as `secret_token`; the webhook (`POST /api/telegram/webhook`) rejects requests without the matching `X-Telegram-Bot-Api-Secret-Token` header |
 | `REDIS_URL` | `redis://redis:6379` (compose service by default; managed Redis works by changing this only) |
 | `NOTIFICATIONS_WORKERS` | `true` to run the notification relay and workers in this process |
 

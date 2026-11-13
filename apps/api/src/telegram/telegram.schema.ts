@@ -28,6 +28,8 @@ export const telegramLinks = pgTable(
     telegramUsername: text("telegram_username"),
     linkedAt: timestamp("linked_at", { withTimezone: true }).notNull().defaultNow(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    // user | stop | replaced | blocked (Telegram reported the bot was blocked)
+    revokedReason: text("revoked_reason"),
   },
   (t) => [
     uniqueIndex("telegram_links_user_active_uq").on(t.userId).where(sql`revoked_at is null`),

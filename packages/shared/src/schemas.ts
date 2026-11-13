@@ -856,6 +856,8 @@ export type TelegramLinkStatusResponse =
   | { linked: true; telegramUsername: string | null }
   | {
       linked: false
+      // True when the previous link ended because the user blocked the bot
+      disconnected: boolean
       code: string
       expiresAt: string
       botConfigured: boolean

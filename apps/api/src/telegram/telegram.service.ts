@@ -2,6 +2,7 @@ import { Injectable, Logger, type OnModuleInit } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { randomBytes } from "node:crypto"
 import type { TelegramLinkStatusResponse } from "@gembala/shared"
+import { sendTelegramMessage } from "./telegram.client"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthContextService } from "../authz/auth-context.service"
 import { TelegramAgentService } from "./telegram-agent.service"
@@ -12,7 +13,7 @@ const CODE_TTL_MS = 10 * 60 * 1000
 export type TelegramUpdate = {
   message?: {
     text?: string
-    chat: { id: number }
+    chat: { id: number; type?: string }
     from?: { username?: string }
   }
 }
@@ -48,12 +49,13 @@ export class TelegramService implements OnModuleInit {
       this.logger.log("Telegram bot not configured — skipping webhook registration")
       return
     }
-    const target = `${this.webhookUrl}/api/telegram/webhook/${this.webhookSecret}`
+    // Telegram echoes secret_token in a header on every call; the controller verifies it (TG-7).
+    const target = `${this.webhookUrl}/api/telegram/webhook`
     try {
       const res = await fetch(`https://api.telegram.org/bot${this.token}/setWebhook`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: target }),
+        body: JSON.stringify({ url: target, secret_token: this.webhookSecret }),
       })
       const data = (await res.json()) as { ok: boolean; description?: string }
       if (!data.ok) this.logger.warn(`setWebhook failed: ${data.description}`)
@@ -76,6 +78,7 @@ export class TelegramService implements OnModuleInit {
 
     return {
       linked: false,
+      disconnected: await this.links.hasBlockedLink(auth.userId),
       code: codeRow.code,
       expiresAt: codeRow.expiresAt.toISOString(),
       botConfigured: this.isConfigured,
@@ -91,21 +94,30 @@ export class TelegramService implements OnModuleInit {
     const message = update.message
     if (!message?.text) return
 
+    // Private chats only (TG-11): never answer or link from groups and channels.
+    if (message.chat.type && message.chat.type !== "private") return
+
     const chatId = String(message.chat.id)
     const username = message.from?.username ?? null
     const text = message.text.trim()
 
-    if (text === "/start") {
+    // `/start <code>` is the deep link from the app (t.me/<bot>?start=<code>); `/link <code>` still works.
+    const linkMatch = /^\/(?:start|link)(?:@\w+)?\s+(\S+)$/i.exec(text)
+    if (linkMatch) {
+      await this.consumeCode(chatId, username, linkMatch[1].toUpperCase())
+      return
+    }
+
+    if (/^\/start(?:@\w+)?$/i.test(text)) {
       await this.reply(
         chatId,
-        "Welcome! Open Integrations in gembala and send me /link <code> to connect your account.",
+        "Welcome! Open Integrations in gembala and use the Connect Telegram button, or send me /link <code> to connect your account.",
       )
       return
     }
 
-    const linkMatch = /^\/link\s+(\S+)$/i.exec(text)
-    if (linkMatch) {
-      await this.consumeCode(chatId, username, linkMatch[1].toUpperCase())
+    if (/^\/stop(?:@\w+)?$/i.test(text)) {
+      await this.stop(chatId)
       return
     }
 
@@ -145,53 +157,64 @@ export class TelegramService implements OnModuleInit {
   }
 
   private async consumeCode(chatId: string, username: string | null, code: string): Promise<void> {
-    const alreadyLinked = await this.links.findActiveLinkRowByChatId(chatId)
-    if (alreadyLinked) {
-      await this.reply(chatId, "This Telegram account is already linked.")
-      return
-    }
-
     const codeRow = await this.links.findActiveCodeByCode(code)
     if (!codeRow) {
       await this.reply(chatId, "That code is invalid or expired. Generate a new one from the Integrations page.")
       return
     }
-
-    try {
-      await this.links.insertLink({
-        userId: codeRow.userId,
-        telegramChatId: chatId,
-        telegramUsername: username,
-      })
-    } catch {
-      // partial unique index on telegram_chat_id caught a race
-      await this.reply(chatId, "This Telegram account is already linked to another user.")
-      return
-    }
-
-    await this.links.deleteCode(codeRow.id)
+    // Re-linking replaces any older link for this chat or this user (TG-3).
+    await this.links.bindChat({ userId: codeRow.userId, telegramChatId: chatId, telegramUsername: username, codeId: codeRow.id })
     await this.reply(chatId, "Connected! Your gembala account is now linked.")
   }
 
-  // Outbound push to a linked user (the weekly digest). False = not delivered
-  // (no link, bot unconfigured, or Telegram refused, e.g. the user blocked the
-  // bot) so the caller can fall back to another channel.
-  async sendToUser(userId: string, text: string): Promise<boolean> {
-    if (!this.token) return false
+  // `/stop`: unlink this chat and turn Telegram notifications off (TG-4).
+  private async stop(chatId: string): Promise<void> {
+    const userIds = await this.links.revokeActiveLinkByChatId(chatId, "stop")
+    for (const userId of userIds) await this.links.recordTelegramStop(userId)
+    await this.reply(
+      chatId,
+      userIds.length > 0
+        ? "Disconnected. You won't get notifications here anymore. Link again from gembala any time."
+        : "This chat isn't linked to a gembala account.",
+    )
+  }
+
+  async hasActiveLink(userId: string): Promise<boolean> {
+    return this.isConfigured && Boolean(await this.links.findActiveLinkForUser(userId))
+  }
+
+  // Outbound push for notifications. Classified so the delivery worker can retry
+  // or give up; a 403 means the user blocked the bot, so the link is retired (TG-5).
+  async pushToUser(
+    userId: string,
+    message: { text: string; parseMode?: "HTML"; buttonUrl?: string; buttonText?: string },
+  ): Promise<
+    | { kind: "no_link" }
+    | { kind: "sent"; messageId: string }
+    | { kind: "retryable"; code: string; retryAfterMs?: number }
+    | { kind: "permanent"; code: string }
+  > {
+    if (!this.token) return { kind: "no_link" }
     const link = await this.links.findActiveLinkForUser(userId)
-    if (!link) return false
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: link.telegramChatId, text, disable_web_page_preview: true }),
-      })
-      if (!res.ok) this.logger.warn(`sendMessage to user ${userId} failed: HTTP ${res.status}`)
-      return res.ok
-    } catch (err) {
-      this.logger.warn(`sendMessage to user ${userId} failed: ${err instanceof Error ? err.message : String(err)}`)
-      return false
+    if (!link) return { kind: "no_link" }
+    const res = await sendTelegramMessage(this.token, { chatId: link.telegramChatId, ...message })
+    if (res.ok) return { kind: "sent", messageId: res.messageId }
+    if (res.status === 403) {
+      await this.links.revokeActiveLinkByChatId(link.telegramChatId, "blocked")
+      this.logger.warn(`bot blocked by user ${userId}; link retired`)
+      return { kind: "permanent", code: "blocked" }
     }
+    if (res.status === 0 || res.status === 429 || res.status >= 500) {
+      return { kind: "retryable", code: String(res.status || "network"), retryAfterMs: res.retryAfterMs }
+    }
+    this.logger.warn(`sendMessage to user ${userId} rejected: HTTP ${res.status} ${res.description}`)
+    return { kind: "permanent", code: String(res.status) }
+  }
+
+  // Outbound push for the weekly digest. False = not delivered, so the caller
+  // can fall back to another channel.
+  async sendToUser(userId: string, text: string): Promise<boolean> {
+    return (await this.pushToUser(userId, { text })).kind === "sent"
   }
 
   private async reply(chatId: string, text: string, opts?: { markdown?: boolean }): Promise<void> {

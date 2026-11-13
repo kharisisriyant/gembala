@@ -347,7 +347,8 @@ export const telegramLinkStatusResponseSchema = z.discriminatedUnion("linked", [
   z.object({ linked: z.literal(true), telegramUsername: z.string().nullable() }),
   z.object({
     linked: z.literal(false),
-    code: z.string().describe("One-time code to send to the bot as /link <code>"),
+    disconnected: z.boolean().describe("True when the previous link ended because the user blocked the bot"),
+    code: z.string().describe("One-time code; send it as /link <code> or open t.me/<bot>?start=<code>"),
     expiresAt: z.string(),
     botConfigured: z.boolean(),
     botUsername: z.string().nullable(),
