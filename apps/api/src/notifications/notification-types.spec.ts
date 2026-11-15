@@ -20,6 +20,7 @@ const samples: Record<string, object> = {
   "security.password_changed": {},
   "security.refresh_reuse": {},
   "digest.weekly": { subject: "Week", text: "Body" },
+  "roster.declined": { memberName: "Jo", roleName: "Usher", serviceName: "KU1", date: "2026-11-22", reason: "Out of town" },
 }
 
 describe("notification catalog", () => {

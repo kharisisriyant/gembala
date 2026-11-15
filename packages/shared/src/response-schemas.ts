@@ -60,6 +60,10 @@ import {
   type PipelineRowResponse,
   type EnrollmentResponse,
   type RoleAssignmentResponse,
+  type RosterAssignmentPublicResponse,
+  type RosterLinkResponse,
+  type RosterNotifyResponse,
+  rosterResponseStatuses,
   type RoleResponse,
   type RoleTemplateResponse,
   type RoomResponse,
@@ -284,7 +288,36 @@ export const roleAssignmentResponseSchema = z.object({
   member: idName.nullable(),
   freeText: z.string(),
   sortOrder: z.number().int(),
+  confirmation: z.object({
+    status: z.enum(rosterResponseStatuses),
+    respondedAt: z.string().nullable().describe("ISO 8601 timestamp"),
+    declineReason: z.string(),
+    notifiedAt: z.string().nullable().describe("ISO 8601 timestamp of the last notify"),
+  }),
 }) satisfies z.ZodType<RoleAssignmentResponse>
+
+export const rosterLinkResponseSchema = z.object({
+  url: z.string().describe("Public confirm/decline link for this assignment"),
+}) satisfies z.ZodType<RosterLinkResponse>
+
+export const rosterNotifyResponseSchema = z.object({
+  sentTo: z.enum(["email"]).nullable().describe("null when the member has no email; share url by hand"),
+  url: z.string(),
+  notifiedAt: z.string().nullable(),
+}) satisfies z.ZodType<RosterNotifyResponse>
+
+export const rosterAssignmentPublicResponseSchema = z.object({
+  churchName: z.string(),
+  date: z.string().describe("YYYY-MM-DD"),
+  theme: z.string(),
+  serviceName: z.string(),
+  roleName: z.string(),
+  memberName: z.string(),
+  status: z.enum(rosterResponseStatuses),
+  respondedAt: z.string().nullable(),
+  declineReason: z.string(),
+  open: z.boolean().describe("false once the service day has begun (Asia/Jakarta)"),
+}) satisfies z.ZodType<RosterAssignmentPublicResponse>
 
 export const scheduleEventDetailResponseSchema = scheduleEventResponseSchema.extend({
   instances: z.array(

@@ -63,6 +63,11 @@ import type {
   MemberUpdateInput,
   RoleAssignmentCreateInput,
   RoleAssignmentResponse,
+  RosterAssignmentPublicResponse,
+  RosterLinkResponse,
+  RosterNotifyInput,
+  RosterNotifyResponse,
+  RosterRespondInput,
   RoleCreateInput,
   RoleResponse,
   RoleTemplateCreateInput,
@@ -560,6 +565,43 @@ export function useDeleteRoleAssignment() {
     mutationFn: (assignmentId: string) =>
       apiFetch<void>(`/scheduling/assignments/${assignmentId}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useRosterLink() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (assignmentId: string) =>
+      apiFetch<RosterLinkResponse>(`/scheduling/assignments/${assignmentId}/link`, { method: "POST" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useNotifyRosterAssignment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ assignmentId, ...input }: RosterNotifyInput & { assignmentId: string }) =>
+      apiFetch<RosterNotifyResponse>(`/scheduling/assignments/${assignmentId}/notify`, { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+// Public (no login): the signed token in the link is the credential.
+export function useRosterResponse(token: string) {
+  return useQuery({
+    queryKey: ["roster-response", token],
+    queryFn: () => apiFetch<RosterAssignmentPublicResponse>(`/roster-response?token=${encodeURIComponent(token)}`),
+    enabled: token.length > 0,
+    retry: false,
+  })
+}
+
+export function useRespondRoster(token: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RosterRespondInput) =>
+      apiFetch<RosterAssignmentPublicResponse>(`/roster-response?token=${encodeURIComponent(token)}`, { method: "POST", body: input }),
+    onSuccess: (view) => qc.setQueryData(["roster-response", token], view),
   })
 }
 

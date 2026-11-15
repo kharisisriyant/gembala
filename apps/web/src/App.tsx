@@ -20,6 +20,7 @@ import { TelegramPage } from "@/pages/telegram"
 import { GoogleCalendarPage } from "@/pages/google-calendar"
 import { CareRequestsPage } from "@/pages/care-requests"
 import { UnsubscribePage } from "@/pages/unsubscribe"
+import { RosterRespondPage } from "@/pages/roster-respond"
 import { NotificationsPage } from "@/pages/notifications"
 import { JourneyPage } from "@/pages/journey"
 import { LoginPage } from "@/pages/auth/login"
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/privacy-policy" element={<LegalPage document="privacy" />} />
         <Route path="/terms-and-conditions" element={<LegalPage document="terms" />} />
         <Route path="/unsubscribe" element={<UnsubscribePage />} />
+        <Route path="/roster/respond" element={<RosterRespondPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

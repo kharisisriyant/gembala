@@ -40,6 +40,8 @@ import googleEn from "./locales/en/google.json"
 import googleId from "./locales/id/google.json"
 import legalEn from "./locales/en/legal.json"
 import legalId from "./locales/id/legal.json"
+import rosterEn from "./locales/en/roster.json"
+import rosterId from "./locales/id/roster.json"
 
 export const defaultNS = "common"
 
@@ -52,6 +54,7 @@ void i18n
         auth: authEn,
         common: commonEn,
         legal: legalEn,
+        roster: rosterEn,
         google: googleEn,
         landing: landingEn,
         dashboard: dashboardEn,
@@ -73,6 +76,7 @@ void i18n
         auth: authId,
         common: commonId,
         legal: legalId,
+        roster: rosterId,
         landing: landingId,
         dashboard: dashboardId,
         members: membersId,

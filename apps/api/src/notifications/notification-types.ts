@@ -143,6 +143,20 @@ const refreshReuse = {
     }),
 } satisfies NotificationType<Record<string, never>>
 
+const rosterDeclined = {
+  key: "roster.declined",
+  category: "activity",
+  priority: "normal",
+  defaultChannels: ["telegram"],
+  ttlMs: 7 * DAY,
+  payload: z.object({ memberName: z.string(), roleName: z.string(), serviceName: z.string(), date: z.string(), reason: z.string() }),
+  render: (l, p) =>
+    pick(l, {
+      en: { title: `${p.memberName} can't serve on ${p.date}`, body: `${p.memberName} declined ${p.roleName} at ${p.serviceName} on ${p.date}. Find someone else on the roster.${p.reason ? ` Reason: ${p.reason}` : ""}`, link: "/scheduling" },
+      id: { title: `${p.memberName} berhalangan pada ${p.date}`, body: `${p.memberName} menolak tugas ${p.roleName} di ${p.serviceName} pada ${p.date}. Cari pengganti di jadwal ibadah.${p.reason ? ` Alasan: ${p.reason}` : ""}`, link: "/scheduling" },
+    }),
+} satisfies NotificationType<{ memberName: string; roleName: string; serviceName: string; date: string; reason: string }>
+
 const weeklyDigest = {
   key: "digest.weekly",
   category: "reminder",
@@ -164,4 +178,5 @@ export const notificationTypes: NotificationType[] = [
   passwordChanged,
   refreshReuse,
   weeklyDigest,
+  rosterDeclined,
 ] as NotificationType[]

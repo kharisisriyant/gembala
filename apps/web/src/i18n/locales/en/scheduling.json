@@ -111,5 +111,26 @@
       "statusActive": "Active",
       "statusInactive": "Inactive"
     }
+  },
+  "confirmation": {
+    "title": "Confirmation",
+    "status": {
+      "pending": "Waiting for answer",
+      "confirmed": "Confirmed",
+      "declined": "Declined"
+    },
+    "respondedAt": "Answered {{when}}",
+    "notifiedAt": "Last notified {{when}}",
+    "reason": "Reason: {{reason}}",
+    "copyLink": "Copy link",
+    "notify": "Send by email",
+    "sending": "Sending…",
+    "hint": "Share the link on WhatsApp, or email it if the member has an address. Changing the member or role makes old links stop working.",
+    "linkCopied": "Link copied. Share it with the member.",
+    "linkCopyFailed": "Could not copy. Link: {{url}}",
+    "emailed": "Email sent with the confirmation link",
+    "noEmail": "This member has no email. Link copied; share it on WhatsApp.",
+    "noEmailCopyFailed": "This member has no email. Share this link: {{url}}",
+    "error": "Could not get the confirmation link"
   }
 }

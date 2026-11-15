@@ -1,5 +1,8 @@
 import { createZodDto } from "nestjs-zod"
 import {
+  rosterAssignmentPublicResponseSchema,
+  rosterLinkResponseSchema,
+  rosterNotifyResponseSchema,
   notificationItemResponseSchema,
   notificationListResponseSchema,
   notificationPreferencesResponseSchema,
@@ -75,6 +78,9 @@ export class InstanceTypeResponseDto extends createZodDto(instanceTypeResponseSc
 export class RoleTemplateResponseDto extends createZodDto(roleTemplateResponseSchema) {}
 export class ServiceInstanceResponseDto extends createZodDto(serviceInstanceResponseSchema) {}
 export class RoleAssignmentResponseDto extends createZodDto(roleAssignmentResponseSchema) {}
+export class RosterLinkResponseDto extends createZodDto(rosterLinkResponseSchema) {}
+export class RosterNotifyResponseDto extends createZodDto(rosterNotifyResponseSchema) {}
+export class RosterAssignmentPublicResponseDto extends createZodDto(rosterAssignmentPublicResponseSchema) {}
 export class ScheduleEventDetailResponseDto extends createZodDto(scheduleEventDetailResponseSchema) {}
 export class InviteResponseDto extends createZodDto(inviteResponseSchema) {}
 export class InvitePreviewResponseDto extends createZodDto(invitePreviewResponseSchema) {}

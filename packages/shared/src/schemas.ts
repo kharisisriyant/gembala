@@ -503,12 +503,61 @@ export const roleAssignmentCreateSchema = z
   })
 export type RoleAssignmentCreateInput = z.infer<typeof roleAssignmentCreateSchema>
 
+// A member's answer to their roster assignment, given on the public
+// signed-link page. Free-text assignments stay "pending" (no one to ask).
+export const rosterResponseStatuses = ["pending", "confirmed", "declined"] as const
+export type RosterResponseStatus = (typeof rosterResponseStatuses)[number]
+
+export type RoleAssignmentConfirmation = {
+  status: RosterResponseStatus
+  respondedAt: string | null
+  declineReason: string
+  notifiedAt: string | null
+}
+
 export type RoleAssignmentResponse = {
   id: string
   roleTemplateId: string
   member: { id: string; name: string } | null
   freeText: string
   sortOrder: number
+  confirmation: RoleAssignmentConfirmation
+}
+
+export const rosterNotifySchema = z.object({
+  // Language of the email; the web app sends the leader's UI language.
+  locale: z.enum(["en", "id"]).default("id"),
+})
+export type RosterNotifyInput = z.infer<typeof rosterNotifySchema>
+
+export type RosterLinkResponse = { url: string }
+
+export type RosterNotifyResponse = {
+  // null when the member has no email address: share `url` by hand instead.
+  sentTo: "email" | null
+  url: string
+  notifiedAt: string | null
+}
+
+export const rosterRespondSchema = z.object({
+  status: z.enum(["confirmed", "declined"]),
+  reason: z.string().trim().max(500).optional(),
+})
+export type RosterRespondInput = z.infer<typeof rosterRespondSchema>
+
+// What the public confirm page shows. Only this assignment; no contact details.
+export type RosterAssignmentPublicResponse = {
+  churchName: string
+  date: string
+  theme: string
+  serviceName: string
+  roleName: string
+  memberName: string
+  status: RosterResponseStatus
+  respondedAt: string | null
+  declineReason: string
+  // false once the service day has begun (Asia/Jakarta); answers are then rejected
+  open: boolean
 }
 
 export type ScheduleEventDetailResponse = ScheduleEventResponse & {

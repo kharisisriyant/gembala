@@ -1,6 +1,9 @@
-import { boolean, date, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
-import { organizations } from "../auth/auth.schema"
+import { boolean, date, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { rosterResponseStatuses } from "@gembala/shared"
+import { organizations, users } from "../auth/auth.schema"
 import { members } from "../members/members.schema"
+
+export const rosterResponseStatus = pgEnum("roster_response_status", rosterResponseStatuses)
 
 export const instanceTypes = pgTable(
   "instance_types",
@@ -87,6 +90,15 @@ export const roleAssignments = pgTable(
     memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
     freeText: text("free_text").notNull().default(""),
     sortOrder: integer("sort_order").notNull().default(0),
+    // Volunteer confirmation. The public link is HMAC(assignment id, link nonce);
+    // a new nonce (on member or role change) invalidates links already shared.
+    linkNonce: uuid("link_nonce").notNull().defaultRandom(),
+    responseStatus: rosterResponseStatus("response_status").notNull().default("pending"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    declineReason: text("decline_reason").notNull().default(""),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    // The leader who last shared or sent the link; told in-app when the member declines.
+    requestedByUserId: uuid("requested_by_user_id").references(() => users.id, { onDelete: "set null" }),
   },
   (t) => [
     index("role_assignments_instance_idx").on(t.serviceInstanceId),
