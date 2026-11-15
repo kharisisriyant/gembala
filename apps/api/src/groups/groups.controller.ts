@@ -1,15 +1,16 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common"
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common"
 import { createZodDto } from "nestjs-zod"
 import {
   groupCreateSchema,
   groupUpdateSchema,
   sessionCreateSchema,
+  sessionUpdateSchema,
   type AttendanceHeatmapResponse,
   type GroupDetailResponse,
   type GroupSummaryResponse,
   type SessionResponse,
 } from "@gembala/shared"
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { AttendanceHeatmapResponseDto, GroupDetailResponseDto, GroupSummaryResponseDto, SessionResponseDto } from "../swagger/response-dtos"
 import { CurrentAuth, RequirePermission } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
@@ -19,6 +20,7 @@ import { AttendanceService } from "./attendance.service"
 class GroupCreateDto extends createZodDto(groupCreateSchema) {}
 class GroupUpdateDto extends createZodDto(groupUpdateSchema) {}
 class SessionCreateDto extends createZodDto(sessionCreateSchema) {}
+class SessionUpdateDto extends createZodDto(sessionUpdateSchema) {}
 
 @ApiTags("Groups")
 @Controller("groups")
@@ -83,7 +85,10 @@ export class GroupsController {
   @ApiOperation({ summary: "Log a meeting session with attendance" })
   @ApiCreatedResponse({ type: SessionResponseDto })
   @ApiNotFoundResponse({ description: "Group not found or outside the caller's tag scope" })
-  @ApiBadRequestResponse({ description: "presentIds must all be members of the group" })
+  @ApiForbiddenResponse({ description: "Group is outside the caller's tag scope" })
+  @ApiBadRequestResponse({
+    description: "presentIds and excused must all be members of the group, and a member cannot be both present and excused",
+  })
   @RequirePermission("groups", "update")
   @Post(":id/sessions")
   logSession(
@@ -92,5 +97,38 @@ export class GroupsController {
     @Body() dto: SessionCreateDto,
   ): Promise<SessionResponse> {
     return this.attendance.logSession(auth, id, dto)
+  }
+
+  @ApiOperation({ summary: "Edit a logged session and, optionally, replace its attendance" })
+  @ApiOkResponse({ type: SessionResponseDto })
+  @ApiNotFoundResponse({ description: "Group or session not found, or the session belongs to another group" })
+  @ApiForbiddenResponse({ description: "Group is outside the caller's tag scope" })
+  @ApiBadRequestResponse({
+    description: "presentIds and excused must all be members of the group, and a member cannot be both present and excused",
+  })
+  @RequirePermission("groups", "update")
+  @Patch(":id/sessions/:sessionId")
+  updateSession(
+    @CurrentAuth() auth: AuthContext,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("sessionId", ParseUUIDPipe) sessionId: string,
+    @Body() dto: SessionUpdateDto,
+  ): Promise<SessionResponse> {
+    return this.attendance.updateSession(auth, id, sessionId, dto)
+  }
+
+  @ApiOperation({ summary: "Delete a logged session and its attendance" })
+  @ApiNoContentResponse({ description: "Session deleted" })
+  @ApiNotFoundResponse({ description: "Group or session not found, or the session belongs to another group" })
+  @ApiForbiddenResponse({ description: "Group is outside the caller's tag scope" })
+  @RequirePermission("groups", "update")
+  @HttpCode(204)
+  @Delete(":id/sessions/:sessionId")
+  deleteSession(
+    @CurrentAuth() auth: AuthContext,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("sessionId", ParseUUIDPipe) sessionId: string,
+  ): Promise<void> {
+    return this.attendance.deleteSession(auth, id, sessionId)
   }
 }

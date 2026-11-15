@@ -32,7 +32,17 @@
     "prayerNotesLabel": "Prayer notes",
     "leaderBadge": "leader",
     "restrictedTitle": "Restricted",
-    "backToGroups": "Back to Small Groups"
+    "backToGroups": "Back to Small Groups",
+    "excused": "Excused",
+    "excusedCount": "{{count}} excused",
+    "editSessionLabel": "Edit meeting on {{date}}",
+    "deleteSession": {
+      "label": "Delete meeting on {{date}}",
+      "title": "Delete this meeting?",
+      "description": "The meeting on {{date}} ({{topic}}) and its attendance will be removed. This cannot be undone.",
+      "successToast": "Meeting on {{date}} deleted",
+      "errorToast": "Could not delete the meeting"
+    }
   },
   "addGroupDialog": {
     "trigger": "New group",
@@ -81,14 +91,24 @@
     "topic": "Topic",
     "topicPlaceholder": "e.g. Romans 8",
     "whoCame": "Who came?",
-    "selected": "{{count}} selected",
     "prayerNotes": "Prayer notes",
     "prayerNotesPlaceholder": "Requests, praise reports, follow-ups…",
     "save": "Save meeting",
     "successToast": "Attendance logged",
     "successDescription": "{{count}} present · {{topic}}",
     "noTopic": "no topic",
-    "errorToast": "Could not log attendance"
+    "errorToast": "Could not log attendance",
+    "editTitle": "Edit meeting — {{name}}",
+    "tally": "{{present}} present · {{excused}} excused",
+    "status": {
+      "present": "Present",
+      "excused": "Excused",
+      "absent": "Absent"
+    },
+    "reasonLabel": "Reason {{name}} was excused",
+    "reasonPlaceholder": "Reason (optional), e.g. sick",
+    "updatedToast": "Meeting updated",
+    "updateErrorToast": "Could not update the meeting"
   },
   "attendanceHeatmap": {
     "title": "Weekly attendance",

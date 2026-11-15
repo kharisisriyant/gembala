@@ -17,7 +17,9 @@ export type AbsentItem = {
 }
 
 type GroupLike = { id: string; name: string; members: { id: string; name: string }[] }
-type SessionLike = { date: string; presentIds: string[] }
+// `excused` is optional so callers that only know who was present still work.
+// SessionResponse satisfies this shape directly.
+type SessionLike = { date: string; presentIds: string[]; excused?: { memberId: string }[] }
 
 export function absenceItems(
   groups: GroupLike[],
@@ -34,8 +36,14 @@ export function absenceItems(
     if (opts.asOf && opts.dormantAfterDays !== undefined && daysBetweenDates(sessions[0].date, opts.asOf) > opts.dormantAfterDays) continue
     for (const member of group.members) {
       if (!visibleMemberIds.has(member.id)) continue
+      // Walk back from the latest session until the member was present. An
+      // excused session is skipped: it neither counts as missed nor ends the streak.
       let missed = 0
-      while (missed < sessions.length && !sessions[missed].presentIds.includes(member.id)) missed++
+      for (const s of sessions) {
+        if (s.presentIds.includes(member.id)) break
+        if (s.excused?.some((e) => e.memberId === member.id)) continue
+        missed++
+      }
       if (missed < threshold) continue
       const lastSeen = sessions.find((s) => s.presentIds.includes(member.id))?.date ?? null
       items.push({ memberId: member.id, name: member.name, groupId: group.id, groupName: group.name, missed, lastSeen })

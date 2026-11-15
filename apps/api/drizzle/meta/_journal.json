@@ -134,6 +134,13 @@
       "when": 1794548070934,
       "tag": "0018_user_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794738993939,
+      "tag": "0019_attendance_excused",
+      "breakpoints": true
     }
   ]
 }

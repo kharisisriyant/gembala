@@ -30,6 +30,49 @@ describe("absenceItems", () => {
     expect(absenceItems([group], old, all)).toHaveLength(3)
     expect(absenceItems([group], old, all, { asOf: "2026-11-09", dormantAfterDays: 60 })).toEqual([])
   })
+
+  describe("excused sessions", () => {
+    const exc = (date: string, presentIds: string[], excusedIds: string[]) => ({
+      date,
+      presentIds,
+      excused: excusedIds.map((memberId) => ({ memberId, reason: "" })),
+    })
+    const only = new Set(["a"])
+
+    it("skips an excused session in the middle of a streak without resetting it", () => {
+      const s = new Map([["g1", [
+        exc("2026-11-08", ["b"], []),
+        exc("2026-11-01", ["b"], ["a"]),
+        exc("2026-10-25", ["b"], []),
+        exc("2026-10-18", ["a", "b"], []),
+      ]]])
+      expect(absenceItems([group], s, only).map((i) => [i.memberId, i.missed, i.lastSeen])).toEqual([
+        ["a", 2, "2026-10-18"],
+      ])
+    })
+
+    it("does not count an excused most-recent session as missed", () => {
+      const s = new Map([["g1", [
+        exc("2026-11-08", ["b"], ["a"]),
+        exc("2026-11-01", ["b"], []),
+        exc("2026-10-25", ["a", "b"], []),
+      ]]])
+      expect(absenceItems([group], s, only)).toEqual([])
+
+      // ...but the misses before it still count, and lastSeen ignores the excused one
+      const longer = new Map([["g1", [
+        exc("2026-11-15", ["b"], ["a"]),
+        exc("2026-11-08", ["b"], []),
+        exc("2026-11-01", ["b"], []),
+      ]]])
+      expect(absenceItems([group], longer, only).map((i) => [i.missed, i.lastSeen])).toEqual([[2, null]])
+    })
+
+    it("never flags a member who was excused from every session", () => {
+      const s = new Map([["g1", [exc("2026-11-08", ["b"], ["a"]), exc("2026-11-01", ["b"], ["a"]), exc("2026-10-25", ["b"], ["a"])]]])
+      expect(absenceItems([group], s, only)).toEqual([])
+    })
+  })
 })
 
 describe("birthdays", () => {

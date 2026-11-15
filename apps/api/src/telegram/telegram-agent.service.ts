@@ -184,6 +184,7 @@ export class TelegramAgentService {
               date: args.date as string,
               topic: (args.topic as string) ?? "",
               presentIds: (args.present_member_ids as string[]) ?? [],
+              excused: [],
               prayerNotes: "",
             }),
           )

@@ -327,11 +327,16 @@ export type GroupSummaryResponse = {
   lastSessionPresent: number | null
 }
 
+export type SessionExcused = { memberId: string; reason: string }
+
 export type SessionResponse = {
   id: string
   groupId: string
   date: string
+  // Only members marked present. Excused members are listed in `excused`;
+  // anyone on the roster in neither list was absent.
   presentIds: string[]
+  excused: SessionExcused[]
   topic: string
   prayerNotes: string
 }
@@ -514,13 +519,29 @@ export type ScheduleEventDetailResponse = ScheduleEventResponse & {
 // Attendance
 // ---------------------------------------------------------------------------
 
+export const SESSION_EXCUSE_REASON_MAX = 200
+
+export const sessionExcusedSchema = z.object({
+  memberId: z.string().uuid(),
+  reason: z.string().trim().max(SESSION_EXCUSE_REASON_MAX).default(""),
+})
+
+// Attendance is three-state: present (in presentIds), excused (in excused,
+// with an optional reason) or absent (in neither). A member may appear once.
 export const sessionCreateSchema = z.object({
   date: isoDate,
   topic: z.string().max(200).or(z.literal("")),
   presentIds: z.array(z.string().uuid()),
+  excused: z.array(sessionExcusedSchema).default([]),
   prayerNotes: z.string().max(2000).or(z.literal("")),
 })
 export type SessionCreateInput = z.infer<typeof sessionCreateSchema>
+
+// Partial, like groupUpdateSchema. When presentIds and/or excused is given the
+// session's whole attendance set is replaced; an omitted list keeps its
+// current value.
+export const sessionUpdateSchema = sessionCreateSchema.partial()
+export type SessionUpdateInput = z.infer<typeof sessionUpdateSchema>
 
 export type AttendanceHeatmapResponse = {
   weeks: { start: string; end: string }[]

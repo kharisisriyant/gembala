@@ -185,7 +185,10 @@ export const sessionResponseSchema = z.object({
   id: z.string().uuid(),
   groupId: z.string().uuid(),
   date: z.string(),
-  presentIds: z.array(z.string().uuid()),
+  presentIds: z.array(z.string().uuid()).describe("Members marked present"),
+  excused: z
+    .array(z.object({ memberId: z.string().uuid(), reason: z.string() }))
+    .describe("Members excused from this session, with an optional reason"),
   topic: z.string(),
   prayerNotes: z.string(),
 }) satisfies z.ZodType<SessionResponse>

@@ -34,7 +34,6 @@ import type {
   MilestoneCreateInput,
   MilestoneResponse,
   PipelineRowResponse,
-  PipelineStage,
   JourneyStageResponse,
   JourneyStageCreateInput,
   JourneyStageUpdateInput,
@@ -75,6 +74,7 @@ import type {
   ServiceInstanceResponse,
   SessionCreateInput,
   SessionResponse,
+  SessionUpdateInput,
   TagCreateInput,
   TagResponse,
   TagUpdateInput,
@@ -314,6 +314,32 @@ export function useLogAttendance(groupId: string) {
   return useMutation({
     mutationFn: (input: SessionCreateInput) =>
       apiFetch<SessionResponse>(`/groups/${groupId}/sessions`, { method: "POST", body: input }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["groups"] })
+      void qc.invalidateQueries({ queryKey: ["dashboard"] })
+    },
+  })
+}
+
+// ["groups"] is a prefix of the group detail and attendance heatmap keys, so
+// this refreshes the list, the detail page and the heatmap together.
+export function useUpdateSession(groupId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ sessionId, ...input }: SessionUpdateInput & { sessionId: string }) =>
+      apiFetch<SessionResponse>(`/groups/${groupId}/sessions/${sessionId}`, { method: "PATCH", body: input }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["groups"] })
+      void qc.invalidateQueries({ queryKey: ["dashboard"] })
+    },
+  })
+}
+
+export function useDeleteSession(groupId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      apiFetch<void>(`/groups/${groupId}/sessions/${sessionId}`, { method: "DELETE" }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["groups"] })
       void qc.invalidateQueries({ queryKey: ["dashboard"] })

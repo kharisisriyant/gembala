@@ -20,7 +20,7 @@ function makeRepo(): jest.Mocked<GroupsRepository> {
     update: jest.fn(),
     replaceGroupMembers: jest.fn(),
     sessionsByGroupId: jest.fn(),
-    presentRowsBySessionIds: jest.fn(),
+    attendanceRowsBySessionIds: jest.fn(),
     rosterRowsByGroupIds: jest.fn(),
     sessionRowsSince: jest.fn(),
   } as unknown as jest.Mocked<GroupsRepository>
@@ -153,6 +153,23 @@ describe("GroupsService", () => {
 
       expect(result.groups).toEqual([])
       expect(result.weeks).toHaveLength(4)
+    })
+  })
+
+  describe("sessionsForGroup", () => {
+    it("counts only present rows in presentIds and lists excused members separately", async () => {
+      repo.sessionsByGroupId.mockResolvedValue([
+        { id: "s1", groupId: "g1", date: "2026-01-01", topic: "", prayerNotes: "" },
+      ] as any)
+      repo.attendanceRowsBySessionIds.mockResolvedValue([
+        { sessionId: "s1", memberId: "m1", status: "present", reason: "" },
+        { sessionId: "s1", memberId: "m2", status: "excused", reason: "sick" },
+      ] as any)
+
+      const [session] = await service.sessionsForGroup("g1")
+
+      expect(session.presentIds).toEqual(["m1"])
+      expect(session.excused).toEqual([{ memberId: "m2", reason: "sick" }])
     })
   })
 })

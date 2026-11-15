@@ -60,7 +60,7 @@ export class GroupsRepository {
     return tx
       .select({ sessionId: sessionAttendance.sessionId })
       .from(sessionAttendance)
-      .where(inArray(sessionAttendance.sessionId, sessionIds))
+      .where(and(inArray(sessionAttendance.sessionId, sessionIds), eq(sessionAttendance.status, "present")))
   }
 
   async insert(input: GroupInsert, tx: Db | Tx = this.db) {
@@ -91,10 +91,16 @@ export class GroupsRepository {
     return tx.select().from(attendanceSessions).where(eq(attendanceSessions.groupId, groupId))
   }
 
-  async presentRowsBySessionIds(sessionIds: string[], tx: Db | Tx = this.db) {
+  // Every attendance row (present and excused); callers split them by status.
+  async attendanceRowsBySessionIds(sessionIds: string[], tx: Db | Tx = this.db) {
     if (sessionIds.length === 0) return []
     return tx
-      .select({ sessionId: sessionAttendance.sessionId, memberId: sessionAttendance.memberId })
+      .select({
+        sessionId: sessionAttendance.sessionId,
+        memberId: sessionAttendance.memberId,
+        status: sessionAttendance.status,
+        reason: sessionAttendance.reason,
+      })
       .from(sessionAttendance)
       .where(inArray(sessionAttendance.sessionId, sessionIds))
   }
