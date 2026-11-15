@@ -36,6 +36,8 @@ import journeyId from "./locales/id/journey.json"
 
 import notificationsEn from "./locales/en/notifications.json"
 import notificationsId from "./locales/id/notifications.json"
+import googleEn from "./locales/en/google.json"
+import googleId from "./locales/id/google.json"
 import legalEn from "./locales/en/legal.json"
 import legalId from "./locales/id/legal.json"
 
@@ -50,6 +52,7 @@ void i18n
         auth: authEn,
         common: commonEn,
         legal: legalEn,
+        google: googleEn,
         landing: landingEn,
         dashboard: dashboardEn,
         members: membersEn,
@@ -85,6 +88,7 @@ void i18n
         "care-requests": careRequestsId,
         journey: journeyId,
         notifications: notificationsId,
+        google: googleId,
       },
     },
     fallbackLng: "id",

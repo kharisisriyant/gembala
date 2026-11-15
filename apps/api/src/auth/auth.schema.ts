@@ -18,7 +18,9 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
-  passwordHash: text("password_hash").notNull(),
+  // Null for accounts created through Google sign-in that never set a password.
+  passwordHash: text("password_hash"),
+  googleSub: text("google_sub").unique(),
   authStatus: userAuthStatus("auth_status").notNull().default("active"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 })

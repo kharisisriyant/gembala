@@ -1,14 +1,17 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { InvitePreviewResponse } from "@gembala/shared"
+import { GoogleButton, OrDivider } from "@/components/google-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { TagList } from "@/components/tag"
-import { apiFetch } from "@/lib/api"
+import { API_URL, apiFetch } from "@/lib/api"
 import { useAuth } from "@/lib/auth"
+import { useAuthConfig } from "@/lib/queries"
 import { AuthShell } from "./auth-shell"
 
 export function AcceptInvitePage() {
@@ -19,6 +22,8 @@ export function AcceptInvitePage() {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [busy, setBusy] = useState(false)
+  const { t } = useTranslation("auth")
+  const { data: authConfig } = useAuthConfig()
 
   const { data: invite, isLoading, error } = useQuery({
     queryKey: ["invite-preview", token],
@@ -89,6 +94,13 @@ export function AcceptInvitePage() {
           {busy ? "Joining…" : "Join organization"}
         </Button>
       </form>
+      {authConfig?.googleSignIn && (
+        <div className="mt-4 space-y-4">
+          <OrDivider />
+          <GoogleButton href={`${API_URL}/auth/google?invite=${encodeURIComponent(token)}`} />
+          <p className="text-muted-foreground text-center text-xs">{t("google.inviteHint", { email: invite.email })}</p>
+        </div>
+      )}
     </AuthShell>
   )
 }

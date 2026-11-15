@@ -8,6 +8,9 @@ import {
   notificationUnreadCountResponseSchema,
   attendanceHeatmapResponseSchema,
   authResponseSchema,
+  authConfigResponseSchema,
+  googleCalendarStatusResponseSchema,
+  googleConnectUrlResponseSchema,
   csrfResponseSchema,
   organizationInviteResponseSchema,
   careRequestAssigneeResponseSchema,
@@ -97,3 +100,7 @@ export class NotificationUnreadCountResponseDto extends createZodDto(notificatio
 export class NotificationReadAllResponseDto extends createZodDto(notificationReadAllResponseSchema) {}
 export class NotificationUnsubscribePreviewResponseDto extends createZodDto(notificationUnsubscribePreviewResponseSchema) {}
 export class NotificationPreferencesResponseDto extends createZodDto(notificationPreferencesResponseSchema) {}
+
+export class AuthConfigResponseDto extends createZodDto(authConfigResponseSchema) {}
+export class GoogleCalendarStatusResponseDto extends createZodDto(googleCalendarStatusResponseSchema) {}
+export class GoogleConnectUrlResponseDto extends createZodDto(googleConnectUrlResponseSchema) {}

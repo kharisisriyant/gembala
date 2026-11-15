@@ -28,7 +28,10 @@ import {
   memberStatusSchema,
   type AttendanceHeatmapResponse,
   type AuthResponse,
+  type AuthConfigResponse,
   type CsrfResponse,
+  type GoogleCalendarStatusResponse,
+  type GoogleConnectUrlResponse,
   type OrganizationInviteResponse,
   type CareRequestAssigneeResponse,
   type DigestPreferencesResponse,
@@ -518,3 +521,21 @@ export const notificationPreferencesResponseSchema = z.object({
     telegram: z.object({ state: z.enum(["connected", "not_connected", "disconnected"]) }),
   }),
 }) satisfies z.ZodType<NotificationPreferencesResponse>
+
+export const authConfigResponseSchema = z.object({
+  googleSignIn: z.boolean().describe("True when the server has a Google OAuth client configured"),
+}) satisfies z.ZodType<AuthConfigResponse>
+
+export const googleCalendarStatusResponseSchema = z.object({
+  configured: z.boolean(),
+  connected: z.boolean(),
+  googleEmail: z.string().nullable(),
+  syncEvents: z.boolean(),
+  syncRooms: z.boolean(),
+  lastError: z.string().nullable(),
+  lastSyncedAt: z.string().nullable(),
+}) satisfies z.ZodType<GoogleCalendarStatusResponse>
+
+export const googleConnectUrlResponseSchema = z.object({
+  url: z.string().describe("Google consent URL to send the browser to"),
+}) satisfies z.ZodType<GoogleConnectUrlResponse>

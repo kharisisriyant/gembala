@@ -297,6 +297,7 @@ lifecycle there, not inline.
 | Auth user | `active`, `disabled`, `locked`, `suspended` | stored | only `active` may log in/refresh; nothing sets the other three yet |
 | Auth session / refresh token | live → revoked / expired / reuse-detected | derived from `revokedAt`/`expiresAt` | refresh rotation in `auth.service` |
 | Telegram link | code (TTL) → link → revoked | derived from `expiresAt`/`revokedAt` | partial unique index on active chat id |
+| Google Calendar connection (per org) | not connected → connected ⇄ sync error → disconnected | row in `google_calendar_connections`; error derived from `lastError` | a feed is on while its calendar id is non-null; a successful full sync clears `lastError`; disconnect deletes the row and the app-created calendars |
 
 ## Cross-cutting modules
 
@@ -321,3 +322,16 @@ Admins get an org-wide summary instead. Rendering (`digest.render.ts`) is pure
 and locale-aware (`en`/`id`); messages carry names and request types only, never
 request text. Preferences live in `digest_preferences` (no row = enabled, `id`).
 "Today" is always `todayInZone()` from `@gembala/shared` (fixed Asia/Jakarta).
+
+`google` holds both Google features. `GoogleOAuthService` is the OAuth code flow
+(plain `fetch`, no SDK) shared by sign-in (`auth`) and the org calendar
+connection; `state` is a signed JWT that is also set as an HttpOnly cookie, so a
+callback only works in the browser that started it. Calendar sync is one-way,
+Gembala to Google, into calendars the app created in the church's own Google
+account (one per feed: events, room usage). A Google event's id is the Gembala
+event UUID without dashes, so writes are idempotent and there is no mapping
+table. `EventsService` and `RoomsService` call `eventChanged` / `orgChanged`
+after a write; those never throw, and the nightly `reconcileAll` (plus the manual
+"Sync now") repairs anything a failed push missed. The cron lives in
+`google-calendar.scheduler.ts`, like the other schedulers, because
+`@nestjs/schedule` is ESM-only and cannot be imported by a file a Jest spec loads.

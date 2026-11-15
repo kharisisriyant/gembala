@@ -18,7 +18,8 @@
     "personal": "Pribadi",
     "congregation": "Jemaat",
     "services": "Ibadah & Acara",
-    "administration": "Administrasi"
+    "administration": "Administrasi",
+    "googleCalendar": "Google Calendar"
   },
   "sidebar": {
     "tagline": "Gembalakan jemaat Anda"

@@ -17,6 +17,7 @@ import { RolesPage } from "@/pages/roles"
 import { TeamPage } from "@/pages/team"
 import { ProfilePage } from "@/pages/profile"
 import { TelegramPage } from "@/pages/telegram"
+import { GoogleCalendarPage } from "@/pages/google-calendar"
 import { CareRequestsPage } from "@/pages/care-requests"
 import { UnsubscribePage } from "@/pages/unsubscribe"
 import { NotificationsPage } from "@/pages/notifications"
@@ -152,6 +153,14 @@ export default function App() {
             element={
               <RequireSystemAdmin>
                 <RolesPage />
+              </RequireSystemAdmin>
+            }
+          />
+          <Route
+            path="/settings/google-calendar"
+            element={
+              <RequireSystemAdmin>
+                <GoogleCalendarPage />
               </RequireSystemAdmin>
             }
           />

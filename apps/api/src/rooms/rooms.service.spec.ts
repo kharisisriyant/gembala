@@ -29,7 +29,7 @@ describe("RoomsService", () => {
 
   beforeEach(() => {
     repo = makeRepo()
-    service = new RoomsService(repo)
+    service = new RoomsService(repo, { orgChanged: jest.fn() } as any)
   })
 
   describe("list", () => {

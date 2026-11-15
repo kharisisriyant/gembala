@@ -29,6 +29,9 @@ export const envSchema = z.object({
   NOTIFICATIONS_WORKERS: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_TOKEN_ENCRYPTION_KEY: z.string().min(32).optional(),
 })
 
 export type Env = z.infer<typeof envSchema>
@@ -57,6 +60,10 @@ export function validateEnv(config: Record<string, unknown>): Env {
   }
   if (parsed.NOTIFICATIONS_WORKERS && !parsed.REDIS_URL) {
     throw new Error("NOTIFICATIONS_WORKERS=true requires REDIS_URL")
+  }
+  const google = [parsed.GOOGLE_CLIENT_ID, parsed.GOOGLE_CLIENT_SECRET, parsed.GOOGLE_TOKEN_ENCRYPTION_KEY].filter(Boolean).length
+  if (google !== 0 && google !== 3) {
+    throw new Error("GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GOOGLE_TOKEN_ENCRYPTION_KEY must be set together")
   }
   return parsed
 }

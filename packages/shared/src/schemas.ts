@@ -938,3 +938,30 @@ export type DigestPreviewResponse = {
   subject: string
   text: string
 }
+
+// ---------------------------------------------------------------------------
+// Google (sign-in and org-level Calendar sync)
+// ---------------------------------------------------------------------------
+
+export type AuthConfigResponse = { googleSignIn: boolean }
+
+// Each toggle owns one app-created Google calendar; turning it off deletes that calendar.
+export const googleCalendarSettingsSchema = z.object({
+  syncEvents: z.boolean().optional(),
+  syncRooms: z.boolean().optional(),
+})
+export type GoogleCalendarSettingsInput = z.infer<typeof googleCalendarSettingsSchema>
+
+export type GoogleCalendarStatusResponse = {
+  // false = the server has no Google OAuth client configured
+  configured: boolean
+  connected: boolean
+  googleEmail: string | null
+  syncEvents: boolean
+  syncRooms: boolean
+  // Last sync failure, cleared by the next successful sync
+  lastError: string | null
+  lastSyncedAt: string | null
+}
+
+export type GoogleConnectUrlResponse = { url: string }

@@ -1,5 +1,9 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
+  AuthConfigResponse,
+  GoogleCalendarSettingsInput,
+  GoogleCalendarStatusResponse,
+  GoogleConnectUrlResponse,
   NotificationCategory,
   NotificationItemResponse,
   NotificationListResponse,
@@ -658,6 +662,52 @@ export function useRevokeInvite() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/invites/${id}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["invites"] }),
+  })
+}
+
+export function useAuthConfig() {
+  return useQuery({
+    queryKey: ["auth-config"],
+    queryFn: () => apiFetch<AuthConfigResponse>("/auth/config"),
+    staleTime: Infinity,
+  })
+}
+
+export function useGoogleCalendar() {
+  return useQuery({
+    queryKey: ["google-calendar"],
+    queryFn: () => apiFetch<GoogleCalendarStatusResponse>("/google-calendar"),
+  })
+}
+
+export function useConnectGoogleCalendar() {
+  return useMutation({
+    mutationFn: () => apiFetch<GoogleConnectUrlResponse>("/google-calendar/connect", { method: "POST" }),
+  })
+}
+
+export function useUpdateGoogleCalendar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: GoogleCalendarSettingsInput) =>
+      apiFetch<GoogleCalendarStatusResponse>("/google-calendar", { method: "PATCH", body: input }),
+    onSuccess: (status) => qc.setQueryData(["google-calendar"], status),
+  })
+}
+
+export function useSyncGoogleCalendar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch<GoogleCalendarStatusResponse>("/google-calendar/sync", { method: "POST" }),
+    onSuccess: (status) => qc.setQueryData(["google-calendar"], status),
+  })
+}
+
+export function useDisconnectGoogleCalendar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch<void>("/google-calendar", { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["google-calendar"] }),
   })
 }
 

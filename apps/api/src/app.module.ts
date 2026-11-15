@@ -27,6 +27,7 @@ import { JourneyModule } from "./journey/journey.module"
 import { DigestModule } from "./digest/digest.module"
 import { RemindersModule } from "./reminders/reminders.module"
 import { NotificationsModule } from "./notifications/notifications.module"
+import { GoogleModule } from "./google/google.module"
 import { ScheduleModule } from "@nestjs/schedule"
 
 @Module({
@@ -65,6 +66,7 @@ import { ScheduleModule } from "@nestjs/schedule"
     DigestModule,
     NotificationsModule,
     RemindersModule,
+    GoogleModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

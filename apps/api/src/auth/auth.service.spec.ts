@@ -18,6 +18,8 @@ function makeRepo(): jest.Mocked<AuthRepository> {
     findUserIdByEmail: jest.fn(),
     findUserByEmail: jest.fn(),
     findUserById: jest.fn(),
+    findUserByGoogleSub: jest.fn(),
+    setUserGoogleSub: jest.fn(),
     updateUserName: jest.fn(),
     insertUser: jest.fn(),
     updateUserPasswordHash: jest.fn(),
@@ -58,6 +60,7 @@ describe("AuthService", () => {
   let authContext: jest.Mocked<AuthContextService>
   let db: jest.Mocked<Db>
   let service: AuthService
+  let google: { configured: boolean; authUrl: jest.Mock; verifyState: jest.Mock; exchangeCode: jest.Mock }
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -81,7 +84,8 @@ describe("AuthService", () => {
     authContext = { load: jest.fn() } as any
     db = { transaction: jest.fn((cb: any) => cb(db)) } as any
     notifications = { notifyUser: jest.fn().mockResolvedValue(true), notify: jest.fn().mockResolvedValue(true) }
-    service = new AuthService(db, auth, jwt, config, mail, authContext, notifications as any)
+    google = { configured: true, authUrl: jest.fn(), verifyState: jest.fn().mockResolvedValue({}), exchangeCode: jest.fn() }
+    service = new AuthService(db, auth, jwt, config, mail, authContext, notifications as any, google as any)
     ;(argon2.hash as jest.Mock).mockResolvedValue("hashed")
     ;(argon2.verify as jest.Mock).mockResolvedValue(true)
   })
@@ -407,6 +411,86 @@ describe("AuthService", () => {
       await expect(service.refresh("rt1.secret", "csrf")).rejects.toThrow("invalid or expired authentication session")
       expect(auth.revokeSession).toHaveBeenCalledWith("s1", "refresh_token_reuse", db)
       expect(notifications.notifyUser).toHaveBeenCalledWith(expect.objectContaining({ type: "security.refresh_reuse", userId: "u1" }), db)
+    })
+  })
+
+  describe("googleSignIn", () => {
+    const profile = { sub: "g-1", email: "jane@example.com", emailVerified: true, name: "Jane" }
+    const input = { code: "code", state: "state", cookieState: "state" }
+    const invite = { id: "inv1", orgId: "org1", email: "Jane@Example.com", invitedBy: null, revokedAt: null, acceptedAt: null, expiresAt: new Date(Date.now() + 60_000) }
+    beforeEach(() => {
+      google.exchangeCode.mockResolvedValue({ profile })
+      authContext.load.mockResolvedValue({ userId: "u1", userEmail: profile.email, permissions: new Set(), roles: [] } as any)
+    })
+
+    it("signs in a user already linked to the Google account", async () => {
+      auth.findUserByGoogleSub.mockResolvedValue({ id: "u1", authStatus: "active" } as any)
+      const session = await service.googleSignIn(input)
+      expect(session.response.accessToken).toBe("jwt-token")
+      expect(auth.setUserGoogleSub).not.toHaveBeenCalled()
+      expect(auth.recordSecurityEvent).toHaveBeenCalledWith(expect.objectContaining({ type: "login_succeeded", metadata: { method: "google" } }), db)
+    })
+
+    it("links an existing account by verified email", async () => {
+      auth.findUserByEmail.mockResolvedValue({ id: "u1", authStatus: "active", googleSub: null } as any)
+      await service.googleSignIn(input)
+      expect(auth.setUserGoogleSub).toHaveBeenCalledWith("u1", "g-1")
+    })
+
+    it("refuses an unverified Google email before looking up any account", async () => {
+      google.exchangeCode.mockResolvedValue({ profile: { ...profile, emailVerified: false } })
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "unverified" })
+      expect(auth.findUserByEmail).not.toHaveBeenCalled()
+    })
+
+    it("refuses an email already linked to another Google account", async () => {
+      auth.findUserByEmail.mockResolvedValue({ id: "u1", authStatus: "active", googleSub: "other" } as any)
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "failed" })
+      expect(auth.setUserGoogleSub).not.toHaveBeenCalled()
+    })
+
+    it("never creates an account without an invite", async () => {
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "no_account" })
+      expect(auth.insertUser).not.toHaveBeenCalled()
+    })
+
+    it("fails when the state does not verify", async () => {
+      google.verifyState.mockRejectedValue(new Error("bad state"))
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "failed" })
+      expect(google.exchangeCode).not.toHaveBeenCalled()
+    })
+
+    it("refuses an invite addressed to a different email", async () => {
+      google.verifyState.mockResolvedValue({ invite: "tok" })
+      auth.findInviteByTokenHash.mockResolvedValue({ ...invite, email: "someone@else.com" } as any)
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "email_mismatch" })
+      expect(auth.insertUser).not.toHaveBeenCalled()
+    })
+
+    it("redeems a matching invite into a password-less account", async () => {
+      google.verifyState.mockResolvedValue({ invite: "tok" })
+      auth.findInviteByTokenHash.mockResolvedValue(invite as any)
+      auth.insertUser.mockResolvedValue({ id: "u1" } as any)
+      auth.insertMembership.mockResolvedValue({ id: "m1" } as any)
+      auth.inviteScopeTagIds.mockResolvedValue([{ tagId: "t1" }] as any)
+      auth.inviteRoleIds.mockResolvedValue([{ roleId: "r1" }] as any)
+      await service.googleSignIn(input)
+      expect(auth.insertUser).toHaveBeenCalledWith({ email: profile.email, name: "Jane", passwordHash: null, googleSub: "g-1" }, db)
+      expect(auth.insertMembershipRoles).toHaveBeenCalledWith("m1", ["r1"], db)
+      expect(auth.markInviteAccepted).toHaveBeenCalledWith("inv1", db)
+    })
+  })
+
+  describe("password-less accounts", () => {
+    it("cannot log in with a password", async () => {
+      auth.findUserByEmail.mockResolvedValue({ id: "u1", authStatus: "active", passwordHash: null } as any)
+      await expect(service.login({ email: "jane@example.com", password: "x" })).rejects.toThrow(UnauthorizedException)
+      expect(argon2.verify).not.toHaveBeenCalled()
+    })
+
+    it("are pointed to the reset flow when changing password", async () => {
+      auth.findUserById.mockResolvedValue({ id: "u1", passwordHash: null } as any)
+      await expect(service.changePassword("u1", { currentPassword: "x", newPassword: "longenough1" })).rejects.toThrow(BadRequestException)
     })
   })
 })

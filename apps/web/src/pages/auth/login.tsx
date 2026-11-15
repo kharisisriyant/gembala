@@ -1,11 +1,14 @@
 import { useTranslation } from "react-i18next"
-import { useState } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
+import { GoogleButton, OrDivider } from "@/components/google-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { API_URL } from "@/lib/api"
 import { useAuth } from "@/lib/auth"
+import { useAuthConfig } from "@/lib/queries"
 import { AuthShell } from "./auth-shell"
 
 export function LoginPage() {
@@ -16,6 +19,23 @@ export function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [busy, setBusy] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const { data: authConfig } = useAuthConfig()
+  const googleError = params.get("google")
+
+  // The API redirects here with ?google=<code> when Google sign-in fails.
+  useEffect(() => {
+    if (!googleError) return
+    toast.error(t(`google.errors.${googleError}`, { defaultValue: t("google.errors.failed") }), { id: "google-sign-in" })
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete("google")
+        return next
+      },
+      { replace: true },
+    )
+  }, [googleError, setParams, t])
 
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? "/dashboard"
 
@@ -77,6 +97,12 @@ export function LoginPage() {
           {busy ? t("signingIn") : t("signIn")}
         </Button>
       </form>
+      {authConfig?.googleSignIn && (
+        <div className="mt-4 space-y-4">
+          <OrDivider />
+          <GoogleButton href={`${API_URL}/auth/google`} />
+        </div>
+      )}
     </AuthShell>
   )
 }

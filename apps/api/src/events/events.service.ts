@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common"
 import type { EventCreateInput, EventResponse, EventUpdateInput } from "@gembala/shared"
 import { events, rooms } from "../db/schema"
+import { GoogleCalendarService } from "../google/google-calendar.service"
 import { EventsRepository } from "./events.repository"
 
 type EventRow = typeof events.$inferSelect
@@ -20,7 +21,7 @@ function toResponse(row: EventRow, room: RoomRow | null): EventResponse {
 
 @Injectable()
 export class EventsService {
-  constructor(private readonly events: EventsRepository) {}
+  constructor(private readonly events: EventsRepository, private readonly googleCalendar: GoogleCalendarService) {}
 
   private async loadRoom(orgId: string, roomId: string): Promise<RoomRow> {
     const row = await this.events.findRoomInOrg(orgId, roomId)
@@ -70,6 +71,7 @@ export class EventsService {
       endAt: input.endAt,
       isPublic: input.isPublic,
     })
+    this.googleCalendar.eventChanged(orgId, row.id)
     return toResponse(row, room)
   }
 
@@ -96,6 +98,7 @@ export class EventsService {
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.isPublic !== undefined ? { isPublic: input.isPublic } : {}),
     })
+    this.googleCalendar.eventChanged(orgId, id)
     return toResponse(row, room)
   }
 
@@ -103,5 +106,6 @@ export class EventsService {
     const existing = await this.events.findByIdInOrg(orgId, id)
     if (!existing) throw new NotFoundException("event not found")
     await this.events.delete(orgId, id)
+    this.googleCalendar.eventChanged(orgId, id)
   }
 }
