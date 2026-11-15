@@ -59,7 +59,7 @@
       },
       "notes": {
         "title": "Pastoral notes stay private",
-        "body": "Private notes are visible only to the author and the pastor. They never appear in lists or exports."
+        "body": "Private notes are visible only to the author and the pastor. They never appear in member lists."
       }
     }
   },
@@ -88,7 +88,7 @@
   },
   "privacy": {
     "title": "Member data is a trust, not an asset",
-    "body": "Every church gets its own isolated data space. Leaders only see members matching the tags they've been given, and every change is logged.",
+    "body": "Every church gets its own isolated data space. Leaders only see members matching the tags they've been given.",
     "items": {
       "isolated": {
         "title": "Isolated per church",

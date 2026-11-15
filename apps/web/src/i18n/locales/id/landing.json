@@ -59,7 +59,7 @@
       },
       "notes": {
         "title": "Catatan pastoral yang terjaga",
-        "body": "Catatan pribadi hanya terlihat oleh penulis dan gembala. Tidak pernah muncul di daftar atau ekspor."
+        "body": "Catatan pribadi hanya terlihat oleh penulis dan gembala. Tidak pernah muncul di daftar jemaat."
       }
     }
   },
@@ -88,7 +88,7 @@
   },
   "privacy": {
     "title": "Data jemaat adalah titipan",
-    "body": "Setiap gereja punya ruang datanya sendiri yang terpisah. Pemimpin hanya melihat jemaat sesuai tag yang diberikan, dan semua perubahan tercatat.",
+    "body": "Setiap gereja punya ruang datanya sendiri yang terpisah. Pemimpin hanya melihat jemaat sesuai tag yang diberikan.",
     "items": {
       "isolated": {
         "title": "Terpisah per gereja",
