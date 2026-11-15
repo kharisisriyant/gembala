@@ -254,4 +254,23 @@ export const TELEGRAM_TOOLS: TelegramToolDef[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "add_note",
+      description:
+        "Save a private pastoral note about a member, e.g. after a call or visit. Only the leader who wrote it and church " +
+        "admins can read it. The member must be resolved to a UUID first via list_members or get_member; if the name is " +
+        "ambiguous, ask which one. Confirm the member and the note text with the user before calling. Notes cannot be " +
+        "read back through this assistant.",
+      parameters: {
+        type: "object",
+        required: ["member_id", "body"],
+        properties: {
+          member_id: { type: "string", description: "Member UUID" },
+          body: { type: "string", description: "The note text, max 5000 chars" },
+        },
+      },
+    },
+  },
 ]

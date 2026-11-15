@@ -20,6 +20,7 @@ import { MembersService } from "../members/members.service"
 import { GroupsService } from "../groups/groups.service"
 import { AttendanceService } from "../groups/attendance.service"
 import { CareRequestsService } from "../care-requests/care-requests.service"
+import { PastoralNotesService } from "../pastoral-notes/pastoral-notes.service"
 import { ABSENCE_THRESHOLD, absenceItems, birthdaysWithin } from "../attention/attention"
 import { TELEGRAM_TOOLS } from "./telegram-tools"
 
@@ -41,8 +42,9 @@ const SYSTEM_PROMPT = `You are gembala's assistant for church leaders, reachable
 - Report who needs follow-up for missing 2+ sessions in a row (get_absence_report)
 - List upcoming birthdays (get_birthdays)
 - List prayer and care requests, and record a new one for a member
+- Save a private pastoral note about a member (add_note); only the leader and church admins can read it
 
-Confirm the details with the user before calling add_member, log_session, create_group, update_group, or create_care_request.
+Confirm the details with the user before calling add_member, log_session, create_group, update_group, create_care_request, or add_note.
 When logging a session, a member the leader says was "izin", sick or away for a reason is excused (put the reason in excused), not absent.
 If a tool returns an error saying a permission is missing, tell the user their role doesn't allow that.
 For ambiguous member or group names, list the matches and ask which one.
@@ -80,6 +82,7 @@ export class TelegramAgentService {
     private readonly groups: GroupsService,
     private readonly attendance: AttendanceService,
     private readonly scope: ScopeService,
+    private readonly pastoralNotes: PastoralNotesService,
     // CareRequestsService is resolved lazily: CareRequestsModule -> NotificationsModule
     // -> TelegramModule is already an import chain, so importing it here would be a cycle.
     private readonly moduleRef: ModuleRef,
@@ -265,6 +268,13 @@ export class TelegramAgentService {
           })
           return JSON.stringify(careSummary(await this.careRequests.create(auth, input)))
         }
+        case "add_note": {
+          const input = parseArgs(addNoteArgsSchema, args)
+          // The service enforces members:update, tag scope and body length.
+          const note = await this.pastoralNotes.create(auth, input.member_id, input.body, "telegram")
+          // The body is not echoed back: the model already has it.
+          return JSON.stringify({ id: note.id, memberId: note.memberId, createdAt: note.createdAt })
+        }
         default:
           return JSON.stringify({ error: `Unknown tool ${name}` })
       }
@@ -331,6 +341,8 @@ const careListArgsSchema = z.object({
 })
 
 // Validation failures go back to the model as a readable error string.
+const addNoteArgsSchema = z.object({ member_id: z.string().uuid(), body: z.string() })
+
 function parseArgs<T extends z.ZodTypeAny>(schema: T, value: unknown): z.output<T> {
   const parsed = schema.safeParse(value)
   if (parsed.success) return parsed.data

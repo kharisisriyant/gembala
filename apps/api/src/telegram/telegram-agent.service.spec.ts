@@ -62,6 +62,7 @@ describe("TelegramAgentService.dispatchTool", () => {
   let attendance: { logSession: jest.Mock }
   let scope: { expandedScope: jest.Mock; memberVisible: jest.Mock }
   let care: { list: jest.Mock; create: jest.Mock }
+  let notes: { create: jest.Mock }
   let moduleRef: { get: jest.Mock }
   let agent: TelegramAgentService
 
@@ -78,6 +79,7 @@ describe("TelegramAgentService.dispatchTool", () => {
       memberVisible: jest.fn((_s: unknown, tags: string[]) => !tags.includes("other")),
     }
     care = { list: jest.fn(), create: jest.fn() }
+    notes = { create: jest.fn() }
     moduleRef = { get: jest.fn().mockReturnValue(care) }
     const config = { get: jest.fn() }
     agent = new TelegramAgentService(
@@ -86,6 +88,7 @@ describe("TelegramAgentService.dispatchTool", () => {
       groups as any,
       attendance as any,
       scope as any,
+      notes as any,
       moduleRef as any,
     )
   })
@@ -100,7 +103,7 @@ describe("TelegramAgentService.dispatchTool", () => {
         "log_session",
       ]),
     )
-    expect(TELEGRAM_TOOLS.map((t) => t.function.name)).not.toContain("add_note")
+    expect(TELEGRAM_TOOLS.map((t) => t.function.name)).toContain("add_note")
   })
 
   describe("log_session", () => {
@@ -375,6 +378,27 @@ describe("TelegramAgentService.dispatchTool", () => {
     it("returns the service's out-of-scope error to the model", async () => {
       care.create.mockRejectedValue(new NotFoundException("member not found"))
       const res = await call(leader, "create_care_request", { member_id: MEMBER_C, type: "prayer", body: "x" })
+      expect(res).toEqual({ error: "member not found" })
+    })
+  })
+
+  describe("add_note", () => {
+    it("saves the note as the caller with source telegram and does not echo the body", async () => {
+      notes.create.mockResolvedValue({ id: "note-1", memberId: MEMBER_A, body: "Called him", createdAt: "2026-11-15T03:00:00.000Z" })
+      const res = await call(leader, "add_note", { member_id: MEMBER_A, body: "Called him" })
+      expect(notes.create).toHaveBeenCalledWith(leader, MEMBER_A, "Called him", "telegram")
+      expect(res).toEqual({ id: "note-1", memberId: MEMBER_A, createdAt: "2026-11-15T03:00:00.000Z" })
+    })
+
+    it("rejects a member name instead of a UUID", async () => {
+      const res = await call(leader, "add_note", { member_id: "Andi", body: "x" })
+      expect(res.error).toMatch(/member_id/)
+      expect(notes.create).not.toHaveBeenCalled()
+    })
+
+    it("returns the service's permission and scope errors to the model", async () => {
+      notes.create.mockRejectedValue(new NotFoundException("member not found"))
+      const res = await call(leader, "add_note", { member_id: MEMBER_C, body: "x" })
       expect(res).toEqual({ error: "member not found" })
     })
   })
