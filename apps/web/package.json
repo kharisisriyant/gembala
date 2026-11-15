@@ -27,14 +27,20 @@
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.1.8",
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.5.0",
+    "eslint": "^10.15.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
     "tailwindcss": "^4.1.8",
     "tw-animate-css": "^1.3.0",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.72.2",
     "vite": "^6.3.5"
   }
 }
