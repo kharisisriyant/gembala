@@ -10,6 +10,7 @@ import {
 } from "./notifications.js"
 import {
   careRequestSourceSchema,
+  pastoralNoteSourceSchema,
   digestPreferencesSchema,
   careRequestStatusSchema,
   careRequestTypeSchema,
@@ -33,6 +34,7 @@ import {
   type DigestPreferencesResponse,
   type DigestPreviewResponse,
   type CareRequestResponse,
+  type PastoralNoteResponse,
   type CourseResponse,
   type DashboardResponse,
   type EventResponse,
@@ -381,6 +383,18 @@ export const careRequestResponseSchema = z.object({
 }) satisfies z.ZodType<CareRequestResponse>
 
 export const careRequestAssigneeResponseSchema = careRequestUserRefSchema satisfies z.ZodType<CareRequestAssigneeResponse>
+
+export const pastoralNoteResponseSchema = z.object({
+  id: z.string().uuid(),
+  memberId: z.string().uuid(),
+  body: z.string(),
+  source: pastoralNoteSourceSchema,
+  author: z.object({ id: z.string().uuid(), name: z.string() }).nullable().describe("null when the author's account was deleted"),
+  createdAt: z.string().describe("ISO 8601 timestamp"),
+  updatedAt: z.string().describe("ISO 8601 timestamp"),
+  canEdit: z.boolean().describe("Caller may edit (author only)"),
+  canDelete: z.boolean().describe("Caller may delete (author or org admin)"),
+}) satisfies z.ZodType<PastoralNoteResponse>
 
 const journeyUserRefSchema = z.object({ id: z.string().uuid(), name: z.string() })
 

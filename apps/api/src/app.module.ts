@@ -22,6 +22,7 @@ import { InvitesModule } from "./invites/invites.module"
 import { RolesModule } from "./roles/roles.module"
 import { TelegramModule } from "./telegram/telegram.module"
 import { CareRequestsModule } from "./care-requests/care-requests.module"
+import { PastoralNotesModule } from "./pastoral-notes/pastoral-notes.module"
 import { JourneyModule } from "./journey/journey.module"
 import { DigestModule } from "./digest/digest.module"
 import { RemindersModule } from "./reminders/reminders.module"
@@ -58,6 +59,7 @@ import { ScheduleModule } from "@nestjs/schedule"
     RolesModule,
     TelegramModule,
     CareRequestsModule,
+    PastoralNotesModule,
     JourneyModule,
     ScheduleModule.forRoot(),
     DigestModule,

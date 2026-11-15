@@ -14,6 +14,7 @@ import {
   digestPreferencesResponseSchema,
   digestPreviewResponseSchema,
   careRequestResponseSchema,
+  pastoralNoteResponseSchema,
   courseResponseSchema,
   enrollmentResponseSchema,
   leadershipAssessmentResponseSchema,
@@ -77,6 +78,7 @@ export class InvitePreviewResponseDto extends createZodDto(invitePreviewResponse
 export class DashboardResponseDto extends createZodDto(dashboardResponseSchema) {}
 export class CareRequestResponseDto extends createZodDto(careRequestResponseSchema) {}
 export class CareRequestAssigneeResponseDto extends createZodDto(careRequestAssigneeResponseSchema) {}
+export class PastoralNoteResponseDto extends createZodDto(pastoralNoteResponseSchema) {}
 export class CourseResponseDto extends createZodDto(courseResponseSchema) {}
 export class MilestoneResponseDto extends createZodDto(milestoneResponseSchema) {}
 export class EnrollmentResponseDto extends createZodDto(enrollmentResponseSchema) {}

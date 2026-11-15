@@ -615,6 +615,32 @@ export type CareRequestResponse = {
 export type CareRequestAssigneeResponse = { id: string; name: string }
 
 // ---------------------------------------------------------------------------
+// Pastoral notes (private: visible only to the author and org admins)
+// ---------------------------------------------------------------------------
+
+export const pastoralNoteSourceSchema = z.enum(["web", "telegram"])
+export type PastoralNoteSource = z.infer<typeof pastoralNoteSourceSchema>
+
+export const pastoralNoteBodySchema = z.object({
+  body: z.string().trim().min(1, "body is required").max(5000),
+})
+export type PastoralNoteBodyInput = z.infer<typeof pastoralNoteBodySchema>
+
+export type PastoralNoteResponse = {
+  id: string
+  memberId: string
+  body: string
+  source: PastoralNoteSource
+  // null when the author's account was deleted
+  author: { id: string; name: string } | null
+  createdAt: string
+  updatedAt: string
+  // Computed for the caller: edit = author only; delete = author or org admin.
+  canEdit: boolean
+  canDelete: boolean
+}
+
+// ---------------------------------------------------------------------------
 // Spiritual journey (milestones, discipleship courses, leadership potential)
 // ---------------------------------------------------------------------------
 

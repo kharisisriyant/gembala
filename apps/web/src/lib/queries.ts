@@ -19,6 +19,7 @@ import type {
   CareRequestStatus,
   CareRequestType,
   CareRequestUpdateInput,
+  PastoralNoteResponse,
   DigestPreferencesInput,
   DigestPreferencesResponse,
   DigestPreviewResponse,
@@ -725,6 +726,42 @@ export function useDeleteCareRequest() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/care-requests/${id}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
+  })
+}
+
+// --- pastoral notes (private: author + org admins only) --------------------
+
+export function useMemberPastoralNotes(memberId: string, enabled = true) {
+  return useQuery({
+    queryKey: ["pastoral-notes", memberId],
+    queryFn: () => apiFetch<PastoralNoteResponse[]>(`/members/${memberId}/notes`),
+    enabled,
+  })
+}
+
+export function useCreatePastoralNote(memberId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: string) =>
+      apiFetch<PastoralNoteResponse>(`/members/${memberId}/notes`, { method: "POST", body: { body } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pastoral-notes", memberId] }),
+  })
+}
+
+export function useUpdatePastoralNote(memberId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: string }) =>
+      apiFetch<PastoralNoteResponse>(`/notes/${id}`, { method: "PATCH", body: { body } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pastoral-notes", memberId] }),
+  })
+}
+
+export function useDeletePastoralNote(memberId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/notes/${id}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pastoral-notes", memberId] }),
   })
 }
 

@@ -141,6 +141,13 @@
       "when": 1794738993939,
       "tag": "0019_attendance_excused",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794739508286,
+      "tag": "0020_pastoral_notes",
+      "breakpoints": true
     }
   ]
 }
