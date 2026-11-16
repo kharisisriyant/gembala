@@ -10,10 +10,10 @@
   "hero": {
     "badge": "Untuk gereja dan komsel di Indonesia",
     "title": "Gerejanya bertumbuh. Administrasinya jangan ikut rumit.",
-    "body": "gembala menyatukan data jemaat, kelompok kecil, jadwal pelayanan, ibadah, dan event dalam satu platform, supaya Anda bisa fokus pada yang paling penting: jemaat.",
+    "body": "gembala menyatukan data jemaat, kelompok kecil, pokok doa, jadwal pelayanan, dan event dalam satu platform, supaya Anda bisa fokus pada yang paling penting: jemaat.",
     "cta": "Minta undangan",
-    "ctaSecondary": "Lihat demo",
-    "note": "Siap dipakai dalam 15 menit. Tanpa instalasi."
+    "ctaSecondary": "Lihat cara kerjanya",
+    "note": "Saat ini khusus undangan. Berjalan di browser, tanpa instalasi."
   },
   "preview": {
     "groupName": "Komsel Pemuda · Jumat",
@@ -31,23 +31,23 @@
     "items": {
       "members": {
         "title": "Kenali setiap jemaat",
-        "body": "Data keluarga, ulang tahun, status baptis, dan kelompok kecil semuanya dalam satu profil."
+        "body": "Kontak, ulang tahun, status baptis, tag, dan kelompok kecil semuanya dalam satu profil."
       },
       "scheduling": {
         "title": "Jadwal pelayanan tanpa drama",
-        "body": "Susun rotasi petugas per ibadah dalam hitungan menit. Siapa bertugas jelas sejak awal."
+        "body": "Susun daftar petugas per ibadah, lalu kirim email berisi tautan agar tiap petugas bisa konfirmasi atau menolak."
       },
       "worship": {
-        "title": "Ibadah yang siap lebih awal",
-        "body": "Tema, bacaan Alkitab, tata ibadah, lagu, dan petugas terhubung jadi satu."
+        "title": "Setiap ibadah terencana",
+        "body": "Tema, bacaan Alkitab, dan petugas tiap ibadah tampil berdampingan."
       },
       "events": {
         "title": "Event dan ruangan tertata",
-        "body": "Retret, katekisasi, dan acara lainnya masuk kalender bersama, lengkap dengan ruangan yang dipakai."
+        "body": "Retret, katekisasi, dan acara lainnya tercatat lengkap dengan ruangan yang dipakai, dan tersinkron ke Google Calendar gereja."
       },
       "groups": {
         "title": "Kelompok kecil yang terpantau",
-        "body": "Gembala tahu komsel mana yang aktif dan jemaat mana yang mulai jarang terlihat."
+        "body": "Kehadiran tiap pertemuan tercatat, dan jemaat yang absen dua kali berturut-turut langsung ditandai."
       },
       "care": {
         "title": "Doa dan perhatian tidak terlewat",
@@ -59,7 +59,7 @@
       },
       "notes": {
         "title": "Catatan pastoral yang terjaga",
-        "body": "Catatan pribadi hanya terlihat oleh penulis dan gembala. Tidak pernah muncul di daftar jemaat."
+        "body": "Catatan pribadi hanya terlihat oleh penulis dan admin gereja. Tidak pernah muncul di daftar jemaat."
       }
     }
   },
@@ -68,7 +68,7 @@
     "title": "Catat kehadiran semudah mengirim pesan",
     "body": "Selesai komsel, cukup ketik siapa yang hadir. Asisten gembala memahami bahasa sehari-hari, meminta konfirmasi sebelum menyimpan, dan menjawab pertanyaan tentang jemaat Anda.",
     "list": {
-      "log": "Rekam kehadiran dan tambah tamu baru dari chat",
+      "log": "Rekam kehadiran dan tambah jemaat baru dari chat",
       "ask": "Tanya siapa yang sudah lama tidak datang",
       "notes": "Tulis catatan pastoral saat masih ingat"
     },
@@ -92,7 +92,7 @@
     "items": {
       "isolated": {
         "title": "Terpisah per gereja",
-        "body": "Tidak ada gereja lain yang bisa melihat data Anda — termasuk tim gembala."
+        "body": "Setiap permintaan dicek terhadap gereja Anda. Tidak ada gereja lain yang bisa melihat data Anda."
       },
       "tags": {
         "title": "Akses berdasarkan tag",
@@ -110,7 +110,7 @@
   },
   "finalCta": {
     "title": "Mulai gembalakan dengan lebih baik",
-    "body": "Buat akun gereja, tambahkan komsel pertama, dan catat pertemuan pertama Anda hari ini.",
+    "body": "Minta undangan, siapkan gereja Anda, tambahkan komsel pertama, dan catat pertemuan pertama.",
     "madeBy": "Dibuat oleh jemaat, untuk gereja di Indonesia."
   },
   "footer": {
