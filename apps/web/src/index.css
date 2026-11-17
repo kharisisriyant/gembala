@@ -200,3 +200,65 @@
     @apply bg-background text-foreground;
   }
 }
+
+@theme inline {
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-drift: drift 40s linear infinite alternate;
+  --animate-hop: hop 0.5s ease-out;
+  --animate-rustle: rustle 0.4s ease-in-out;
+  --animate-trot: trot 2.6s linear both;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes hop {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-18px);
+    }
+    70% {
+      transform: translateY(-4px);
+    }
+  }
+
+  @keyframes rustle {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    25% {
+      transform: rotate(-5deg);
+    }
+    75% {
+      transform: rotate(5deg);
+    }
+  }
+
+  @keyframes trot {
+    from {
+      transform: translateX(-4rem);
+    }
+    to {
+      transform: translateX(100vw);
+    }
+  }
+
+  @keyframes drift {
+    from {
+      transform: translateX(-40px);
+    }
+    to {
+      transform: translateX(60px);
+    }
+  }
+}

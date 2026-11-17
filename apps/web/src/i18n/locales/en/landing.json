@@ -23,7 +23,9 @@
       "present": "Present",
       "excused": "Excused",
       "followup": "Needs follow-up"
-    }
+    },
+    "chipBirthday": "Sari’s birthday is tomorrow",
+    "chipRoster": "Sunday roster: 8 of 8 confirmed"
   },
   "features": {
     "title": "One place to care for your people, not five apps",
@@ -145,5 +147,27 @@
         "message": "Your duty is clear from the start, no more Saturday-night surprises."
       }
     }
+  },
+  "how": {
+    "title": "Three steps to your first meeting",
+    "steps": {
+      "invite": {
+        "title": "Request an invite",
+        "body": "Tell us about your church and we’ll send you an invite."
+      },
+      "setup": {
+        "title": "Set up your church",
+        "body": "Add members, or import them from a spreadsheet, and create your first small group."
+      },
+      "log": {
+        "title": "Log your first meeting",
+        "body": "Record attendance on the web, or just message the Telegram assistant."
+      }
+    }
+  },
+  "pasture": {
+    "sheep": "Sheep {{number}}, count it",
+    "progress": "{{count}} of {{total}} sheep counted",
+    "done": "All {{count}} counted. Nobody slips through."
   }
 }

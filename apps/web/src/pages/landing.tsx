@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import {
   ArrowRight,
   BellRing,
+  Cake,
   CalendarCheck,
   CalendarDays,
   Check,
@@ -27,6 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LegalLinks } from "@/components/legal-links"
 import { LanguageToggle } from "@/components/language-toggle"
+import { HillsFooter, LoneSheep, PastureScene } from "@/components/landing-illustrations"
 import { useAuth } from "@/lib/auth"
 
 function Logo() {
@@ -103,64 +105,106 @@ function StatusBadge({ status }: { status: (typeof previewMembers)[number]["stat
   )
 }
 
+function FloatingChip({
+  icon: Icon,
+  className,
+  children,
+}: {
+  icon: typeof Cake
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      className={`bg-card motion-safe:animate-float absolute z-10 flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-lg ${className ?? ""}`}
+    >
+      <Icon className="size-4" />
+      <span className="text-foreground">{children}</span>
+    </div>
+  )
+}
+
+const dotGrid =
+  "bg-[radial-gradient(circle,var(--border)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]"
+
 function HeroPreview() {
   const { t } = useTranslation("landing")
   return (
-    <Card className="gap-4 py-4" aria-hidden>
-      <CardHeader className="px-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base">{t("preview.groupName")}</CardTitle>
-            <CardDescription>{t("preview.dateTime")}</CardDescription>
+    <div className="relative" aria-hidden>
+      <div className="from-primary/30 to-info/30 absolute -inset-6 rounded-[2.5rem] bg-linear-to-br blur-3xl" />
+      <FloatingChip icon={Cake} className="text-warning-foreground -top-5 left-2 md:-left-6">
+        {t("preview.chipBirthday")}
+      </FloatingChip>
+      <FloatingChip
+        icon={CalendarCheck}
+        className="text-primary right-2 -bottom-5 [animation-delay:-3s] md:-right-4"
+      >
+        {t("preview.chipRoster")}
+      </FloatingChip>
+      <Card className="relative gap-4 py-4 shadow-xl md:rotate-1">
+        <CardHeader className="px-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">{t("preview.groupName")}</CardTitle>
+              <CardDescription>{t("preview.dateTime")}</CardDescription>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-semibold tabular-nums">86%</div>
+              <div className="text-muted-foreground text-xs">{t("preview.attendanceLabel")}</div>
+            </div>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-semibold tabular-nums">86%</div>
-            <div className="text-muted-foreground text-xs">{t("preview.attendanceLabel")}</div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="px-4">
-        <ul className="divide-y rounded-lg border">
-          {previewMembers.map((m) => (
-            <li key={m.name} className="flex items-center justify-between gap-3 px-3 py-2.5">
-              <div className="flex items-center gap-3">
-                <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-full text-xs font-medium">
-                  {m.initials}
+        </CardHeader>
+        <CardContent className="px-4">
+          <ul className="divide-y rounded-lg border">
+            {previewMembers.map((m) => (
+              <li key={m.name} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-full text-xs font-medium">
+                    {m.initials}
+                  </div>
+                  <span className="text-sm">{m.name}</span>
                 </div>
-                <span className="text-sm">{m.name}</span>
-              </div>
-              <StatusBadge status={m.status} />
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+                <StatusBadge status={m.status} />
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
 function Hero() {
   const { t } = useTranslation("landing")
   return (
-    <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 md:grid-cols-2 md:px-6 md:py-24">
-      <div>
-        <Badge variant="outline" className="mb-4">
-          <Sprout /> {t("hero.badge")}
-        </Badge>
-        <h1 className="text-4xl font-bold text-balance md:text-5xl">{t("hero.title")}</h1>
-        <p className="text-muted-foreground mt-4 max-w-prose text-lg">{t("hero.body")}</p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Button asChild size="lg" className="h-11">
-            <a href="mailto:kharisisriyant@gmail.com">
-              {t("hero.cta")} <ArrowRight />
-            </a>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="h-11">
-            <a href="#telegram">{t("hero.ctaSecondary")}</a>
-          </Button>
+    <section className="relative overflow-hidden">
+      <div className={`absolute inset-0 -z-10 ${dotGrid}`} />
+      <div className="bg-primary/20 absolute -top-32 -left-32 -z-10 size-96 rounded-full blur-3xl" />
+      <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 pt-16 pb-10 md:grid-cols-2 md:px-6 md:pt-24">
+        <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700">
+          <Badge variant="outline" className="bg-card mb-4">
+            <Sprout /> {t("hero.badge")}
+          </Badge>
+          <h1 className="from-foreground to-primary bg-linear-to-br from-40% bg-clip-text text-4xl font-bold text-balance text-transparent md:text-6xl">
+            {t("hero.title")}
+          </h1>
+          <p className="text-muted-foreground mt-4 max-w-prose text-lg">{t("hero.body")}</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg" className="shadow-primary/30 group h-11 shadow-lg">
+              <a href="mailto:kharisisriyant@gmail.com">
+                {t("hero.cta")}{" "}
+                <ArrowRight className="transition-transform group-hover:translate-x-1" />
+              </a>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="bg-card h-11">
+              <a href="#telegram">{t("hero.ctaSecondary")}</a>
+            </Button>
+          </div>
+          <p className="text-muted-foreground mt-4 text-sm">{t("hero.note")}</p>
         </div>
-        <p className="text-muted-foreground mt-4 text-sm">{t("hero.note")}</p>
+        <HeroPreview />
       </div>
-      <HeroPreview />
+      <PastureScene className="h-44 md:h-64" />
     </section>
   )
 }
@@ -168,10 +212,12 @@ function Hero() {
 function PainPoints() {
   const { t } = useTranslation("landing")
   return (
-    <section className="bg-card border-y">
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center md:px-6 md:py-16">
+    <section className="bg-card border-b">
+      <div className="mx-auto max-w-3xl px-4 pt-6 pb-12 text-center md:px-6 md:pb-16">
         <p className="text-lg text-balance md:text-xl">{t("pain.body")}</p>
-        <p className="mt-4 text-2xl font-semibold md:text-3xl">{t("pain.question")}</p>
+        <p className="text-primary mt-4 font-serif text-3xl italic md:text-4xl">
+          {t("pain.question")}
+        </p>
       </div>
     </section>
   )
@@ -188,6 +234,16 @@ const features = [
   { key: "notes", icon: HeartHandshake },
 ] as const
 
+const iconTones = [
+  "bg-primary/10 text-primary",
+  "bg-info-soft text-info",
+  "bg-chart-3/10 text-chart-3",
+  "bg-chart-4/10 text-chart-4",
+]
+
+const liftCard =
+  "transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/40"
+
 function Features() {
   const { t } = useTranslation("landing")
   return (
@@ -197,10 +253,12 @@ function Features() {
         <p className="text-muted-foreground mt-3 text-lg">{t("features.subtitle")}</p>
       </div>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {features.map(({ key, icon: Icon }) => (
-          <Card key={key}>
+        {features.map(({ key, icon: Icon }, i) => (
+          <Card key={key} className={`group ${liftCard}`}>
             <CardHeader>
-              <div className="bg-primary/10 text-primary mb-2 flex size-10 items-center justify-center rounded-md">
+              <div
+                className={`mb-2 flex size-11 items-center justify-center rounded-xl transition-transform group-hover:scale-110 group-hover:-rotate-6 ${iconTones[i % iconTones.length]}`}
+              >
                 <Icon className="size-5" />
               </div>
               <CardTitle className="text-lg">{t(`features.items.${key}.title`)}</CardTitle>
@@ -230,14 +288,14 @@ function Personas() {
         <h2 className="max-w-2xl text-2xl font-semibold md:text-3xl">{t("personas.title")}</h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {personas.map(({ key, icon: Icon }) => (
-            <Card key={key}>
+            <Card key={key} className={`from-primary/5 bg-linear-to-b to-transparent ${liftCard}`}>
               <CardHeader>
-                <div className="bg-primary/10 text-primary mb-2 flex size-10 items-center justify-center rounded-md">
+                <div className="bg-primary text-primary-foreground mb-2 flex size-11 items-center justify-center rounded-full">
                   <Icon className="size-5" />
                 </div>
                 <CardDescription>{t(`personas.items.${key}.role`)}</CardDescription>
                 <CardTitle className="text-lg">{t(`personas.items.${key}.message`)}</CardTitle>
-                <p className="text-muted-foreground pt-1 text-sm">
+                <p className="text-muted-foreground pt-1 text-sm line-through decoration-destructive/50">
                   {t(`personas.items.${key}.worry`)}
                 </p>
               </CardHeader>
@@ -249,6 +307,32 @@ function Personas() {
   )
 }
 
+const steps = ["invite", "setup", "log"] as const
+
+function HowItWorks() {
+  const { t } = useTranslation("landing")
+  return (
+    <section className="mx-auto max-w-6xl px-4 pb-16 md:px-6 md:pb-24">
+      <h2 className="text-center text-2xl font-semibold md:text-3xl">{t("how.title")}</h2>
+      <ol className="relative mt-12 grid gap-10 md:grid-cols-3">
+        <div
+          className="border-primary/40 absolute top-7 right-[16.6%] left-[16.6%] hidden border-t-2 border-dashed md:block"
+          aria-hidden
+        />
+        {steps.map((key, i) => (
+          <li key={key} className="relative flex flex-col items-center text-center">
+            <div className="bg-primary text-primary-foreground ring-background flex size-14 items-center justify-center rounded-full font-mono text-xl font-bold shadow-lg ring-8">
+              {i + 1}
+            </div>
+            <h3 className="mt-4 text-lg font-semibold">{t(`how.steps.${key}.title`)}</h3>
+            <p className="text-muted-foreground mt-1 max-w-xs">{t(`how.steps.${key}.body`)}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
 function ChatBubble({ from, children }: { from: "me" | "bot"; children: React.ReactNode }) {
   const mine = from === "me"
   return (
@@ -256,8 +340,8 @@ function ChatBubble({ from, children }: { from: "me" | "bot"; children: React.Re
       <div
         className={
           mine
-            ? "bg-primary/10 max-w-[85%] rounded-lg rounded-br-sm px-4 py-2.5 text-sm"
-            : "bg-muted max-w-[85%] rounded-lg rounded-bl-sm px-4 py-2.5 text-sm"
+            ? "bg-primary text-primary-foreground max-w-[85%] rounded-2xl rounded-br-sm px-4 py-2.5 text-sm shadow-sm"
+            : "bg-muted max-w-[85%] rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm"
         }
       >
         {children}
@@ -274,8 +358,12 @@ function TelegramSection() {
     t("telegramSection.list.notes"),
   ]
   return (
-    <section id="telegram" className="bg-card scroll-mt-20 border-y">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 md:grid-cols-2 md:px-6 md:py-24">
+    <section id="telegram" className="bg-card relative scroll-mt-20 overflow-hidden border-y">
+      <div
+        className="bg-info/15 absolute -right-24 -bottom-24 size-96 rounded-full blur-3xl"
+        aria-hidden
+      />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 md:grid-cols-2 md:px-6 md:py-24">
         <div>
           <Badge variant="info" className="mb-4">
             <MessageCircle /> {t("telegramSection.badge")}
@@ -291,7 +379,21 @@ function TelegramSection() {
             ))}
           </ul>
         </div>
-        <Card className="bg-background gap-3 p-4" aria-label={t("telegramSection.chat.ariaLabel")}>
+        <div
+          className="bg-background mx-auto flex w-full max-w-sm flex-col gap-3 rounded-4xl border-8 border-foreground/85 p-4 shadow-2xl md:-rotate-2"
+          role="img"
+          aria-label={t("telegramSection.chat.ariaLabel")}
+        >
+          <div className="flex items-center gap-3 border-b pb-3">
+            <img src="/logo.png" alt="" className="size-8 object-contain" />
+            <div>
+              <div className="text-sm font-semibold">gembala</div>
+              <div className="text-primary flex items-center gap-1 text-xs">
+                <span className="bg-primary size-1.5 rounded-full motion-safe:animate-pulse" />
+                {t("telegramSection.badge")}
+              </div>
+            </div>
+          </div>
           <ChatBubble from="me">{t("telegramSection.chat.me1")}</ChatBubble>
           <ChatBubble from="bot">
             <p>
@@ -308,7 +410,7 @@ function TelegramSection() {
             <p className="mt-1">{t("telegramSection.chat.bot2Item1")}</p>
             <p>{t("telegramSection.chat.bot2Item2")}</p>
           </ChatBubble>
-        </Card>
+        </div>
       </div>
     </section>
   )
@@ -326,16 +428,16 @@ function Privacy() {
     <section id="privasi" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 md:px-6 md:py-24">
       <div className="grid gap-10 md:grid-cols-2">
         <div>
-          <div className="bg-primary/10 text-primary mb-4 flex size-10 items-center justify-center rounded-md">
-            <ShieldCheck className="size-5" />
+          <div className="bg-primary/10 text-primary ring-primary/5 mb-6 flex size-16 items-center justify-center rounded-2xl ring-8">
+            <ShieldCheck className="size-8" />
           </div>
           <h2 className="text-2xl font-semibold md:text-3xl">{t("privacy.title")}</h2>
           <p className="text-muted-foreground mt-3 text-lg">{t("privacy.body")}</p>
         </div>
         <div className="flex flex-col gap-4">
           {privacyItems.map(({ key, icon: Icon }) => (
-            <div key={key} className="bg-muted flex gap-4 rounded-lg p-4">
-              <Icon className="text-muted-foreground mt-0.5 size-5 shrink-0" />
+            <div key={key} className={`bg-card flex gap-4 rounded-xl border p-4 ${liftCard}`}>
+              <Icon className="text-primary mt-0.5 size-5 shrink-0" />
               <div>
                 <div className="font-semibold">{t(`privacy.items.${key}.title`)}</div>
                 <p className="text-muted-foreground text-sm">{t(`privacy.items.${key}.body`)}</p>
@@ -351,7 +453,8 @@ function Privacy() {
 function Verse() {
   const { t } = useTranslation("landing")
   return (
-    <section className="mx-auto max-w-prose px-4 py-12 text-center md:py-16">
+    <section className="mx-auto max-w-prose px-4 pb-12 text-center md:pb-16">
+      <LoneSheep className="mx-auto mb-4 w-16" />
       <blockquote className="font-serif text-xl italic md:text-2xl">
         “{t("verse.quote")}”
       </blockquote>
@@ -364,16 +467,18 @@ function FinalCta() {
   const { t } = useTranslation("landing")
   return (
     <section className="mx-auto max-w-6xl px-4 pb-16 md:px-6 md:pb-24">
-      <Card className="items-center px-6 py-12 text-center md:py-16">
-        <h2 className="text-2xl font-semibold md:text-3xl">{t("finalCta.title")}</h2>
-        <p className="text-muted-foreground max-w-prose text-lg">{t("finalCta.body")}</p>
+      <div className="from-primary relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl bg-linear-to-br to-[oklch(0.45_0.13_170)] px-6 pt-12 pb-28 text-center text-white shadow-xl md:pt-16 md:pb-36">
+        <h2 className="text-3xl font-bold md:text-4xl">{t("finalCta.title")}</h2>
+        <p className="max-w-prose text-lg text-white/90">{t("finalCta.body")}</p>
         <p className="font-serif text-lg italic">{t("finalCta.madeBy")}</p>
-        <Button asChild size="lg" className="h-11">
+        <Button asChild size="lg" variant="secondary" className="group relative z-10 h-11">
           <a href="mailto:kharisisriyant@gmail.com">
-            {t("hero.cta")} <ArrowRight />
+            {t("hero.cta")}{" "}
+            <ArrowRight className="transition-transform group-hover:translate-x-1" />
           </a>
         </Button>
-      </Card>
+        <HillsFooter className="absolute inset-x-0 bottom-0 h-24 md:h-32" />
+      </div>
     </section>
   )
 }
@@ -392,7 +497,10 @@ function Footer() {
           <Link to="/login" className="hover:text-foreground transition-colors">
             {t("footer.signIn")}
           </Link>
-          <a href="mailto:kharisisriyant@gmail.com" className="hover:text-foreground transition-colors">
+          <a
+            href="mailto:kharisisriyant@gmail.com"
+            className="hover:text-foreground transition-colors"
+          >
             {t("footer.signUp")}
           </a>
         </div>
@@ -410,6 +518,7 @@ export function LandingPage() {
         <PainPoints />
         <Features />
         <Personas />
+        <HowItWorks />
         <TelegramSection />
         <Privacy />
         <Verse />

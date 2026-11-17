@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom"
 import { Toaster } from "@/components/ui/sonner"
+import { SheepParade } from "@/components/sheep-parade"
 import { AuthProvider, RequireAuth, RequirePermission, RequireSystemAdmin } from "@/lib/auth"
 import { Layout } from "@/components/layout"
 import { DashboardPage } from "@/pages/dashboard"
@@ -30,6 +31,7 @@ import { ResetPasswordPage } from "@/pages/auth/reset-password"
 import { AcceptInvitePage } from "@/pages/auth/accept-invite"
 
 import { LegalPage } from "@/pages/legal"
+import { NotFoundPage } from "@/pages/not-found"
 
 export default function App() {
   return (
@@ -169,8 +171,10 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings/telegram" element={<TelegramPage />} />
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster richColors position="top-right" />
+      <SheepParade />
     </AuthProvider>
   )
 }

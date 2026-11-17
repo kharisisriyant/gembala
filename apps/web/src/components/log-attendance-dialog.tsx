@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { MemberAvatar } from "@/components/member-avatar"
 import { SESSION_EXCUSE_REASON_MAX, type GroupDetailResponse, type SessionResponse } from "@gembala/shared"
 import { useLogAttendance, useUpdateSession } from "@/lib/queries"
+import { celebrate } from "@/lib/celebrate"
 import { cn } from "@/lib/utils"
 
 // Absent is the default: a member with no mark was absent.
@@ -106,6 +107,8 @@ export function LogAttendanceDialog({
             topic: topic || t("logAttendanceDialog.noTopic"),
           }),
         })
+        // Everyone on the roster came: the whole flock is in.
+        if (group.members.length > 0 && group.members.every((m) => marks[m.id] === "present")) celebrate(3)
       }
       setOpen(false)
     } catch (err) {

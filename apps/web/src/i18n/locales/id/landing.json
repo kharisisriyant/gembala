@@ -23,7 +23,9 @@
       "present": "Hadir",
       "excused": "Izin",
       "followup": "Perlu dihubungi"
-    }
+    },
+    "chipBirthday": "Besok Sari berulang tahun",
+    "chipRoster": "Petugas hari Minggu: 8 dari 8 konfirmasi"
   },
   "features": {
     "title": "Satu tempat untuk merawat jemaat, bukan lima aplikasi",
@@ -145,5 +147,27 @@
         "message": "Tugas jelas sejak awal, tidak ada lagi kabar Sabtu malam."
       }
     }
+  },
+  "how": {
+    "title": "Tiga langkah menuju pertemuan pertama",
+    "steps": {
+      "invite": {
+        "title": "Minta undangan",
+        "body": "Ceritakan tentang gereja Anda, lalu kami kirimkan undangan."
+      },
+      "setup": {
+        "title": "Siapkan gereja Anda",
+        "body": "Tambahkan jemaat, atau impor dari spreadsheet, lalu buat komsel pertama."
+      },
+      "log": {
+        "title": "Catat pertemuan pertama",
+        "body": "Catat kehadiran lewat web, atau cukup kirim pesan ke asisten Telegram."
+      }
+    }
+  },
+  "pasture": {
+    "sheep": "Domba {{number}}, hitung",
+    "progress": "{{count}} dari {{total}} domba terhitung",
+    "done": "{{count}} domba lengkap. Tidak ada yang terlewat."
   }
 }
