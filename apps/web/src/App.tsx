@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom"
 import { Toaster } from "@/components/ui/sonner"
+import { SheepParade } from "@/components/sheep-parade"
 import { AuthProvider, RequireAuth, RequirePermission, RequireSystemAdmin } from "@/lib/auth"
 import { Layout } from "@/components/layout"
 import { DashboardPage } from "@/pages/dashboard"
@@ -17,7 +18,11 @@ import { RolesPage } from "@/pages/roles"
 import { TeamPage } from "@/pages/team"
 import { ProfilePage } from "@/pages/profile"
 import { TelegramPage } from "@/pages/telegram"
+import { GoogleCalendarPage } from "@/pages/google-calendar"
 import { CareRequestsPage } from "@/pages/care-requests"
+import { UnsubscribePage } from "@/pages/unsubscribe"
+import { RosterRespondPage } from "@/pages/roster-respond"
+import { NotificationsPage } from "@/pages/notifications"
 import { JourneyPage } from "@/pages/journey"
 import { LoginPage } from "@/pages/auth/login"
 import { RegisterPage } from "@/pages/auth/register"
@@ -26,6 +31,7 @@ import { ResetPasswordPage } from "@/pages/auth/reset-password"
 import { AcceptInvitePage } from "@/pages/auth/accept-invite"
 
 import { LegalPage } from "@/pages/legal"
+import { NotFoundPage } from "@/pages/not-found"
 
 export default function App() {
   return (
@@ -34,6 +40,8 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/privacy-policy" element={<LegalPage document="privacy" />} />
         <Route path="/terms-and-conditions" element={<LegalPage document="terms" />} />
+        <Route path="/unsubscribe" element={<UnsubscribePage />} />
+        <Route path="/roster/respond" element={<RosterRespondPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -47,6 +55,7 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route
             path="/groups"
             element={
@@ -151,11 +160,21 @@ export default function App() {
               </RequireSystemAdmin>
             }
           />
+          <Route
+            path="/settings/google-calendar"
+            element={
+              <RequireSystemAdmin>
+                <GoogleCalendarPage />
+              </RequireSystemAdmin>
+            }
+          />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings/telegram" element={<TelegramPage />} />
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster richColors position="top-right" />
+      <SheepParade />
     </AuthProvider>
   )
 }

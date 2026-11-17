@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { CheckCircle2, MoreHorizontal, Pencil, RotateCcw, Trash2 } from "lucide-react"
-import type { CareRequestResponse } from "@gembala/shared"
+import { canTransition, careRequestLifecycle, type CareRequestResponse } from "@gembala/shared"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -72,7 +72,7 @@ export function CareRequestActions({ request }: { request: CareRequestResponse }
             />
           </>
         )}
-        {canUpdate && request.status === "closed" && (
+        {canUpdate && canTransition(careRequestLifecycle, request.status, "open") && (
           <DropdownMenuItem onClick={doReopen}>
             <RotateCcw className="size-4" /> {t("menu.reopen")}
           </DropdownMenuItem>

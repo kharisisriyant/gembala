@@ -10,7 +10,13 @@ export type RoleAssignmentInsert = {
   freeText: string
   sortOrder: number
 }
-export type RoleAssignmentPatch = Omit<RoleAssignmentInsert, "serviceInstanceId">
+export type RoleAssignmentPatch = Omit<RoleAssignmentInsert, "serviceInstanceId"> &
+  Partial<
+    Pick<
+      typeof roleAssignments.$inferInsert,
+      "linkNonce" | "responseStatus" | "respondedAt" | "declineReason" | "notifiedAt" | "requestedByUserId"
+    >
+  >
 
 @Injectable()
 export class RoleAssignmentsRepository {

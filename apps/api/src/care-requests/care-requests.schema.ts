@@ -1,4 +1,4 @@
-import { index, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { date, index, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 import { organizations, users } from "../auth/auth.schema"
 import { members } from "../members/members.schema"
 
@@ -24,6 +24,12 @@ export const careRequests = pgTable(
     submittedByUserId: uuid("submitted_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
+    // Who follows up. Null = unassigned (member self-submit, or the user was deleted).
+    assignedToUserId: uuid("assigned_to_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    // Calendar date; overdue = open and dueAt before today (Asia/Jakarta).
+    dueAt: date("due_at"),
     closedAt: timestamp("closed_at", { withTimezone: true }),
     closedByUserId: uuid("closed_by_user_id").references(() => users.id, {
       onDelete: "set null",
@@ -35,5 +41,6 @@ export const careRequests = pgTable(
   (t) => [
     index("care_requests_org_status_idx").on(t.orgId, t.status),
     index("care_requests_member_idx").on(t.memberId),
+    index("care_requests_assignee_status_idx").on(t.assignedToUserId, t.status),
   ],
 )

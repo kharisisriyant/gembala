@@ -85,6 +85,83 @@
       "when": 1790866000000,
       "tag": "0011_journey_stages",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794464418359,
+      "tag": "0012_care_request_ownership",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794464673335,
+      "tag": "0013_weekly_digest",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794542282454,
+      "tag": "0014_notifications_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794542878871,
+      "tag": "0015_notifications_created_at_ms",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794547469972,
+      "tag": "0016_notifications_email",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794547687032,
+      "tag": "0017_telegram_revoked_reason",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794548070934,
+      "tag": "0018_user_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794738993939,
+      "tag": "0019_attendance_excused",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794739508286,
+      "tag": "0020_pastoral_notes",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794744000260,
+      "tag": "0021_google",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794756926159,
+      "tag": "0022_volunteer_confirmation",
+      "breakpoints": true
     }
   ]
 }

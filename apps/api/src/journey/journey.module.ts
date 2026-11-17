@@ -14,5 +14,6 @@ import { JourneyStagesService } from "./journey-stages.service"
   imports: [MembersModule],
   controllers: [CoursesController, JourneyController, JourneyStagesController],
   providers: [CoursesService, CoursesRepository, JourneyService, JourneyRepository, JourneyStagesService, JourneyStagesRepository],
+  exports: [JourneyService, JourneyStagesService],
 })
 export class JourneyModule {}

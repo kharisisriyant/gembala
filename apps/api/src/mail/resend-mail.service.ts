@@ -1,7 +1,7 @@
 import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { Resend } from "resend"
-import { MailService } from "./mail.service"
+import { MailSendError, MailService, type NotificationMail } from "./mail.service"
 
 const escapeHtml = (value: string) => value
   .replaceAll("&", "&amp;")
@@ -41,6 +41,20 @@ export class ResendMailService extends MailService {
       text: `You've been invited to join ${orgName} on Gembala. Accept your invitation here: ${link}\n\nThis link expires in 7 days.`,
       html: `<p>You've been invited to join <strong>${escapedOrgName}</strong> on Gembala.</p><p><a href="${escapeHtml(link)}">Accept invitation</a></p><p>This link expires in 7 days.</p>`,
     })
+  }
+
+  async sendNotification(to: string, message: NotificationMail): Promise<{ id?: string }> {
+    let result: Awaited<ReturnType<Resend["emails"]["send"]>>
+    try {
+      result = await this.resend.emails.send({ from: this.from, to, ...message })
+    } catch (err) {
+      throw new MailSendError((err as Error).message, true, "network") // timeouts, DNS, resets
+    }
+    const { data, error } = result
+    if (!error) return { id: data?.id }
+    const status = (error as { statusCode?: number | null }).statusCode ?? null
+    const retryable = status === null || status === 429 || status >= 500
+    throw new MailSendError(error.message, retryable, String(status ?? error.name))
   }
 
   private async send(message: { to: string; subject: string; text: string; html: string }): Promise<void> {

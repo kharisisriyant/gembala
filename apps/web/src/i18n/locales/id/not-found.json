@@ -1,0 +1,8 @@
+{
+  "title": "Halaman ini tersesat",
+  "body": "Sembilan puluh sembilan domba aman di kandang. Satu bersembunyi di balik semak. Bisa kamu temukan?",
+  "bush": "Lihat di balik semak {{number}}",
+  "empty": "Semak {{number}} kosong. Cari lagi.",
+  "found": "Ketemu! Ayo pulang.",
+  "home": "Kembali ke beranda"
+}

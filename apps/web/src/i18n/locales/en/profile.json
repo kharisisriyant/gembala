@@ -4,7 +4,8 @@
   "tabs": {
     "profile": "Profile",
     "roles": "Roles & access",
-    "security": "Security"
+    "security": "Security",
+    "notifications": "Notifications"
   },
   "profile": {
     "title": "Account details",
@@ -39,5 +40,20 @@
     "submitting": "Updating…",
     "success": "Password updated",
     "error": "Could not change password"
+  },
+  "digest": {
+    "title": "Weekly digest",
+    "description": "Every Monday morning: the people who need your attention that week. Sent to Telegram if linked, otherwise email.",
+    "enabled": "Send me the weekly digest",
+    "language": "Language",
+    "english": "English",
+    "indonesian": "Bahasa Indonesia",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Digest settings saved",
+    "error": "Could not save digest settings",
+    "preview": "Preview this week",
+    "hidePreview": "Hide preview",
+    "previewEmpty": "Nothing to report right now, so no digest would be sent this week."
   }
 }

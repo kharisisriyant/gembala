@@ -1,15 +1,32 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
+  AuthConfigResponse,
+  GoogleCalendarSettingsInput,
+  GoogleCalendarStatusResponse,
+  GoogleConnectUrlResponse,
+  NotificationCategory,
+  NotificationItemResponse,
+  NotificationListResponse,
+  NotificationPreferencesResponse,
+  NotificationPreferenceUpdateInput,
+  NotificationReadAllResponse,
+  NotificationUnsubscribePreviewResponse,
+  NotificationUnreadCountResponse,
   ChangePasswordInput,
   MeResponse,
   UpdateProfileInput,
   AttendanceHeatmapResponse,
+  CareRequestAssigneeResponse,
   CareRequestCloseInput,
   CareRequestCreateInput,
   CareRequestResponse,
   CareRequestStatus,
   CareRequestType,
   CareRequestUpdateInput,
+  PastoralNoteResponse,
+  DigestPreferencesInput,
+  DigestPreferencesResponse,
+  DigestPreviewResponse,
   CourseCreateInput,
   CourseResponse,
   CourseUpdateInput,
@@ -22,7 +39,6 @@ import type {
   MilestoneCreateInput,
   MilestoneResponse,
   PipelineRowResponse,
-  PipelineStage,
   JourneyStageResponse,
   JourneyStageCreateInput,
   JourneyStageUpdateInput,
@@ -47,6 +63,11 @@ import type {
   MemberUpdateInput,
   RoleAssignmentCreateInput,
   RoleAssignmentResponse,
+  RosterAssignmentPublicResponse,
+  RosterLinkResponse,
+  RosterNotifyInput,
+  RosterNotifyResponse,
+  RosterRespondInput,
   RoleCreateInput,
   RoleResponse,
   RoleTemplateCreateInput,
@@ -63,6 +84,7 @@ import type {
   ServiceInstanceResponse,
   SessionCreateInput,
   SessionResponse,
+  SessionUpdateInput,
   TagCreateInput,
   TagResponse,
   TagUpdateInput,
@@ -179,6 +201,40 @@ export type CareRequestFilters = {
   status?: CareRequestStatus
   type?: CareRequestType
   memberId?: string
+  assignedToUserId?: string // user id or "me"
+  overdue?: boolean
+}
+
+export function useCareRequestAssignees(memberId: string) {
+  return useQuery({
+    queryKey: ["care-request-assignees", memberId],
+    queryFn: () => apiFetch<CareRequestAssigneeResponse[]>(`/care-requests/assignees?memberId=${memberId}`),
+    enabled: Boolean(memberId),
+  })
+}
+
+export function useDigestPreferences() {
+  return useQuery({
+    queryKey: ["digest", "preferences"],
+    queryFn: () => apiFetch<DigestPreferencesResponse>("/digest/preferences"),
+  })
+}
+
+export function useSaveDigestPreferences() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: DigestPreferencesInput) =>
+      apiFetch<DigestPreferencesResponse>("/digest/preferences", { method: "PUT", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["digest"] }),
+  })
+}
+
+export function useDigestPreview(enabled: boolean) {
+  return useQuery({
+    queryKey: ["digest", "preview"],
+    queryFn: () => apiFetch<DigestPreviewResponse>("/digest/preview"),
+    enabled,
+  })
 }
 
 export function useCareRequests(filters: CareRequestFilters = {}, enabled = true) {
@@ -186,6 +242,8 @@ export function useCareRequests(filters: CareRequestFilters = {}, enabled = true
   if (filters.status) params.set("status", filters.status)
   if (filters.type) params.set("type", filters.type)
   if (filters.memberId) params.set("memberId", filters.memberId)
+  if (filters.assignedToUserId) params.set("assignedToUserId", filters.assignedToUserId)
+  if (filters.overdue) params.set("overdue", "true")
   const qs = params.toString()
   return useQuery({
     queryKey: ["care-requests", filters],
@@ -266,6 +324,32 @@ export function useLogAttendance(groupId: string) {
   return useMutation({
     mutationFn: (input: SessionCreateInput) =>
       apiFetch<SessionResponse>(`/groups/${groupId}/sessions`, { method: "POST", body: input }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["groups"] })
+      void qc.invalidateQueries({ queryKey: ["dashboard"] })
+    },
+  })
+}
+
+// ["groups"] is a prefix of the group detail and attendance heatmap keys, so
+// this refreshes the list, the detail page and the heatmap together.
+export function useUpdateSession(groupId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ sessionId, ...input }: SessionUpdateInput & { sessionId: string }) =>
+      apiFetch<SessionResponse>(`/groups/${groupId}/sessions/${sessionId}`, { method: "PATCH", body: input }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["groups"] })
+      void qc.invalidateQueries({ queryKey: ["dashboard"] })
+    },
+  })
+}
+
+export function useDeleteSession(groupId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      apiFetch<void>(`/groups/${groupId}/sessions/${sessionId}`, { method: "DELETE" }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["groups"] })
       void qc.invalidateQueries({ queryKey: ["dashboard"] })
@@ -484,6 +568,43 @@ export function useDeleteRoleAssignment() {
   })
 }
 
+export function useRosterLink() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (assignmentId: string) =>
+      apiFetch<RosterLinkResponse>(`/scheduling/assignments/${assignmentId}/link`, { method: "POST" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+export function useNotifyRosterAssignment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ assignmentId, ...input }: RosterNotifyInput & { assignmentId: string }) =>
+      apiFetch<RosterNotifyResponse>(`/scheduling/assignments/${assignmentId}/notify`, { method: "POST", body: input }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["schedule-events"] }),
+  })
+}
+
+// Public (no login): the signed token in the link is the credential.
+export function useRosterResponse(token: string) {
+  return useQuery({
+    queryKey: ["roster-response", token],
+    queryFn: () => apiFetch<RosterAssignmentPublicResponse>(`/roster-response?token=${encodeURIComponent(token)}`),
+    enabled: token.length > 0,
+    retry: false,
+  })
+}
+
+export function useRespondRoster(token: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RosterRespondInput) =>
+      apiFetch<RosterAssignmentPublicResponse>(`/roster-response?token=${encodeURIComponent(token)}`, { method: "POST", body: input }),
+    onSuccess: (view) => qc.setQueryData(["roster-response", token], view),
+  })
+}
+
 export function useCreateTag() {
   const qc = useQueryClient()
   return useMutation({
@@ -586,6 +707,52 @@ export function useRevokeInvite() {
   })
 }
 
+export function useAuthConfig() {
+  return useQuery({
+    queryKey: ["auth-config"],
+    queryFn: () => apiFetch<AuthConfigResponse>("/auth/config"),
+    staleTime: Infinity,
+  })
+}
+
+export function useGoogleCalendar() {
+  return useQuery({
+    queryKey: ["google-calendar"],
+    queryFn: () => apiFetch<GoogleCalendarStatusResponse>("/google-calendar"),
+  })
+}
+
+export function useConnectGoogleCalendar() {
+  return useMutation({
+    mutationFn: () => apiFetch<GoogleConnectUrlResponse>("/google-calendar/connect", { method: "POST" }),
+  })
+}
+
+export function useUpdateGoogleCalendar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: GoogleCalendarSettingsInput) =>
+      apiFetch<GoogleCalendarStatusResponse>("/google-calendar", { method: "PATCH", body: input }),
+    onSuccess: (status) => qc.setQueryData(["google-calendar"], status),
+  })
+}
+
+export function useSyncGoogleCalendar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch<GoogleCalendarStatusResponse>("/google-calendar/sync", { method: "POST" }),
+    onSuccess: (status) => qc.setQueryData(["google-calendar"], status),
+  })
+}
+
+export function useDisconnectGoogleCalendar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch<void>("/google-calendar", { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["google-calendar"] }),
+  })
+}
+
 export function useUnlinkTelegram() {
   const qc = useQueryClient()
   return useMutation({
@@ -651,6 +818,42 @@ export function useDeleteCareRequest() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/care-requests/${id}`, { method: "DELETE" }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["care-requests"] }),
+  })
+}
+
+// --- pastoral notes (private: author + org admins only) --------------------
+
+export function useMemberPastoralNotes(memberId: string, enabled = true) {
+  return useQuery({
+    queryKey: ["pastoral-notes", memberId],
+    queryFn: () => apiFetch<PastoralNoteResponse[]>(`/members/${memberId}/notes`),
+    enabled,
+  })
+}
+
+export function useCreatePastoralNote(memberId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: string) =>
+      apiFetch<PastoralNoteResponse>(`/members/${memberId}/notes`, { method: "POST", body: { body } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pastoral-notes", memberId] }),
+  })
+}
+
+export function useUpdatePastoralNote(memberId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: string }) =>
+      apiFetch<PastoralNoteResponse>(`/notes/${id}`, { method: "PATCH", body: { body } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pastoral-notes", memberId] }),
+  })
+}
+
+export function useDeletePastoralNote(memberId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiFetch<void>(`/notes/${id}`, { method: "DELETE" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["pastoral-notes", memberId] }),
   })
 }
 
@@ -785,5 +988,83 @@ export function useDeleteCourse() {
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/courses/${id}`, { method: "DELETE" }),
     onSuccess: invalidate,
+  })
+}
+
+// Inbox. Unread count polls every 30s and on window focus (IA-3); live push is phase 2.
+export function useUnreadNotificationCount() {
+  return useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () => apiFetch<NotificationUnreadCountResponse>("/notifications/unread-count"),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useNotifications(filter: { unread?: boolean; category?: NotificationCategory; limit?: number } = {}) {
+  return useInfiniteQuery({
+    queryKey: ["notifications", "list", filter],
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams()
+      if (pageParam) params.set("cursor", pageParam)
+      if (filter.unread) params.set("unread", "true")
+      if (filter.category) params.set("category", filter.category)
+      if (filter.limit) params.set("limit", String(filter.limit))
+      const qs = params.toString()
+      return apiFetch<NotificationListResponse>(`/notifications${qs ? `?${qs}` : ""}`)
+    },
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useSetNotificationRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, read }: { id: string; read: boolean }) =>
+      apiFetch<NotificationItemResponse>(`/notifications/${id}/${read ? "read" : "unread"}`, { method: "PATCH" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["notifications"] }),
+  })
+}
+
+export function useMarkAllNotificationsRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch<NotificationReadAllResponse>("/notifications/read-all", { method: "POST" }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["notifications"] }),
+  })
+}
+
+// Public (no login): the signed token in the email link is the credential.
+export function useUnsubscribePreview(token: string) {
+  return useQuery({
+    queryKey: ["notifications", "unsubscribe", token],
+    queryFn: () => apiFetch<NotificationUnsubscribePreviewResponse>(`/notifications/unsubscribe?token=${encodeURIComponent(token)}`),
+    enabled: token.length > 0,
+    retry: false,
+  })
+}
+
+export function useUnsubscribe() {
+  return useMutation({
+    mutationFn: (token: string) =>
+      apiFetch<void>(`/notifications/unsubscribe?token=${encodeURIComponent(token)}`, { method: "POST" }),
+  })
+}
+
+export function useNotificationPreferences() {
+  return useQuery({
+    queryKey: ["notifications", "preferences"],
+    queryFn: () => apiFetch<NotificationPreferencesResponse>("/notification-preferences"),
+  })
+}
+
+export function useUpdateNotificationPreference() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: NotificationPreferenceUpdateInput) =>
+      apiFetch<NotificationPreferencesResponse>("/notification-preferences", { method: "PUT", body: input }),
+    onSuccess: (grid) => qc.setQueryData(["notifications", "preferences"], grid),
   })
 }

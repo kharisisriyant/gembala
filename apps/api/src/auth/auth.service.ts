@@ -1,14 +1,16 @@
 import { BadRequestException, ConflictException, ForbiddenException, HttpException, Injectable, UnauthorizedException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { JwtService } from "@nestjs/jwt"
-import type { AcceptInviteInput, AuthResponse, ChangePasswordInput, LoginInput, MeResponse, RegisterInput, OrganizationInviteCreateInput, OrganizationInviteResponse, ResetPasswordInput, UpdateProfileInput } from "@gembala/shared"
+import type { AcceptInviteInput, AuthConfigResponse, AuthResponse, ChangePasswordInput, LoginInput, MeResponse, RegisterInput, OrganizationInviteCreateInput, OrganizationInviteResponse, ResetPasswordInput, UpdateProfileInput } from "@gembala/shared"
 import * as argon2 from "argon2"
 import { createHash, randomBytes, randomUUID } from "node:crypto"
 import { InjectDb, type Db } from "../db/drizzle.module"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthContextService } from "../authz/auth-context.service"
 import { MailService } from "../mail/mail.service"
-import { AuthRepository, type RequestMetadata } from "./auth.repository"
+import { NotificationsService } from "../notifications/notifications.service"
+import { GoogleOAuthService } from "../google/google-oauth.service"
+import { AuthRepository, type RequestMetadata, type UserInsert } from "./auth.repository"
 
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex")
 const opaqueSecret = () => randomBytes(48).toString("base64url")
@@ -17,9 +19,15 @@ const LEADER_BASELINE_PERMISSIONS = ["members:read", "members:create", "members:
 
 export type AuthenticatedSession = { response: AuthResponse; refreshToken: string }
 
+// Why a Google sign-in was refused. The code travels to the web login page as ?google=<code>.
+export type GoogleSignInFailure = "not_configured" | "failed" | "unverified" | "no_account" | "email_mismatch" | "invite_invalid"
+export class GoogleSignInError extends UnauthorizedException {
+  constructor(readonly code: GoogleSignInFailure) { super(`google sign-in refused: ${code}`) }
+}
+
 @Injectable()
 export class AuthService {
-  constructor(@InjectDb() private readonly db: Db, private readonly auth: AuthRepository, private readonly jwt: JwtService, private readonly config: ConfigService, private readonly mail: MailService, private readonly authContext: AuthContextService) {}
+  constructor(@InjectDb() private readonly db: Db, private readonly auth: AuthRepository, private readonly jwt: JwtService, private readonly config: ConfigService, private readonly mail: MailService, private readonly authContext: AuthContextService, private readonly notifications: NotificationsService, private readonly google: GoogleOAuthService) {}
 
   private keys(): Map<string, string> {
     const keys = new Map(this.config.getOrThrow<string>("JWT_SIGNING_KEYS").split(",").map((entry) => {
@@ -83,7 +91,7 @@ export class AuthService {
     const email = input.email.toLowerCase()
     await this.assertRateLimit(`login:${metadata.ipAddress ?? "unknown"}:${sha256(email)}`, this.config.getOrThrow<number>("AUTH_LOGIN_RATE_LIMIT"))
     const user = await this.auth.findUserByEmail(email)
-    if (!user || user.authStatus !== "active" || !(await argon2.verify(user.passwordHash, input.password))) {
+    if (!user || user.authStatus !== "active" || !user.passwordHash || !(await argon2.verify(user.passwordHash, input.password))) {
       await this.auth.recordSecurityEvent({ type: "login_failed", ...metadata, metadata: { emailHash: sha256(email) } })
       throw new UnauthorizedException("invalid email or password")
     }
@@ -103,9 +111,11 @@ export class AuthService {
     const token = await this.validRefreshToken(refreshToken)
     if (!csrfToken || sha256(csrfToken) !== token.row.session.csrfTokenHash) throw unauthorized()
     return this.db.transaction(async (tx) => {
-      if (!(await this.auth.rotateRefreshToken(token.row.refresh.id, tx))) {
-        await this.revokeForReuse(token.row.session.userId, token.row.session.id, metadata, tx); throw unauthorized()
-      }
+      // Losing a concurrent rotation (double-mounted SPA, two tabs) only rejects this request: throwing rolls the
+      // transaction back, so the session survives. Real replays of an already-rotated token are caught in
+      // validRefreshToken, which does revoke and alert.
+      if (!(await this.auth.rotateRefreshToken(token.row.refresh.id, tx))) throw unauthorized()
+
       const id = randomUUID(); const secret = opaqueSecret()
       await this.auth.createRefreshToken({ id, sessionId: token.row.session.id, tokenHash: await argon2.hash(secret), expiresAt: token.row.session.expiresAt }, tx)
       await this.auth.touchSession(token.row.session.id, tx)
@@ -120,8 +130,9 @@ export class AuthService {
 
   async changePassword(userId: string, input: ChangePasswordInput, metadata: RequestMetadata = {}): Promise<void> {
     const user = await this.auth.findUserById(userId); if (!user) throw new UnauthorizedException("user no longer exists")
+    if (!user.passwordHash) throw new BadRequestException("this account has no password yet; use the forgot-password link to set one")
     if (!(await argon2.verify(user.passwordHash, input.currentPassword))) throw new BadRequestException("current password is incorrect")
-    await this.db.transaction(async (tx) => { await this.auth.updateUserPasswordHash(userId, await argon2.hash(input.newPassword), tx); await this.auth.burnPasswordResetTokensForUser(userId, tx); await this.auth.revokeSessionsForUser(userId, "password_changed", tx); await this.auth.recordSecurityEvent({ type: "password_changed", userId, ...metadata }, tx) })
+    await this.db.transaction(async (tx) => { await this.auth.updateUserPasswordHash(userId, await argon2.hash(input.newPassword), tx); await this.auth.burnPasswordResetTokensForUser(userId, tx); await this.auth.revokeSessionsForUser(userId, "password_changed", tx); await this.auth.recordSecurityEvent({ type: "password_changed", userId, ...metadata }, tx); await this.notifications.notifyUser({ type: "security.password_changed", userId, payload: {}, idempotencyKey: `password_changed:${randomUUID()}` }, tx) })
   }
 
   async forgotPassword(email: string, metadata: RequestMetadata = {}): Promise<void> {
@@ -138,16 +149,82 @@ export class AuthService {
     await this.db.transaction(async (tx) => { await this.auth.updateUserPasswordHash(row.userId, await argon2.hash(input.password), tx); await this.auth.burnPasswordResetTokensForUser(row.userId, tx); await this.auth.revokeSessionsForUser(row.userId, "password_reset", tx); await this.auth.recordSecurityEvent({ type: "password_reset", userId: row.userId, ...metadata }, tx) })
   }
 
+  private async pendingInvite(token: string) {
+    const invite = await this.auth.findInviteByTokenHash(sha256(token))
+    return invite && !invite.revokedAt && !invite.acceptedAt && invite.expiresAt >= new Date() ? invite : undefined
+  }
+
+  // Creates the invited user with the invite's roles and scope, and marks the invite accepted.
+  private async createInvitedUser(invite: NonNullable<Awaited<ReturnType<AuthService["pendingInvite"]>>>, input: UserInsert): Promise<string> {
+    return this.db.transaction(async (tx) => {
+      const user = await this.auth.insertUser(input, tx)
+      const membership = await this.auth.insertMembership(invite.orgId, user.id, tx)
+      await this.auth.insertMembershipScopeTags(membership.id, (await this.auth.inviteScopeTagIds(invite.id, tx)).map((row) => row.tagId), tx)
+      await this.auth.insertMembershipRoles(membership.id, (await this.auth.inviteRoleIds(invite.id, tx)).map((row) => row.roleId), tx)
+      await this.auth.markInviteAccepted(invite.id, tx)
+      if (invite.invitedBy) await this.notifications.notify({ type: "invite.accepted", orgId: invite.orgId, recipients: [invite.invitedBy], payload: { inviteeName: input.name }, idempotencyKey: `invite_accepted:${invite.id}` }, tx)
+      return user.id
+    })
+  }
+
   async acceptInvite(input: AcceptInviteInput, metadata: RequestMetadata = {}): Promise<AuthenticatedSession> {
-    const invite = await this.auth.findInviteByTokenHash(sha256(input.token)); if (!invite || invite.revokedAt || invite.acceptedAt || invite.expiresAt < new Date()) throw new UnauthorizedException("invalid or expired invite")
+    const invite = await this.pendingInvite(input.token); if (!invite) throw new UnauthorizedException("invalid or expired invite")
     const email = invite.email.toLowerCase(); if (await this.auth.findUserIdByEmail(email)) throw new ConflictException("this email already has an account")
-    const userId = await this.db.transaction(async (tx) => { const user = await this.auth.insertUser({ email, name: input.name, passwordHash: await argon2.hash(input.password) }, tx); const membership = await this.auth.insertMembership(invite.orgId, user.id, tx); await this.auth.insertMembershipScopeTags(membership.id, (await this.auth.inviteScopeTagIds(invite.id, tx)).map((row) => row.tagId), tx); await this.auth.insertMembershipRoles(membership.id, (await this.auth.inviteRoleIds(invite.id, tx)).map((row) => row.roleId), tx); await this.auth.markInviteAccepted(invite.id, tx); return user.id })
+    const userId = await this.createInvitedUser(invite, { email, name: input.name, passwordHash: await argon2.hash(input.password) })
     return this.issueSession(userId, metadata)
   }
 
-  private async issueSession(userId: string, metadata: RequestMetadata): Promise<AuthenticatedSession> {
+  authConfig(): AuthConfigResponse { return { googleSignIn: this.google.configured } }
+
+  // `inviteToken` rides in the signed state so the callback can redeem it.
+  async googleStart(inviteToken?: string): Promise<{ url: string; state: string }> {
+    if (!this.google.configured) throw new GoogleSignInError("not_configured")
+    return this.google.authUrl("signin", inviteToken ? { invite: inviteToken } : {})
+  }
+
+  // Google never opens an account on its own: it signs in a user already linked
+  // by Google id, links one whose email Google has verified, or redeems a member
+  // invite addressed to that same email.
+  async googleSignIn(input: { code?: string; state?: string; cookieState?: string }, metadata: RequestMetadata = {}): Promise<AuthenticatedSession> {
+    let invite: string | undefined
+    let profile: Awaited<ReturnType<GoogleOAuthService["exchangeCode"]>>["profile"]
+    try {
+      invite = (await this.google.verifyState<{ invite?: string }>("signin", input.state, input.cookieState)).invite
+      if (!input.code) throw new Error("no authorization code")
+      profile = (await this.google.exchangeCode("signin", input.code)).profile
+    } catch { throw new GoogleSignInError("failed") }
+    if (!profile.emailVerified) throw new GoogleSignInError("unverified")
+
+    let user: { id: string; authStatus: string } | undefined = await this.auth.findUserByGoogleSub(profile.sub)
+    if (!user) {
+      const byEmail = await this.auth.findUserByEmail(profile.email)
+      // The email is already tied to a different Google identity.
+      if (byEmail?.googleSub) throw new GoogleSignInError("failed")
+      if (byEmail) { await this.auth.setUserGoogleSub(byEmail.id, profile.sub); user = byEmail }
+    }
+    if (!user && invite) {
+      const pending = await this.pendingInvite(invite); if (!pending) throw new GoogleSignInError("invite_invalid")
+      if (pending.email.toLowerCase() !== profile.email) throw new GoogleSignInError("email_mismatch")
+      user = { id: await this.createInvitedUser(pending, { email: profile.email, name: profile.name, passwordHash: null, googleSub: profile.sub }), authStatus: "active" }
+    }
+    if (!user) {
+      await this.auth.recordSecurityEvent({ type: "login_failed", ...metadata, metadata: { emailHash: sha256(profile.email), method: "google" } })
+      throw new GoogleSignInError("no_account")
+    }
+    if (user.authStatus !== "active") throw new GoogleSignInError("failed")
+    return this.issueSession(user.id, metadata, "google")
+  }
+
+  // Where the browser lands after the Google round trip.
+  googleRedirectUrl(failure?: unknown): string {
+    const origin = this.config.getOrThrow<string>("WEB_ORIGIN")
+    if (failure === undefined) return `${origin}/dashboard`
+    return `${origin}/login?google=${failure instanceof GoogleSignInError ? failure.code : "failed"}`
+  }
+
+  private async issueSession(userId: string, metadata: RequestMetadata, method?: "google"): Promise<AuthenticatedSession> {
     const sessionId = randomUUID(); const refreshId = randomUUID(); const refreshSecret = opaqueSecret(); const csrfToken = opaqueSecret(); const expiresAt = new Date(Date.now() + this.config.getOrThrow<number>("JWT_REFRESH_TTL_SECONDS") * 1000)
-    await this.db.transaction(async (tx) => { await this.auth.createSession({ id: sessionId, userId, csrfTokenHash: sha256(csrfToken), expiresAt, ...metadata }, tx); await this.auth.createRefreshToken({ id: refreshId, sessionId, tokenHash: await argon2.hash(refreshSecret), expiresAt }, tx); await this.auth.recordSecurityEvent({ type: "login_succeeded", userId, sessionId, ...metadata }, tx) })
+    await this.db.transaction(async (tx) => { await this.auth.createSession({ id: sessionId, userId, csrfTokenHash: sha256(csrfToken), expiresAt, ...metadata }, tx); await this.auth.createRefreshToken({ id: refreshId, sessionId, tokenHash: await argon2.hash(refreshSecret), expiresAt }, tx); await this.auth.recordSecurityEvent({ type: "login_succeeded", userId, sessionId, ...metadata, ...(method ? { metadata: { method } } : {}) }, tx) })
     return { response: await this.buildAuthResponse(userId, sessionId), refreshToken: `${refreshId}.${refreshSecret}` }
   }
 
@@ -167,5 +244,6 @@ export class AuthService {
     return { row }
   }
 
-  private async revokeForReuse(userId: string, sessionId: string, metadata: RequestMetadata, tx: Db) { await this.auth.revokeSession(sessionId, "refresh_token_reuse", tx); await this.auth.recordSecurityEvent({ type: "refresh_reuse_detected", userId, sessionId, ...metadata }, tx) }
+  private async revokeForReuse(userId: string, sessionId: string, metadata: RequestMetadata, tx: Db) { await this.auth.revokeSession(sessionId, "refresh_token_reuse", tx); await this.auth.recordSecurityEvent({ type: "refresh_reuse_detected", userId, sessionId, ...metadata }, tx)
+    await this.notifications.notifyUser({ type: "security.refresh_reuse", userId, payload: {}, idempotencyKey: `refresh_reuse:${sessionId}` }, tx) }
 }

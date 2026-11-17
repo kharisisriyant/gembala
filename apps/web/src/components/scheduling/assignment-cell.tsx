@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useCreateRoleAssignment, useMembers } from "@/lib/queries"
 import { AssignmentDialog } from "./assignment-dialog"
+import { ConfirmationIcon } from "./assignment-confirmation"
 
 export function assignmentHighlightKey(assignment: RoleAssignmentResponse) {
   return assignment.member
@@ -166,6 +167,7 @@ export function AssignmentCell(props: AssignmentCellProps) {
         const label = assignment.member?.name ?? assignment.freeText
         return (
           <Badge key={assignment.id} variant={highlighted ? "default" : "muted"} className={highlighted ? "ring-primary/40 ring-2" : undefined}>
+            {assignment.member && <ConfirmationIcon status={assignment.confirmation.status} />}
             <button type="button" className="cursor-pointer rounded-sm focus-visible:outline-2" aria-pressed={highlighted} aria-label={t("assignment.highlight", { name: label })} onClick={() => onHighlight(key)}>{label}</button>
             {canManage && (
               <button type="button" className="hover:bg-foreground/10 cursor-pointer rounded-sm p-1 focus-visible:outline-2" aria-label={t("assignment.edit", { name: label })} onClick={() => setEditing(assignment)}>
@@ -184,7 +186,7 @@ export function AssignmentCell(props: AssignmentCellProps) {
           roleTemplateId={roleTemplateId}
           roleName={roleName}
           instanceName={instanceName}
-          assignment={editing}
+          assignment={assignments.find((a) => a.id === editing.id) ?? editing}
           sortOrder={editing.sortOrder}
         />
       )}

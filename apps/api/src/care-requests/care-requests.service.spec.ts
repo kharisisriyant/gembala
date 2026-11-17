@@ -1,7 +1,8 @@
-import { ConflictException, NotFoundException } from "@nestjs/common"
+import { ConflictException, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { CareRequestsService } from "./care-requests.service"
 import type { CareRequestRow, CareRequestsRepository } from "./care-requests.repository"
 import { ScopeService } from "../authz/scope.service"
+import type { AuthContextService } from "../authz/auth-context.service"
 
 function makeRepo(): jest.Mocked<CareRequestsRepository> {
   return {
@@ -9,6 +10,7 @@ function makeRepo(): jest.Mocked<CareRequestsRepository> {
     findById: jest.fn(),
     findMember: jest.fn(),
     tagNamesByMemberIds: jest.fn(),
+    orgUsers: jest.fn(),
     insert: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -28,6 +30,9 @@ const row = (over: Partial<CareRequestRow> = {}): CareRequestRow => ({
   source: "leader",
   submittedById: "u1",
   submittedByName: "Lea",
+  assignedToId: "u1",
+  assignedToName: "Lea",
+  dueAt: "2026-09-08",
   closedAt: null,
   closedById: null,
   closedByName: null,
@@ -41,6 +46,8 @@ describe("CareRequestsService", () => {
   let repo: jest.Mocked<CareRequestsRepository>
   let scope: ScopeService
   let service: CareRequestsService
+  let authContext: { load: jest.Mock }
+  let notifications: { notify: jest.Mock }
 
   beforeEach(() => {
     repo = makeRepo()
@@ -52,8 +59,23 @@ describe("CareRequestsService", () => {
         { id: "t3", name: "elders", parentId: null, description: null },
       ]),
     } as any)
-    service = new CareRequestsService(repo, scope)
+    // user u2 is scoped to elders, u3 to youth; ctx is built like AuthContextService.load
+    const contexts: Record<string, any> = {
+      u1: leader,
+      u2: { orgId: "org-1", userId: "u2", scopeTagNames: ["elders"] },
+      u3: { orgId: "org-1", userId: "u3", scopeTagNames: ["youth"] },
+    }
+    authContext = { load: jest.fn(async (id: string) => contexts[id] ?? null) } as any
+    repo.orgUsers.mockResolvedValue([
+      { id: "u1", name: "Lea" },
+      { id: "u2", name: "Eli" },
+      { id: "u3", name: "Yan" },
+    ])
+    notifications = { notify: jest.fn().mockResolvedValue(true) }
+    service = new CareRequestsService(repo, scope, authContext as unknown as AuthContextService, notifications as any)
   })
+
+  afterEach(() => jest.useRealTimers())
 
   describe("create", () => {
     it("404s for a missing member", async () => {
@@ -82,6 +104,7 @@ describe("CareRequestsService", () => {
     })
 
     it("records leader source and submitter", async () => {
+      jest.useFakeTimers().setSystemTime(new Date("2026-09-01T03:00:00Z")) // 10:00 Jakarta
       repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
       repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "teens" }]) // descendant of youth
       repo.insert.mockResolvedValue({ id: "r1" })
@@ -94,8 +117,43 @@ describe("CareRequestsService", () => {
         body: "please pray",
         source: "leader",
         submittedByUserId: "u1",
+        assignedToUserId: "u1",
+        dueAt: "2026-09-08",
       })
       expect(res).toMatchObject({ id: "r1", memberName: "Jo", submittedBy: { id: "u1", name: "Lea" } })
+    })
+
+    describe("owner and due date", () => {
+      beforeEach(() => {
+        jest.useFakeTimers().setSystemTime(new Date("2026-09-01T20:00:00Z")) // already 2 Sep in Jakarta
+        repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+        repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+        repo.insert.mockResolvedValue({ id: "r1" })
+        repo.findById.mockResolvedValue(row())
+      })
+
+      it("defaults due date to 7 days from today in Jakarta", async () => {
+        await service.create(leader, { memberId: "m1", type: "care", body: "x" })
+        expect(repo.insert).toHaveBeenCalledWith(expect.objectContaining({ dueAt: "2026-09-09" }))
+      })
+
+      it("honors an explicit owner who can see the member and an explicit due date", async () => {
+        await service.create(leader, { memberId: "m1", type: "care", body: "x", assignedToUserId: "u3", dueAt: "2026-09-20" })
+        expect(repo.insert).toHaveBeenCalledWith(expect.objectContaining({ assignedToUserId: "u3", dueAt: "2026-09-20" }))
+      })
+
+      it("422s when the owner cannot see the member", async () => {
+        await expect(
+          service.create(leader, { memberId: "m1", type: "care", body: "x", assignedToUserId: "u2" }),
+        ).rejects.toBeInstanceOf(UnprocessableEntityException)
+        expect(repo.insert).not.toHaveBeenCalled()
+      })
+
+      it("404s when the owner is not in the org", async () => {
+        await expect(
+          service.create(leader, { memberId: "m1", type: "care", body: "x", assignedToUserId: "stranger" }),
+        ).rejects.toBeInstanceOf(NotFoundException)
+      })
     })
 
     it("admin can create for an untagged member", async () => {
@@ -131,6 +189,67 @@ describe("CareRequestsService", () => {
       const res = await service.list(admin, { status: "open" })
       expect(res.map((r) => r.id)).toEqual(["r1", "r2"])
       expect(repo.list).toHaveBeenCalledWith("org-1", { status: "open" })
+    })
+  })
+
+  describe("list filters and overdue", () => {
+    it("resolves `me` and the overdue cutoff", async () => {
+      jest.useFakeTimers().setSystemTime(new Date("2026-09-10T03:00:00Z"))
+      repo.list.mockResolvedValue([])
+      repo.tagNamesByMemberIds.mockResolvedValue([])
+      await service.list(leader, { assignedToUserId: "me", overdue: true })
+      expect(repo.list).toHaveBeenCalledWith("org-1", {
+        assignedToUserId: "u1",
+        overdueBefore: "2026-09-10",
+      })
+    })
+
+    it("flags only open requests past due as overdue", async () => {
+      jest.useFakeTimers().setSystemTime(new Date("2026-09-10T03:00:00Z"))
+      repo.list.mockResolvedValue([
+        row({ id: "past", dueAt: "2026-09-09" }),
+        row({ id: "today", dueAt: "2026-09-10" }),
+        row({ id: "closed", dueAt: "2026-09-01", status: "closed" }),
+        row({ id: "none", dueAt: null }),
+      ])
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      const res = await service.list(leader, {})
+      expect(Object.fromEntries(res.map((r) => [r.id, r.overdue]))).toEqual({
+        past: true, today: false, closed: false, none: false,
+      })
+    })
+  })
+
+  describe("assignees", () => {
+    it("returns only users who can see the member", async () => {
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "teens" }])
+      const res = await service.assignees(leader, "m1")
+      expect(res.map((u) => u.id)).toEqual(["u1", "u3"])
+    })
+
+    it("404s for an out-of-scope member", async () => {
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "elders" }])
+      await expect(service.assignees(leader, "m1")).rejects.toBeInstanceOf(NotFoundException)
+    })
+  })
+
+  describe("update owner", () => {
+    it("422s when reassigning to a user who cannot see the member", async () => {
+      repo.findById.mockResolvedValue(row())
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      await expect(service.update(leader, "r1", { assignedToUserId: "u2" })).rejects.toBeInstanceOf(
+        UnprocessableEntityException,
+      )
+      expect(repo.update).not.toHaveBeenCalled()
+    })
+
+    it("can clear the due date", async () => {
+      repo.findById.mockResolvedValue(row())
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      await service.update(leader, "r1", { dueAt: null })
+      expect(repo.update).toHaveBeenCalledWith("org-1", "r1", expect.objectContaining({ dueAt: null }))
     })
   })
 
@@ -215,6 +334,63 @@ describe("CareRequestsService", () => {
       repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "elders" }])
       await expect(service.remove(leader, "r1")).rejects.toBeInstanceOf(NotFoundException)
       expect(repo.delete).not.toHaveBeenCalled()
+    })
+  })
+
+  describe("notifications", () => {
+    const withMember = () => {
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      repo.insert.mockResolvedValue({ id: "r1" })
+    }
+
+    it("tells a new owner (not the actor) about the assignment", async () => {
+      withMember()
+      repo.findById.mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan", dueAt: "2026-09-20" }))
+      await service.create(leader, { memberId: "m1", type: "care", body: "x", assignedToUserId: "u3" })
+      expect(notifications.notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "care_request.assigned",
+          orgId: "org-1",
+          recipients: ["u3"],
+          actorUserId: "u1",
+          payload: expect.objectContaining({ memberId: "m1", memberName: "Jo", dueAt: "2026-09-20" }),
+          idempotencyKey: expect.stringMatching(/^care_assigned:r1:/),
+        }),
+      )
+    })
+
+    it("does not notify someone who assigned the request to themselves", async () => {
+      withMember()
+      repo.findById.mockResolvedValue(row())
+      await service.create(leader, { memberId: "m1", type: "care", body: "x" })
+      expect(notifications.notify).not.toHaveBeenCalled()
+    })
+
+    it("notifies on reassignment but not when the owner is unchanged", async () => {
+      repo.findById.mockResolvedValue(row({ assignedToId: "u1" }))
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      await service.update(admin, "r1", { assignedToUserId: "u1" })
+      expect(notifications.notify).not.toHaveBeenCalled()
+      repo.findById.mockResolvedValueOnce(row({ assignedToId: "u1" })).mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan" }))
+      await service.update(admin, "r1", { assignedToUserId: "u3" })
+      expect(notifications.notify).toHaveBeenCalledWith(expect.objectContaining({ type: "care_request.assigned", recipients: ["u3"], actorUserId: "u0" }))
+    })
+
+    it("tells the owner when someone else reopens their request", async () => {
+      repo.findById.mockResolvedValueOnce(row({ status: "closed", assignedToId: "u3", assignedToName: "Yan" })).mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan" }))
+      repo.findMember.mockResolvedValue({ id: "m1", name: "Jo" })
+      repo.tagNamesByMemberIds.mockResolvedValue([{ memberId: "m1", name: "youth" }])
+      await service.reopen(admin, "r1")
+      expect(notifications.notify).toHaveBeenCalledWith(expect.objectContaining({ type: "care_request.reopened", recipients: ["u3"] }))
+    })
+
+    it("still saves the request when queuing the notification fails", async () => {
+      withMember()
+      repo.findById.mockResolvedValue(row({ assignedToId: "u3", assignedToName: "Yan" }))
+      notifications.notify.mockRejectedValue(new Error("db down"))
+      await expect(service.create(leader, { memberId: "m1", type: "care", body: "x", assignedToUserId: "u3" })).resolves.toMatchObject({ id: "r1" })
     })
   })
 })

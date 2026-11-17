@@ -1,0 +1,23 @@
+{
+  "title": "Jadwal pelayanan",
+  "invalid": "Tautan ini sudah tidak berlaku. Mungkin tugas Anda telah berubah; mintalah tautan baru kepada pemimpin Anda.",
+  "tooMany": "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.",
+  "error": "Jawaban Anda gagal disimpan. Silakan coba lagi.",
+  "greeting": "Shalom {{name}}",
+  "scheduled": "Anda dijadwalkan melayani sebagai {{role}} di {{service}} pada {{date}}.",
+  "theme": "Tema: {{theme}}",
+  "status": {
+    "pending": "Apakah Anda bersedia?",
+    "confirmed": "Anda sudah konfirmasi bersedia. Terima kasih!",
+    "declined": "Anda menyatakan berhalangan."
+  },
+  "yourReason": "Alasan Anda: {{reason}}",
+  "canChange": "Anda masih dapat mengubah jawaban sampai hari ibadah.",
+  "closed": "Jawaban untuk ibadah ini sudah ditutup. Silakan hubungi pemimpin Anda langsung.",
+  "confirm": "Ya, saya bersedia",
+  "decline": "Saya berhalangan",
+  "editDecline": "Ubah alasan",
+  "reasonLabel": "Alasan (opsional)",
+  "reasonPlaceholder": "cth. Sedang ke luar kota akhir pekan itu",
+  "sendDecline": "Kirim"
+}

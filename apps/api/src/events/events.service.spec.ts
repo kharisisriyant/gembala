@@ -32,10 +32,12 @@ const roomRow = { id: "room-1", orgId, name: "Main Hall", capacity: 100, descrip
 describe("EventsService", () => {
   let repo: jest.Mocked<EventsRepository>
   let service: EventsService
+  let googleCalendar: { eventChanged: jest.Mock }
 
   beforeEach(() => {
     repo = makeRepo()
-    service = new EventsService(repo)
+    googleCalendar = { eventChanged: jest.fn() }
+    service = new EventsService(repo, googleCalendar as any)
   })
 
   describe("create", () => {
@@ -129,6 +131,7 @@ describe("EventsService", () => {
       await service.remove(orgId, eventRow.id)
 
       expect(repo.delete).toHaveBeenCalledWith(orgId, eventRow.id)
+      expect(googleCalendar.eventChanged).toHaveBeenCalledWith(orgId, eventRow.id)
     })
   })
 

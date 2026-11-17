@@ -1,3 +1,4 @@
+import { canTransition, inviteLifecycle } from "@gembala/shared"
 import { OrganizationInviteForm } from "@/components/organization-invite-form"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -193,7 +194,7 @@ export function InvitesPage() {
                   {formatDate(inv.expiresAt.slice(0, 10))}
                 </TableCell>
                 <TableCell className="text-right">
-                  {inv.status === "pending" && (
+                  {canTransition(inviteLifecycle, inv.status, "revoked") && (
                     <Button
                       variant="ghost"
                       size="sm"

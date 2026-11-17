@@ -32,7 +32,17 @@
     "prayerNotesLabel": "Catatan doa",
     "leaderBadge": "pemimpin",
     "restrictedTitle": "Akses dibatasi",
-    "backToGroups": "Kembali ke Komsel"
+    "backToGroups": "Kembali ke Komsel",
+    "excused": "Izin",
+    "excusedCount": "{{count}} izin",
+    "editSessionLabel": "Ubah pertemuan tanggal {{date}}",
+    "deleteSession": {
+      "label": "Hapus pertemuan tanggal {{date}}",
+      "title": "Hapus pertemuan ini?",
+      "description": "Pertemuan tanggal {{date}} ({{topic}}) beserta data kehadirannya akan dihapus. Tindakan ini tidak dapat dibatalkan.",
+      "successToast": "Pertemuan tanggal {{date}} dihapus",
+      "errorToast": "Gagal menghapus pertemuan"
+    }
   },
   "addGroupDialog": {
     "trigger": "Komsel baru",
@@ -81,14 +91,24 @@
     "topic": "Topik",
     "topicPlaceholder": "misalnya Roma 8",
     "whoCame": "Siapa yang hadir?",
-    "selected": "{{count}} dipilih",
     "prayerNotes": "Catatan doa",
     "prayerNotesPlaceholder": "Permintaan doa, laporan syukur, tindak lanjut…",
     "save": "Simpan pertemuan",
     "successToast": "Kehadiran dicatat",
     "successDescription": "{{count}} hadir · {{topic}}",
     "noTopic": "tanpa topik",
-    "errorToast": "Gagal mencatat kehadiran"
+    "errorToast": "Gagal mencatat kehadiran",
+    "editTitle": "Ubah pertemuan — {{name}}",
+    "tally": "{{present}} hadir · {{excused}} izin",
+    "status": {
+      "present": "Hadir",
+      "excused": "Izin",
+      "absent": "Absen"
+    },
+    "reasonLabel": "Alasan izin {{name}}",
+    "reasonPlaceholder": "Alasan (opsional), misalnya sakit",
+    "updatedToast": "Pertemuan diperbarui",
+    "updateErrorToast": "Gagal memperbarui pertemuan"
   },
   "attendanceHeatmap": {
     "title": "Kehadiran mingguan",

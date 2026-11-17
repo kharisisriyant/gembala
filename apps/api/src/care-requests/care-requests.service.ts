@@ -1,10 +1,22 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common"
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common"
 import type {
+  CareRequestAssigneeResponse,
   CareRequestCloseInput,
   CareRequestCreateInput,
   CareRequestResponse,
   CareRequestUpdateInput,
 } from "@gembala/shared"
+import { addDays, canTransition, careRequestLifecycle, daysBetweenDates, todayInZone } from "@gembala/shared"
+import { randomUUID } from "node:crypto"
+import { NotificationsService } from "../notifications/notifications.service"
+import { AuthContextService } from "../authz/auth-context.service"
 import { ScopeService } from "../authz/scope.service"
 import type { AuthContext } from "../authz/auth-context"
 import {
@@ -15,6 +27,20 @@ import {
 
 // Who filed the request. `member` is reserved for the future member-facing
 // endpoint; v1 only ever passes `leader`.
+export type CareRequestListQuery = Omit<CareRequestFilters, "assignedToUserId" | "overdueBefore"> & {
+  assignedToUserId?: string | "me"
+  overdue?: boolean
+}
+
+// Org-wide view of open requests for the admin digest.
+export type CareOpenSummary = {
+  byOwner: { name: string; open: number; overdue: number }[]
+  unassigned: number
+  // Assigned, but the owner can no longer see the member (scope changed).
+  ownerCannotSee: number
+  longestOverdue: { memberName: string; type: "prayer" | "care"; ownerName: string | null; overdueDays: number }[]
+}
+
 export type CareRequestSubmitter =
   | { source: "leader"; userId: string }
   | { source: "member"; memberId: string }
@@ -24,7 +50,39 @@ export class CareRequestsService {
   constructor(
     private readonly requests: CareRequestsRepository,
     private readonly scope: ScopeService,
+    private readonly authContext: AuthContextService,
+    private readonly notifications: NotificationsService,
   ) {}
+
+  private readonly logger = new Logger("CareRequests")
+
+  // A failed notification must never fail the care request the user just saved.
+  private async notifySafely(send: () => Promise<unknown>): Promise<void> {
+    try {
+      await send()
+    } catch (err) {
+      this.logger.warn(`notification not queued: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  private notifyAssigned(auth: AuthContext, r: CareRequestResponse): Promise<void> {
+    if (!r.assignedTo || r.assignedTo.id === auth.userId) return Promise.resolve()
+    const recipient = r.assignedTo.id
+    return this.notifySafely(() =>
+      this.notifications.notify({
+        type: "care_request.assigned",
+        orgId: auth.orgId,
+        recipients: [recipient],
+        actorUserId: auth.userId,
+        payload: { memberId: r.memberId, memberName: r.memberName, type: r.type, assignedBy: auth.userName, dueAt: r.dueAt },
+        // One per assignment action (reassigning A to B to A should notify again).
+        idempotencyKey: `care_assigned:${r.id}:${randomUUID()}`,
+      }),
+    )
+  }
+
+  // Default follow-up window for a new request.
+  static readonly DEFAULT_DUE_DAYS = 7
 
   private toResponse(r: CareRequestRow): CareRequestResponse {
     return {
@@ -36,6 +94,9 @@ export class CareRequestsService {
       status: r.status,
       source: r.source,
       submittedBy: r.submittedById && r.submittedByName ? { id: r.submittedById, name: r.submittedByName } : null,
+      assignedTo: r.assignedToId && r.assignedToName ? { id: r.assignedToId, name: r.assignedToName } : null,
+      dueAt: r.dueAt,
+      overdue: r.status === "open" && r.dueAt !== null && r.dueAt < todayInZone(),
       closedAt: r.closedAt ? r.closedAt.toISOString() : null,
       closedBy: r.closedById && r.closedByName ? { id: r.closedById, name: r.closedByName } : null,
       closeNote: r.closeNote,
@@ -57,7 +118,13 @@ export class CareRequestsService {
     return row
   }
 
-  async list(auth: AuthContext, filters: CareRequestFilters): Promise<CareRequestResponse[]> {
+  async list(auth: AuthContext, query: CareRequestListQuery): Promise<CareRequestResponse[]> {
+    const { assignedToUserId, overdue, ...rest } = query
+    const filters: CareRequestFilters = {
+      ...rest,
+      assignedToUserId: assignedToUserId === "me" ? auth.userId : assignedToUserId,
+      overdueBefore: overdue ? todayInZone() : undefined,
+    }
     const rows = await this.requests.list(auth.orgId, filters)
     const scope = await this.scope.expandedScope(auth)
     const tagRows = await this.requests.tagNamesByMemberIds([...new Set(rows.map((r) => r.memberId))])
@@ -77,13 +144,86 @@ export class CareRequestsService {
   }
 
   async create(auth: AuthContext, input: CareRequestCreateInput): Promise<CareRequestResponse> {
-    const member = await this.requests.findMember(auth.orgId, input.memberId)
+    const tagNames = await this.visibleMemberTags(auth, input.memberId)
+    const assignedToUserId = input.assignedToUserId ?? auth.userId
+    if (assignedToUserId !== auth.userId) {
+      await this.assertAssignee(auth.orgId, assignedToUserId, tagNames)
+    }
+    const created = await this.insert(auth.orgId, { ...input, assignedToUserId }, { source: "leader", userId: auth.userId })
+    await this.notifyAssigned(auth, created)
+    return created
+  }
+
+  async openSummary(auth: AuthContext, limit = 5): Promise<CareOpenSummary> {
+    if (!auth.isSystemAdmin) throw new ForbiddenException("admin only")
+    const rows = await this.requests.list(auth.orgId, { status: "open" })
+    const today = todayInZone()
+    const tagRows = await this.requests.tagNamesByMemberIds([...new Set(rows.map((r) => r.memberId))])
+    const tagsByMember = new Map<string, string[]>()
+    for (const t of tagRows) tagsByMember.set(t.memberId, [...(tagsByMember.get(t.memberId) ?? []), t.name])
+
+    const scopeByOwner = new Map<string, Set<string> | null | undefined>() // undefined = owner unknown
+    for (const id of new Set(rows.map((r) => r.assignedToId).filter((id): id is string => id !== null))) {
+      const ctx = await this.authContext.load(id)
+      scopeByOwner.set(id, ctx ? await this.scope.expandedScope(ctx) : undefined)
+    }
+
+    const owners = new Map<string, { name: string; open: number; overdue: number }>()
+    let unassigned = 0
+    let ownerCannotSee = 0
+    for (const r of rows) {
+      const overdue = r.dueAt !== null && r.dueAt < today
+      if (!r.assignedToId) { unassigned++; continue }
+      const o = owners.get(r.assignedToId) ?? { name: r.assignedToName ?? "?", open: 0, overdue: 0 }
+      o.open++
+      if (overdue) o.overdue++
+      owners.set(r.assignedToId, o)
+      const scope = scopeByOwner.get(r.assignedToId)
+      if (scope === undefined || !this.scope.memberVisible(scope, tagsByMember.get(r.memberId) ?? [])) ownerCannotSee++
+    }
+    const longestOverdue = rows
+      .filter((r) => r.dueAt !== null && r.dueAt < today)
+      .sort((a, b) => a.dueAt!.localeCompare(b.dueAt!))
+      .slice(0, limit)
+      .map((r) => ({ memberName: r.memberName, type: r.type, ownerName: r.assignedToName, overdueDays: daysBetweenDates(r.dueAt!, today) }))
+    return {
+      byOwner: [...owners.values()].sort((a, b) => b.overdue - a.overdue || b.open - a.open || a.name.localeCompare(b.name)),
+      unassigned,
+      ownerCannotSee,
+      longestOverdue,
+    }
+  }
+
+  // The people who could own a request about this member: active org users who
+  // can themselves see the member (an owner who cannot open it is useless).
+  async assignees(auth: AuthContext, memberId: string): Promise<CareRequestAssigneeResponse[]> {
+    const tagNames = await this.visibleMemberTags(auth, memberId)
+    const users = await this.requests.orgUsers(auth.orgId)
+    const visible = await Promise.all(users.map(async (u) => ((await this.canSee(u.id, tagNames)) ? u : null)))
+    return visible.filter((u): u is CareRequestAssigneeResponse => u !== null)
+  }
+
+  private async visibleMemberTags(auth: AuthContext, memberId: string): Promise<string[]> {
+    const member = await this.requests.findMember(auth.orgId, memberId)
     const scope = await this.scope.expandedScope(auth)
     const tagRows = member ? await this.requests.tagNamesByMemberIds([member.id]) : []
-    if (!member || !this.scope.memberVisible(scope, tagRows.map((t) => t.name))) {
-      throw new NotFoundException("member not found")
+    const names = tagRows.map((t) => t.name)
+    if (!member || !this.scope.memberVisible(scope, names)) throw new NotFoundException("member not found")
+    return names
+  }
+
+  private async canSee(userId: string, memberTagNames: string[]): Promise<boolean> {
+    const ctx = await this.authContext.load(userId)
+    if (!ctx) return false
+    return this.scope.memberVisible(await this.scope.expandedScope(ctx), memberTagNames)
+  }
+
+  private async assertAssignee(orgId: string, userId: string, memberTagNames: string[]): Promise<void> {
+    const users = await this.requests.orgUsers(orgId)
+    if (!users.some((u) => u.id === userId)) throw new NotFoundException("user not found")
+    if (!(await this.canSee(userId, memberTagNames))) {
+      throw new UnprocessableEntityException("assignee cannot see this member")
     }
-    return this.insert(auth.orgId, input, { source: "leader", userId: auth.userId })
   }
 
   private async insert(
@@ -98,6 +238,8 @@ export class CareRequestsService {
       body: input.body,
       source: submitter.source,
       submittedByUserId: submitter.source === "leader" ? submitter.userId : null,
+      assignedToUserId: input.assignedToUserId ?? null,
+      dueAt: input.dueAt ?? addDays(todayInZone(), CareRequestsService.DEFAULT_DUE_DAYS),
     })
     const row = await this.requests.findById(orgId, id)
     return this.toResponse(row!)
@@ -106,13 +248,24 @@ export class CareRequestsService {
   async update(auth: AuthContext, id: string, input: CareRequestUpdateInput): Promise<CareRequestResponse> {
     const row = await this.visibleRow(auth, id)
     if (row.status === "closed") throw new ConflictException("closed requests cannot be edited; reopen first")
-    await this.requests.update(auth.orgId, id, { type: input.type, body: input.body })
-    return this.get(auth, id)
+    if (input.assignedToUserId && input.assignedToUserId !== row.assignedToId) {
+      const tagRows = await this.requests.tagNamesByMemberIds([row.memberId])
+      await this.assertAssignee(auth.orgId, input.assignedToUserId, tagRows.map((t) => t.name))
+    }
+    await this.requests.update(auth.orgId, id, {
+      type: input.type,
+      body: input.body,
+      assignedToUserId: input.assignedToUserId,
+      dueAt: input.dueAt,
+    })
+    const updated = await this.get(auth, id)
+    if (input.assignedToUserId && input.assignedToUserId !== row.assignedToId) await this.notifyAssigned(auth, updated)
+    return updated
   }
 
   async close(auth: AuthContext, id: string, input: CareRequestCloseInput): Promise<CareRequestResponse> {
     const row = await this.visibleRow(auth, id)
-    if (row.status === "closed") throw new ConflictException("request is already closed")
+    if (!canTransition(careRequestLifecycle, row.status, "closed")) throw new ConflictException("request is already closed")
     await this.requests.update(auth.orgId, id, {
       status: "closed",
       closedAt: new Date(),
@@ -124,14 +277,28 @@ export class CareRequestsService {
 
   async reopen(auth: AuthContext, id: string): Promise<CareRequestResponse> {
     const row = await this.visibleRow(auth, id)
-    if (row.status === "open") throw new ConflictException("request is already open")
+    if (!canTransition(careRequestLifecycle, row.status, "open")) throw new ConflictException("request is already open")
     await this.requests.update(auth.orgId, id, {
       status: "open",
       closedAt: null,
       closedByUserId: null,
       closeNote: null,
     })
-    return this.get(auth, id)
+    const reopened = await this.get(auth, id)
+    if (reopened.assignedTo && reopened.assignedTo.id !== auth.userId) {
+      const recipient = reopened.assignedTo.id
+      await this.notifySafely(() =>
+        this.notifications.notify({
+          type: "care_request.reopened",
+          orgId: auth.orgId,
+          recipients: [recipient],
+          actorUserId: auth.userId,
+          payload: { memberId: reopened.memberId, memberName: reopened.memberName, type: reopened.type, reopenedBy: auth.userName },
+          idempotencyKey: `care_reopened:${id}:${randomUUID()}`,
+        }),
+      )
+    }
+    return reopened
   }
 
   async remove(auth: AuthContext, id: string): Promise<void> {

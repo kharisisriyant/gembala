@@ -1,10 +1,11 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import type {
   InviteCreateInput,
   InvitePreviewResponse,
   InviteResponse,
 } from "@gembala/shared"
+import { canTransition, deriveInviteStatus, inviteLifecycle } from "@gembala/shared"
 import { createHash, randomBytes } from "node:crypto"
 import { InjectDb, type Db } from "../db/drizzle.module"
 import type { AuthContext } from "../authz/auth-context"
@@ -27,17 +28,6 @@ export class InvitesService {
     private readonly mail: MailService,
     private readonly config: ConfigService,
   ) {}
-
-  private status(row: {
-    acceptedAt: Date | null
-    revokedAt: Date | null
-    expiresAt: Date
-  }): InviteResponse["status"] {
-    if (row.revokedAt) return "revoked"
-    if (row.acceptedAt) return "accepted"
-    if (row.expiresAt < new Date()) return "expired"
-    return "pending"
-  }
 
   async list(auth: AuthContext): Promise<InviteResponse[]> {
     const rows = await this.invites.listByOrg(auth.orgId)
@@ -66,7 +56,7 @@ export class InvitesService {
         email: r.email,
         roles: rolesByInvite.get(r.id) ?? [],
         scopeTags: scopeByInvite.get(r.id) ?? [],
-        status: this.status(r),
+        status: deriveInviteStatus(r),
         createdAt: r.createdAt.toISOString(),
         expiresAt: r.expiresAt.toISOString(),
       }))
@@ -121,14 +111,21 @@ export class InvitesService {
   }
 
   async revoke(auth: AuthContext, id: string): Promise<void> {
-    const row = await this.invites.revoke(auth.orgId, id)
-    if (!row) throw new NotFoundException("invite not found")
+    const invite = await this.invites.findById(auth.orgId, id)
+    if (!invite) throw new NotFoundException("invite not found")
+    if (!canTransition(inviteLifecycle, deriveInviteStatus(invite), "revoked")) {
+      throw new ConflictException("only pending invites can be revoked")
+    }
+    // Guarded again in SQL so a concurrent accept cannot be overwritten.
+    if (!(await this.invites.revokePending(auth.orgId, id))) {
+      throw new ConflictException("only pending invites can be revoked")
+    }
   }
 
   // Public: feeds the accept-invite page before the user has an account.
   async preview(token: string): Promise<InvitePreviewResponse> {
     const row = await this.invites.findByTokenHashWithOrg(sha256(token))
-    if (!row || row.revokedAt || row.acceptedAt || row.expiresAt < new Date()) {
+    if (!row || deriveInviteStatus(row) !== "pending") {
       throw new NotFoundException("invalid or expired invite")
     }
 

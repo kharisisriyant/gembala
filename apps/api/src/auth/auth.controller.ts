@@ -1,12 +1,13 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UnauthorizedException } from "@nestjs/common"
-import { organizationInviteCreateSchema, type OrganizationInviteResponse, type AuthResponse, type CsrfResponse, type MeResponse } from "@gembala/shared"
-import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from "@nestjs/swagger"
+import { Body, Controller, Get, HttpCode, Patch, Post, Query, Req, Res, UnauthorizedException } from "@nestjs/common"
+import { organizationInviteCreateSchema, type OrganizationInviteResponse, type AuthConfigResponse, type AuthResponse, type CsrfResponse, type MeResponse } from "@gembala/shared"
+import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiFoundResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from "@nestjs/swagger"
 import type { Request, Response } from "express"
 import { createZodDto } from "nestjs-zod"
-import { OrganizationInviteResponseDto, AuthResponseDto, CsrfResponseDto, MeResponseDto } from "../swagger/response-dtos"
+import { OrganizationInviteResponseDto, AuthConfigResponseDto, AuthResponseDto, CsrfResponseDto, MeResponseDto } from "../swagger/response-dtos"
 import { CurrentAuth, Public, RequireSystemAdmin } from "../authz/decorators"
 import type { AuthContext } from "../authz/auth-context"
 import { AuthService, type AuthenticatedSession } from "./auth.service"
+import { clearStateCookie, readStateCookie, setStateCookie } from "../google/state-cookie"
 import { AcceptInviteDto, ChangePasswordDto, ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto, UpdateProfileDto } from "./dto"
 
 class OrganizationInviteCreateDto extends createZodDto(organizationInviteCreateSchema) {}
@@ -51,6 +52,37 @@ export class AuthController {
   @HttpCode(200)
   @Post("login")
   async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<AuthResponse> { return this.apply(res, await this.auth.login(dto, this.metadata(req))) }
+
+  @ApiOperation({ summary: "List the sign-in methods this server offers" })
+  @ApiOkResponse({ type: AuthConfigResponseDto })
+  @Public()
+  @Get("config")
+  config(): AuthConfigResponse { return this.auth.authConfig() }
+
+  @ApiOperation({ summary: "Start Google sign-in: redirects the browser to Google's consent screen" })
+  @ApiFoundResponse({ description: "Redirects to Google, or to /login?google=not_configured. Pass ?invite=<token> to redeem a member invite with the Google account" })
+  @Public()
+  @Get("google")
+  async googleStart(@Query("invite") invite: string | undefined, @Res() res: Response): Promise<void> {
+    try {
+      const { url, state } = await this.auth.googleStart(invite)
+      setStateCookie(res, state)
+      res.redirect(url)
+    } catch (err) { res.redirect(this.auth.googleRedirectUrl(err)) }
+  }
+
+  @ApiOperation({ summary: "Google OAuth redirect target: opens a session, then redirects to the web app" })
+  @ApiFoundResponse({ description: "Redirects to /dashboard with the refresh cookie set, or to /login?google=<reason> (failed, unverified, no_account, email_mismatch, invite_invalid)" })
+  @Public()
+  @Get("google/callback")
+  async googleCallback(@Query("code") code: string | undefined, @Query("state") state: string | undefined, @Req() req: Request, @Res() res: Response): Promise<void> {
+    clearStateCookie(res)
+    try {
+      const session = await this.auth.googleSignIn({ code, state, cookieState: readStateCookie(req) }, this.metadata(req))
+      this.cookie(res, session.refreshToken)
+      res.redirect(this.auth.googleRedirectUrl())
+    } catch (err) { res.redirect(this.auth.googleRedirectUrl(err)) }
+  }
 
   @ApiOperation({ summary: "Get a CSRF synchronizer token for a refresh-cookie session" })
   @ApiOkResponse({ type: CsrfResponseDto })

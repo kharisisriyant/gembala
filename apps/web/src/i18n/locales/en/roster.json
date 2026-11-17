@@ -1,0 +1,23 @@
+{
+  "title": "Service roster",
+  "invalid": "This link is no longer valid. Your assignment may have changed; ask your leader for a new link.",
+  "tooMany": "Too many attempts. Please wait a minute and try again.",
+  "error": "Could not save your answer. Please try again.",
+  "greeting": "Hi {{name}}",
+  "scheduled": "You're scheduled to serve as {{role}} at {{service}} on {{date}}.",
+  "theme": "Theme: {{theme}}",
+  "status": {
+    "pending": "Can you make it?",
+    "confirmed": "You confirmed. Thank you!",
+    "declined": "You said you can't make it."
+  },
+  "yourReason": "Your reason: {{reason}}",
+  "canChange": "You can change your answer until the service day.",
+  "closed": "Answers for this service are closed. Please contact your leader directly.",
+  "confirm": "Yes, I'll be there",
+  "decline": "I can't make it",
+  "editDecline": "Edit my reason",
+  "reasonLabel": "Reason (optional)",
+  "reasonPlaceholder": "e.g. Out of town that weekend",
+  "sendDecline": "Send"
+}

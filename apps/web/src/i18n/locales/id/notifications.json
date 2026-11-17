@@ -1,0 +1,86 @@
+{
+  "title": "Notifikasi",
+  "subtitle": "Semua yang dikirim kepada Anda di gereja ini",
+  "empty": "Tidak ada yang tertinggal.",
+  "emptyUnread": "Tidak ada notifikasi yang belum dibaca.",
+  "markAllRead": "Tandai semua dibaca",
+  "markRead": "Tandai dibaca",
+  "markUnread": "Tandai belum dibaca",
+  "loadMore": "Muat lebih banyak",
+  "filters": {
+    "all": "Semua",
+    "unread": "Belum dibaca",
+    "category": "Kategori"
+  },
+  "categories": {
+    "security": "Keamanan",
+    "transactional": "Transaksional",
+    "activity": "Aktivitas",
+    "reminder": "Pengingat",
+    "product_updates": "Pembaruan produk"
+  },
+  "bell": {
+    "label": "Notifikasi",
+    "unread": "{{count}} belum dibaca",
+    "viewAll": "Lihat semua notifikasi"
+  },
+  "unavailable": "Item ini sudah tidak tersedia.",
+  "unsubscribe": {
+    "title": "Berhenti berlangganan email",
+    "confirm": "Hentikan email {{category}} untuk Anda? Anda tetap melihatnya di kotak masuk Gembala.",
+    "button": "Berhenti berlangganan",
+    "done": "Anda sudah berhenti berlangganan email {{category}}.",
+    "invalid": "Tautan ini tidak valid atau sudah diubah.",
+    "manage": "Kelola semua preferensi notifikasi"
+  },
+  "telegram": {
+    "connect": "Hubungkan Telegram",
+    "orSend": "Atau kirim kodenya secara manual:",
+    "disconnected": "Telegram terputus karena bot diblokir. Hubungkan lagi untuk melanjutkan notifikasi."
+  },
+  "preferences": {
+    "title": "Preferensi notifikasi",
+    "subtitle": "Pilih apa yang sampai kepada Anda dan lewat mana.",
+    "category": "Kategori",
+    "channels": {
+      "inapp": "Dalam aplikasi",
+      "email": "Email",
+      "telegram": "Telegram"
+    },
+    "categories": {
+      "security": "Keamanan",
+      "transactional": "Transaksional",
+      "activity": "Aktivitas",
+      "reminder": "Pengingat",
+      "product_updates": "Pembaruan produk"
+    },
+    "locked": {
+      "inapp": "Kotak masuk selalu mencatat semua notifikasi.",
+      "security": "Peringatan keamanan tidak bisa dimatikan.",
+      "default": "Pengaturan ini tidak bisa diubah."
+    },
+    "notConnected": "Belum terhubung",
+    "disconnected": "Terputus",
+    "connect": "Hubungkan",
+    "reconnect": "Hubungkan ulang",
+    "emailBounced": "Kami tidak bisa mengirim ke {{address}}, sehingga notifikasi email dijeda. Periksa alamatnya atau hubungi admin.",
+    "saved": "Preferensi disimpan",
+    "telegramNote": "Pesan Telegram berupa ringkasan singkat dengan tautan kembali ke Gembala."
+  },
+  "telegramPage": {
+    "title": "Telegram",
+    "subtitle": "Hubungkan akun Telegram Anda ke Gembala.",
+    "botTitle": "Bot Telegram",
+    "botSubtitle": "Hubungkan akun Telegram pribadi Anda.",
+    "loading": "Memuat…",
+    "connected": "Terhubung",
+    "unlink": "Putuskan Telegram",
+    "unlinking": "Memutuskan…",
+    "unlinked": "Telegram diputuskan",
+    "botNotReady": "Bot belum terhubung. Coba lagi nanti.",
+    "sendTo": "Kirim pesan ke @{{bot}} di Telegram dengan kode di bawah.",
+    "sendLater": "Kirim kode di bawah ke bot di Telegram setelah terhubung.",
+    "codeLabel": "Kode sekali pakai Anda",
+    "sendCommand": "Kirim: /link {{code}}. Kedaluwarsa {{time}}"
+  }
+}

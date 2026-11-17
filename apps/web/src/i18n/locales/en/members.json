@@ -38,7 +38,7 @@
     "occupation": "Occupation",
     "baptism": "Baptism",
     "address": "Address",
-    "notes": "Notes",
+    "notes": "Profile notes (shared)",
     "smallGroups": "Small groups",
     "noGroups": "Not in any group yet."
   },
@@ -78,7 +78,7 @@
     "photoUrlPlaceholder": "https://…",
     "baptismStatus": "Baptism status",
     "baptismDate": "Baptism date",
-    "notes": "Notes",
+    "notes": "Profile notes (shared)",
     "notesPlaceholder": "Anything worth remembering…"
   },
   "add": {
@@ -116,6 +116,25 @@
       "name": "Name",
       "status": "Status",
       "error": "Error"
+    }
+  },
+  "pastoralNotes": {
+    "title": "Pastoral notes",
+    "privacyHint": "Private: only you and church admins can read the notes you write here.",
+    "newNote": "New pastoral note",
+    "placeholder": "A call you made, something they are going through…",
+    "empty": "No pastoral notes yet.",
+    "formerUser": "Former user",
+    "edited": "edited",
+    "viaTelegram": "via Telegram",
+    "editLabel": "Edit pastoral note",
+    "saveError": "Could not save the note",
+    "delete": {
+      "label": "Delete pastoral note",
+      "title": "Delete this pastoral note?",
+      "description": "The note will be removed permanently. This cannot be undone.",
+      "success": "Note deleted",
+      "error": "Could not delete the note"
     }
   }
 }

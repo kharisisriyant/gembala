@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { and, eq, inArray } from "drizzle-orm"
+import { and, eq, gt, inArray, isNull } from "drizzle-orm"
 import { InjectDb, type Db, type Tx } from "../db/drizzle.module"
 import { invites, inviteRoles, inviteScopeTags, organizations, roles, tags } from "../db/schema"
 
@@ -52,11 +52,25 @@ export class InvitesRepository {
     await tx.insert(inviteRoles).values(roleIds.map((roleId) => ({ inviteId, roleId })))
   }
 
-  async revoke(orgId: string, id: string, tx: Db | Tx = this.db) {
+  async findById(orgId: string, id: string, tx: Db | Tx = this.db) {
+    const [row] = await tx.select().from(invites).where(and(eq(invites.id, id), eq(invites.orgId, orgId)))
+    return row
+  }
+
+  // Only a pending invite (not accepted, revoked or expired) can be revoked.
+  async revokePending(orgId: string, id: string, tx: Db | Tx = this.db) {
     const [row] = await tx
       .update(invites)
       .set({ revokedAt: new Date() })
-      .where(and(eq(invites.id, id), eq(invites.orgId, orgId)))
+      .where(
+        and(
+          eq(invites.id, id),
+          eq(invites.orgId, orgId),
+          isNull(invites.acceptedAt),
+          isNull(invites.revokedAt),
+          gt(invites.expiresAt, new Date()),
+        ),
+      )
       .returning({ id: invites.id })
     return row
   }

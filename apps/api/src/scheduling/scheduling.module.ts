@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common"
+import { NotificationsModule } from "../notifications/notifications.module"
 import { InstanceTypesController } from "./instance-types.controller"
 import { InstanceTypesService } from "./instance-types.service"
 import { InstanceTypesRepository } from "./instance-types.repository"
@@ -14,14 +15,19 @@ import { ServiceInstancesRepository } from "./service-instances.repository"
 import { RoleAssignmentsController } from "./role-assignments.controller"
 import { RoleAssignmentsService } from "./role-assignments.service"
 import { RoleAssignmentsRepository } from "./role-assignments.repository"
+import { RosterResponsesController } from "./roster-responses.controller"
+import { RosterResponsesService } from "./roster-responses.service"
+import { RosterResponsesRepository } from "./roster-responses.repository"
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [
     InstanceTypesController,
     RoleTemplatesController,
     ScheduleEventsController,
     ServiceInstancesController,
     RoleAssignmentsController,
+    RosterResponsesController,
   ],
   providers: [
     InstanceTypesService,
@@ -34,6 +40,8 @@ import { RoleAssignmentsRepository } from "./role-assignments.repository"
     ServiceInstancesRepository,
     RoleAssignmentsService,
     RoleAssignmentsRepository,
+    RosterResponsesService,
+    RosterResponsesRepository,
   ],
 })
 export class SchedulingModule {}

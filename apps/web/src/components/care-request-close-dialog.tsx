@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useCloseCareRequest } from "@/lib/queries"
+import { celebrate } from "@/lib/celebrate"
 
 export function CareRequestCloseDialog({
   request,
@@ -38,6 +39,7 @@ export function CareRequestCloseDialog({
     try {
       await close.mutateAsync({ id: request.id, note: note.trim() || undefined })
       toast.success(t("close.success"))
+      celebrate()
       setOpen(false)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("close.error"))

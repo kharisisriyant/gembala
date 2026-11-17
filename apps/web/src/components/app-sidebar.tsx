@@ -11,6 +11,7 @@ import {
   Send,
   CalendarDays,
   CalendarClock,
+  CalendarSync,
   DoorOpen,
   ShieldCheck,
   HandHeart,
@@ -64,6 +65,7 @@ const adminNav: NavItem[] = [
   { titleKey: "nav.team", to: "/settings/team", icon: Users2 },
   { titleKey: "nav.roles", to: "/settings/roles", icon: ShieldCheck },
   { titleKey: "nav.invites", to: "/settings/invites", icon: MailPlus },
+  { titleKey: "nav.googleCalendar", to: "/settings/google-calendar", icon: CalendarSync },
 ]
 
 const personalNav: NavItem[] = [{ titleKey: "nav.telegram", to: "/settings/telegram", icon: Send }]

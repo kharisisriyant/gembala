@@ -27,6 +27,7 @@ import {
   useMembers,
   useUpdateRoleAssignment,
 } from "@/lib/queries"
+import { AssignmentConfirmation } from "./assignment-confirmation"
 
 type Mode = "member" | "text"
 
@@ -150,6 +151,9 @@ export function AssignmentDialog({
                 onChange={(e) => setFreeText(e.target.value)}
               />
             </div>
+          )}
+          {assignment?.member && mode === "member" && memberId === assignment.member.id && (
+            <AssignmentConfirmation assignment={assignment} />
           )}
         </div>
         <DialogFooter className="sm:justify-between">

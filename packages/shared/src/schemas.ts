@@ -327,11 +327,16 @@ export type GroupSummaryResponse = {
   lastSessionPresent: number | null
 }
 
+export type SessionExcused = { memberId: string; reason: string }
+
 export type SessionResponse = {
   id: string
   groupId: string
   date: string
+  // Only members marked present. Excused members are listed in `excused`;
+  // anyone on the roster in neither list was absent.
   presentIds: string[]
+  excused: SessionExcused[]
   topic: string
   prayerNotes: string
 }
@@ -498,12 +503,61 @@ export const roleAssignmentCreateSchema = z
   })
 export type RoleAssignmentCreateInput = z.infer<typeof roleAssignmentCreateSchema>
 
+// A member's answer to their roster assignment, given on the public
+// signed-link page. Free-text assignments stay "pending" (no one to ask).
+export const rosterResponseStatuses = ["pending", "confirmed", "declined"] as const
+export type RosterResponseStatus = (typeof rosterResponseStatuses)[number]
+
+export type RoleAssignmentConfirmation = {
+  status: RosterResponseStatus
+  respondedAt: string | null
+  declineReason: string
+  notifiedAt: string | null
+}
+
 export type RoleAssignmentResponse = {
   id: string
   roleTemplateId: string
   member: { id: string; name: string } | null
   freeText: string
   sortOrder: number
+  confirmation: RoleAssignmentConfirmation
+}
+
+export const rosterNotifySchema = z.object({
+  // Language of the email; the web app sends the leader's UI language.
+  locale: z.enum(["en", "id"]).default("id"),
+})
+export type RosterNotifyInput = z.infer<typeof rosterNotifySchema>
+
+export type RosterLinkResponse = { url: string }
+
+export type RosterNotifyResponse = {
+  // null when the member has no email address: share `url` by hand instead.
+  sentTo: "email" | null
+  url: string
+  notifiedAt: string | null
+}
+
+export const rosterRespondSchema = z.object({
+  status: z.enum(["confirmed", "declined"]),
+  reason: z.string().trim().max(500).optional(),
+})
+export type RosterRespondInput = z.infer<typeof rosterRespondSchema>
+
+// What the public confirm page shows. Only this assignment; no contact details.
+export type RosterAssignmentPublicResponse = {
+  churchName: string
+  date: string
+  theme: string
+  serviceName: string
+  roleName: string
+  memberName: string
+  status: RosterResponseStatus
+  respondedAt: string | null
+  declineReason: string
+  // false once the service day has begun (Asia/Jakarta); answers are then rejected
+  open: boolean
 }
 
 export type ScheduleEventDetailResponse = ScheduleEventResponse & {
@@ -514,13 +568,29 @@ export type ScheduleEventDetailResponse = ScheduleEventResponse & {
 // Attendance
 // ---------------------------------------------------------------------------
 
+export const SESSION_EXCUSE_REASON_MAX = 200
+
+export const sessionExcusedSchema = z.object({
+  memberId: z.string().uuid(),
+  reason: z.string().trim().max(SESSION_EXCUSE_REASON_MAX).default(""),
+})
+
+// Attendance is three-state: present (in presentIds), excused (in excused,
+// with an optional reason) or absent (in neither). A member may appear once.
 export const sessionCreateSchema = z.object({
   date: isoDate,
   topic: z.string().max(200).or(z.literal("")),
   presentIds: z.array(z.string().uuid()),
+  excused: z.array(sessionExcusedSchema).default([]),
   prayerNotes: z.string().max(2000).or(z.literal("")),
 })
 export type SessionCreateInput = z.infer<typeof sessionCreateSchema>
+
+// Partial, like groupUpdateSchema. When presentIds and/or excused is given the
+// session's whole attendance set is replaced; an omitted list keeps its
+// current value.
+export const sessionUpdateSchema = sessionCreateSchema.partial()
+export type SessionUpdateInput = z.infer<typeof sessionUpdateSchema>
 
 export type AttendanceHeatmapResponse = {
   weeks: { start: string; end: string }[]
@@ -545,16 +615,24 @@ export type CareRequestStatus = z.infer<typeof careRequestStatusSchema>
 export const careRequestSourceSchema = z.enum(["leader", "member"])
 export type CareRequestSource = z.infer<typeof careRequestSourceSchema>
 
+// Calendar date (no time zone): "due Friday" means the same day for everyone.
+export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD")
+
 export const careRequestCreateSchema = z.object({
   memberId: z.string().uuid(),
   type: careRequestTypeSchema,
   body: z.string().trim().min(1, "body is required").max(2000),
+  // Defaults (service): assignee = caller, due = today + 7 days.
+  assignedToUserId: z.string().uuid().optional(),
+  dueAt: isoDateSchema.optional(),
 })
 export type CareRequestCreateInput = z.infer<typeof careRequestCreateSchema>
 
 export const careRequestUpdateSchema = z.object({
   type: careRequestTypeSchema.optional(),
   body: z.string().trim().min(1, "body is required").max(2000).optional(),
+  assignedToUserId: z.string().uuid().nullable().optional(),
+  dueAt: isoDateSchema.nullable().optional(),
 })
 export type CareRequestUpdateInput = z.infer<typeof careRequestUpdateSchema>
 
@@ -572,11 +650,43 @@ export type CareRequestResponse = {
   status: CareRequestStatus
   source: CareRequestSource
   submittedBy: { id: string; name: string } | null
+  assignedTo: { id: string; name: string } | null
+  dueAt: string | null
+  // Derived: open and past its due date (Asia/Jakarta calendar day).
+  overdue: boolean
   closedAt: string | null
   closedBy: { id: string; name: string } | null
   closeNote: string | null
   createdAt: string
   updatedAt: string
+}
+
+export type CareRequestAssigneeResponse = { id: string; name: string }
+
+// ---------------------------------------------------------------------------
+// Pastoral notes (private: visible only to the author and org admins)
+// ---------------------------------------------------------------------------
+
+export const pastoralNoteSourceSchema = z.enum(["web", "telegram"])
+export type PastoralNoteSource = z.infer<typeof pastoralNoteSourceSchema>
+
+export const pastoralNoteBodySchema = z.object({
+  body: z.string().trim().min(1, "body is required").max(5000),
+})
+export type PastoralNoteBodyInput = z.infer<typeof pastoralNoteBodySchema>
+
+export type PastoralNoteResponse = {
+  id: string
+  memberId: string
+  body: string
+  source: PastoralNoteSource
+  // null when the author's account was deleted
+  author: { id: string; name: string } | null
+  createdAt: string
+  updatedAt: string
+  // Computed for the caller: edit = author only; delete = author or org admin.
+  canEdit: boolean
+  canDelete: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -842,6 +952,8 @@ export type TelegramLinkStatusResponse =
   | { linked: true; telegramUsername: string | null }
   | {
       linked: false
+      // True when the previous link ended because the user blocked the bot
+      disconnected: boolean
       code: string
       expiresAt: string
       botConfigured: boolean
@@ -853,3 +965,52 @@ export const organizationInviteCreateSchema = z.object({
 })
 export type OrganizationInviteCreateInput = z.infer<typeof organizationInviteCreateSchema>
 export type OrganizationInviteResponse = { id: string; email: string; url: string; expiresAt: string }
+
+// ---------------------------------------------------------------------------
+// Weekly leader digest
+// ---------------------------------------------------------------------------
+
+export const digestLocaleSchema = z.enum(["en", "id"])
+export type DigestLocale = z.infer<typeof digestLocaleSchema>
+
+export const digestPreferencesSchema = z.object({
+  enabled: z.boolean(),
+  locale: digestLocaleSchema,
+})
+export type DigestPreferencesInput = z.infer<typeof digestPreferencesSchema>
+export type DigestPreferencesResponse = DigestPreferencesInput
+
+export type DigestPreviewResponse = {
+  kind: "personal" | "admin"
+  // true = nothing to report this week, so no message would be sent
+  empty: boolean
+  subject: string
+  text: string
+}
+
+// ---------------------------------------------------------------------------
+// Google (sign-in and org-level Calendar sync)
+// ---------------------------------------------------------------------------
+
+export type AuthConfigResponse = { googleSignIn: boolean }
+
+// Each toggle owns one app-created Google calendar; turning it off deletes that calendar.
+export const googleCalendarSettingsSchema = z.object({
+  syncEvents: z.boolean().optional(),
+  syncRooms: z.boolean().optional(),
+})
+export type GoogleCalendarSettingsInput = z.infer<typeof googleCalendarSettingsSchema>
+
+export type GoogleCalendarStatusResponse = {
+  // false = the server has no Google OAuth client configured
+  configured: boolean
+  connected: boolean
+  googleEmail: string | null
+  syncEvents: boolean
+  syncRooms: boolean
+  // Last sync failure, cleared by the next successful sync
+  lastError: string | null
+  lastSyncedAt: string | null
+}
+
+export type GoogleConnectUrlResponse = { url: string }

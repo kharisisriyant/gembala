@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from "@nestjs/common"
+import { ConflictException, ForbiddenException, NotFoundException } from "@nestjs/common"
 import { InvitesService } from "./invites.service"
 import type { InvitesRepository } from "./invites.repository"
 import type { TagsService } from "../tags/tags.service"
@@ -15,7 +15,8 @@ function makeRepo(): jest.Mocked<InvitesRepository> {
     insert: jest.fn(),
     insertScopeTags: jest.fn(),
     insertRoles: jest.fn(),
-    revoke: jest.fn(),
+    findById: jest.fn(),
+    revokePending: jest.fn(),
     findByTokenHashWithOrg: jest.fn(),
     scopeTagNamesByInviteId: jest.fn(),
     rolesByInviteId: jest.fn(),
@@ -128,10 +129,39 @@ describe("InvitesService", () => {
   })
 
   describe("revoke", () => {
+    const future = new Date(Date.now() + 60_000)
+
     it("404s when the invite doesn't exist in this org", async () => {
-      invites.revoke.mockResolvedValue(undefined as any)
+      invites.findById.mockResolvedValue(undefined as any)
 
       await expect(service.revoke(auth, "missing")).rejects.toThrow(NotFoundException)
+    })
+
+    it("revokes a pending invite", async () => {
+      invites.findById.mockResolvedValue({ acceptedAt: null, revokedAt: null, expiresAt: future } as any)
+      invites.revokePending.mockResolvedValue({ id: "i1" } as any)
+
+      await service.revoke(auth, "i1")
+
+      expect(invites.revokePending).toHaveBeenCalledWith("org-1", "i1")
+    })
+
+    it.each([
+      ["accepted", { acceptedAt: new Date(), revokedAt: null, expiresAt: future }],
+      ["revoked", { acceptedAt: null, revokedAt: new Date(), expiresAt: future }],
+      ["expired", { acceptedAt: null, revokedAt: null, expiresAt: new Date(Date.now() - 1000) }],
+    ])("409s on a %s invite", async (_name, row) => {
+      invites.findById.mockResolvedValue(row as any)
+
+      await expect(service.revoke(auth, "i1")).rejects.toThrow(ConflictException)
+      expect(invites.revokePending).not.toHaveBeenCalled()
+    })
+
+    it("409s when the invite is accepted between the check and the update", async () => {
+      invites.findById.mockResolvedValue({ acceptedAt: null, revokedAt: null, expiresAt: future } as any)
+      invites.revokePending.mockResolvedValue(undefined as any)
+
+      await expect(service.revoke(auth, "i1")).rejects.toThrow(ConflictException)
     })
   })
 

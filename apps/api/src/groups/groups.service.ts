@@ -5,6 +5,7 @@ import type {
   GroupDetailResponse,
   GroupSummaryResponse,
   GroupUpdateInput,
+  SessionExcused,
   SessionResponse,
 } from "@gembala/shared"
 import { InjectDb, type Db } from "../db/drizzle.module"
@@ -226,12 +227,19 @@ export class GroupsService {
     const sessionRows = await this.groups.sessionsByGroupId(groupId)
     if (sessionRows.length === 0) return []
 
-    const presentRows = await this.groups.presentRowsBySessionIds(sessionRows.map((s) => s.id))
+    const attendanceRows = await this.groups.attendanceRowsBySessionIds(sessionRows.map((s) => s.id))
     const presentBySession = new Map<string, string[]>()
-    for (const r of presentRows) {
-      const list = presentBySession.get(r.sessionId) ?? []
-      list.push(r.memberId)
-      presentBySession.set(r.sessionId, list)
+    const excusedBySession = new Map<string, SessionExcused[]>()
+    for (const r of attendanceRows) {
+      if (r.status === "excused") {
+        const list = excusedBySession.get(r.sessionId) ?? []
+        list.push({ memberId: r.memberId, reason: r.reason })
+        excusedBySession.set(r.sessionId, list)
+      } else {
+        const list = presentBySession.get(r.sessionId) ?? []
+        list.push(r.memberId)
+        presentBySession.set(r.sessionId, list)
+      }
     }
 
     return sessionRows
@@ -242,6 +250,7 @@ export class GroupsService {
         topic: s.topic,
         prayerNotes: s.prayerNotes,
         presentIds: presentBySession.get(s.id) ?? [],
+        excused: excusedBySession.get(s.id) ?? [],
       }))
       .sort((a, b) => b.date.localeCompare(a.date))
   }

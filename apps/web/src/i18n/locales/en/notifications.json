@@ -1,0 +1,86 @@
+{
+  "title": "Notifications",
+  "subtitle": "Everything sent to you in this church",
+  "empty": "You're all caught up.",
+  "emptyUnread": "No unread notifications.",
+  "markAllRead": "Mark all as read",
+  "markRead": "Mark as read",
+  "markUnread": "Mark as unread",
+  "loadMore": "Load more",
+  "filters": {
+    "all": "All",
+    "unread": "Unread",
+    "category": "Category"
+  },
+  "categories": {
+    "security": "Security",
+    "transactional": "Transactional",
+    "activity": "Activity",
+    "reminder": "Reminders",
+    "product_updates": "Product updates"
+  },
+  "bell": {
+    "label": "Notifications",
+    "unread": "{{count}} unread",
+    "viewAll": "View all notifications"
+  },
+  "unavailable": "This item is no longer available.",
+  "unsubscribe": {
+    "title": "Unsubscribe from emails",
+    "confirm": "Stop sending {{category}} emails to you? You'll still see these in your Gembala inbox.",
+    "button": "Unsubscribe",
+    "done": "You've been unsubscribed from {{category}} emails.",
+    "invalid": "This unsubscribe link is not valid or has been changed.",
+    "manage": "Manage all notification preferences"
+  },
+  "telegram": {
+    "connect": "Connect Telegram",
+    "orSend": "Or send the code manually:",
+    "disconnected": "Telegram was disconnected because the bot was blocked. Connect again to resume notifications."
+  },
+  "preferences": {
+    "title": "Notification preferences",
+    "subtitle": "Choose what reaches you and where.",
+    "category": "Category",
+    "channels": {
+      "inapp": "In-app",
+      "email": "Email",
+      "telegram": "Telegram"
+    },
+    "categories": {
+      "security": "Security",
+      "transactional": "Transactional",
+      "activity": "Activity",
+      "reminder": "Reminders",
+      "product_updates": "Product updates"
+    },
+    "locked": {
+      "inapp": "The inbox always records every notification.",
+      "security": "Security alerts can't be turned off.",
+      "default": "This setting can't be changed."
+    },
+    "notConnected": "Not connected",
+    "disconnected": "Disconnected",
+    "connect": "Connect",
+    "reconnect": "Reconnect",
+    "emailBounced": "We couldn't deliver to {{address}}, so email notifications are paused. Check the address or contact an admin.",
+    "saved": "Preference saved",
+    "telegramNote": "Telegram messages are short summaries with a link back to Gembala."
+  },
+  "telegramPage": {
+    "title": "Telegram",
+    "subtitle": "Link your Telegram account to Gembala.",
+    "botTitle": "Telegram Bot",
+    "botSubtitle": "Connect your personal Telegram account.",
+    "loading": "Loading…",
+    "connected": "Connected",
+    "unlink": "Unlink Telegram",
+    "unlinking": "Unlinking…",
+    "unlinked": "Telegram unlinked",
+    "botNotReady": "The bot isn't connected yet. Check back later.",
+    "sendTo": "Message @{{bot}} on Telegram with the code below.",
+    "sendLater": "Send the code below to the bot on Telegram once it's connected.",
+    "codeLabel": "Your one-time code",
+    "sendCommand": "Send: /link {{code}}. Expires {{time}}"
+  }
+}

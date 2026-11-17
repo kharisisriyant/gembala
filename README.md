@@ -46,7 +46,9 @@ Seeded logins (password `password123`):
 - **Care & Prayer requests** (`/care-requests`, member detail panel) — leaders log
   prayer or care needs about a member, then close (with a note) or reopen them.
   Visibility follows the member's tags: you see a request only if you can see its
-  member. Leaders get create/read/update; delete is admin-only.
+  member. Leaders get create/read/update; delete is admin-only. Each request has an
+  **owner** (default: you) and a **due date** (default: 7 days), and shows as overdue
+  once past due.
 - **Spiritual journey** (`/journey`, member detail panel) — track each member's
   faith journey: dated **milestones** (first visit, joined a class/group, baptism,
   sidi…), enrollment in a church-defined **course catalog** (katekisasi, baptism/sidi
@@ -56,6 +58,11 @@ Seeded logins (password `password123`):
   syncs the member's baptism fields. Visibility follows the member's tags. Leaders
   get journey create/read/update and course read; deleting milestones and managing
   the course catalog are admin-only.
+- **Weekly digest** — every Monday 07:00 (Asia/Jakarta) each leader gets one message
+  with what needs them that week: their open care requests, members absent two or
+  more sessions, newcomers due a follow-up, and birthdays. Sent to Telegram when
+  linked, otherwise email; skipped when there is nothing to report. Admins get an
+  org-wide summary. Turn it off, pick the language, and preview it on `/profile`.
 - **Tags** (`/tags`) — **structured (nested) tags** with per-tag member counts
   (direct and whole-subtree). Deleting a tag re-parents its children; tags used
   as a group's scope can't be deleted (409). Admin-only writes.

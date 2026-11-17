@@ -22,7 +22,13 @@ import { InvitesModule } from "./invites/invites.module"
 import { RolesModule } from "./roles/roles.module"
 import { TelegramModule } from "./telegram/telegram.module"
 import { CareRequestsModule } from "./care-requests/care-requests.module"
+import { PastoralNotesModule } from "./pastoral-notes/pastoral-notes.module"
 import { JourneyModule } from "./journey/journey.module"
+import { DigestModule } from "./digest/digest.module"
+import { RemindersModule } from "./reminders/reminders.module"
+import { NotificationsModule } from "./notifications/notifications.module"
+import { GoogleModule } from "./google/google.module"
+import { ScheduleModule } from "@nestjs/schedule"
 
 @Module({
   imports: [
@@ -54,7 +60,13 @@ import { JourneyModule } from "./journey/journey.module"
     RolesModule,
     TelegramModule,
     CareRequestsModule,
+    PastoralNotesModule,
     JourneyModule,
+    ScheduleModule.forRoot(),
+    DigestModule,
+    NotificationsModule,
+    RemindersModule,
+    GoogleModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },

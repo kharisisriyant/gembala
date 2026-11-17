@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import type { RoomCreateInput, RoomResponse, RoomUpdateInput } from "@gembala/shared"
 import { rooms } from "../db/schema"
+import { GoogleCalendarService } from "../google/google-calendar.service"
 import { RoomsRepository } from "./rooms.repository"
 
 function toResponse(row: typeof rooms.$inferSelect): RoomResponse {
@@ -15,7 +16,7 @@ function toResponse(row: typeof rooms.$inferSelect): RoomResponse {
 
 @Injectable()
 export class RoomsService {
-  constructor(private readonly rooms: RoomsRepository) {}
+  constructor(private readonly rooms: RoomsRepository, private readonly googleCalendar: GoogleCalendarService) {}
 
   async list(orgId: string): Promise<RoomResponse[]> {
     const rows = await this.rooms.listByOrg(orgId)
@@ -49,11 +50,14 @@ export class RoomsService {
     if (input.isActive !== undefined) patch.isActive = input.isActive
 
     const row = await this.rooms.update(orgId, id, patch)
+    // Room names appear in synced Google events.
+    if (input.name !== undefined) this.googleCalendar.orgChanged(orgId)
     return toResponse(row)
   }
 
   async remove(orgId: string, id: string): Promise<void> {
     await this.detail(orgId, id)
     await this.rooms.delete(orgId, id)
+    this.googleCalendar.orgChanged(orgId)
   }
 }

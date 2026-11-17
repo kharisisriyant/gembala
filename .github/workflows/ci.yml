@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # api and web consume @gembala/shared from its built dist/
+      - name: Build shared
+        run: pnpm --filter @gembala/shared build
+
+      - name: API type-check
+        run: pnpm --filter @gembala/api exec tsc --noEmit -p tsconfig.json
+
+      - name: API unit tests
+        run: pnpm --filter @gembala/api test
+
+      - name: Web lint
+        run: pnpm --filter @gembala/web lint
+
+      - name: Web type-check and build
+        run: pnpm --filter @gembala/web build

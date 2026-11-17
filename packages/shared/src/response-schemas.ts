@@ -1,6 +1,17 @@
 import { z } from "zod"
 import {
+  NOTIFICATION_CATEGORIES,
+  type NotificationItemResponse,
+  type NotificationListResponse,
+  type NotificationPreferencesResponse,
+  type NotificationReadAllResponse,
+  type NotificationUnreadCountResponse,
+  type NotificationUnsubscribePreviewResponse,
+} from "./notifications.js"
+import {
   careRequestSourceSchema,
+  pastoralNoteSourceSchema,
+  digestPreferencesSchema,
   careRequestStatusSchema,
   careRequestTypeSchema,
   courseKindSchema,
@@ -17,9 +28,16 @@ import {
   memberStatusSchema,
   type AttendanceHeatmapResponse,
   type AuthResponse,
+  type AuthConfigResponse,
   type CsrfResponse,
+  type GoogleCalendarStatusResponse,
+  type GoogleConnectUrlResponse,
   type OrganizationInviteResponse,
+  type CareRequestAssigneeResponse,
+  type DigestPreferencesResponse,
+  type DigestPreviewResponse,
   type CareRequestResponse,
+  type PastoralNoteResponse,
   type CourseResponse,
   type DashboardResponse,
   type EventResponse,
@@ -42,6 +60,10 @@ import {
   type PipelineRowResponse,
   type EnrollmentResponse,
   type RoleAssignmentResponse,
+  type RosterAssignmentPublicResponse,
+  type RosterLinkResponse,
+  type RosterNotifyResponse,
+  rosterResponseStatuses,
   type RoleResponse,
   type RoleTemplateResponse,
   type RoomResponse,
@@ -172,7 +194,10 @@ export const sessionResponseSchema = z.object({
   id: z.string().uuid(),
   groupId: z.string().uuid(),
   date: z.string(),
-  presentIds: z.array(z.string().uuid()),
+  presentIds: z.array(z.string().uuid()).describe("Members marked present"),
+  excused: z
+    .array(z.object({ memberId: z.string().uuid(), reason: z.string() }))
+    .describe("Members excused from this session, with an optional reason"),
   topic: z.string(),
   prayerNotes: z.string(),
 }) satisfies z.ZodType<SessionResponse>
@@ -263,7 +288,36 @@ export const roleAssignmentResponseSchema = z.object({
   member: idName.nullable(),
   freeText: z.string(),
   sortOrder: z.number().int(),
+  confirmation: z.object({
+    status: z.enum(rosterResponseStatuses),
+    respondedAt: z.string().nullable().describe("ISO 8601 timestamp"),
+    declineReason: z.string(),
+    notifiedAt: z.string().nullable().describe("ISO 8601 timestamp of the last notify"),
+  }),
 }) satisfies z.ZodType<RoleAssignmentResponse>
+
+export const rosterLinkResponseSchema = z.object({
+  url: z.string().describe("Public confirm/decline link for this assignment"),
+}) satisfies z.ZodType<RosterLinkResponse>
+
+export const rosterNotifyResponseSchema = z.object({
+  sentTo: z.enum(["email"]).nullable().describe("null when the member has no email; share url by hand"),
+  url: z.string(),
+  notifiedAt: z.string().nullable(),
+}) satisfies z.ZodType<RosterNotifyResponse>
+
+export const rosterAssignmentPublicResponseSchema = z.object({
+  churchName: z.string(),
+  date: z.string().describe("YYYY-MM-DD"),
+  theme: z.string(),
+  serviceName: z.string(),
+  roleName: z.string(),
+  memberName: z.string(),
+  status: z.enum(rosterResponseStatuses),
+  respondedAt: z.string().nullable(),
+  declineReason: z.string(),
+  open: z.boolean().describe("false once the service day has begun (Asia/Jakarta)"),
+}) satisfies z.ZodType<RosterAssignmentPublicResponse>
 
 export const scheduleEventDetailResponseSchema = scheduleEventResponseSchema.extend({
   instances: z.array(
@@ -335,7 +389,8 @@ export const telegramLinkStatusResponseSchema = z.discriminatedUnion("linked", [
   z.object({ linked: z.literal(true), telegramUsername: z.string().nullable() }),
   z.object({
     linked: z.literal(false),
-    code: z.string().describe("One-time code to send to the bot as /link <code>"),
+    disconnected: z.boolean().describe("True when the previous link ended because the user blocked the bot"),
+    code: z.string().describe("One-time code; send it as /link <code> or open t.me/<bot>?start=<code>"),
     expiresAt: z.string(),
     botConfigured: z.boolean(),
     botUsername: z.string().nullable(),
@@ -353,12 +408,29 @@ export const careRequestResponseSchema = z.object({
   status: careRequestStatusSchema,
   source: careRequestSourceSchema,
   submittedBy: careRequestUserRefSchema.nullable(),
+  assignedTo: careRequestUserRefSchema.nullable(),
+  dueAt: z.string().nullable().describe("YYYY-MM-DD"),
+  overdue: z.boolean(),
   closedAt: z.string().nullable().describe("ISO 8601 timestamp"),
   closedBy: careRequestUserRefSchema.nullable(),
   closeNote: z.string().nullable(),
   createdAt: z.string().describe("ISO 8601 timestamp"),
   updatedAt: z.string().describe("ISO 8601 timestamp"),
 }) satisfies z.ZodType<CareRequestResponse>
+
+export const careRequestAssigneeResponseSchema = careRequestUserRefSchema satisfies z.ZodType<CareRequestAssigneeResponse>
+
+export const pastoralNoteResponseSchema = z.object({
+  id: z.string().uuid(),
+  memberId: z.string().uuid(),
+  body: z.string(),
+  source: pastoralNoteSourceSchema,
+  author: z.object({ id: z.string().uuid(), name: z.string() }).nullable().describe("null when the author's account was deleted"),
+  createdAt: z.string().describe("ISO 8601 timestamp"),
+  updatedAt: z.string().describe("ISO 8601 timestamp"),
+  canEdit: z.boolean().describe("Caller may edit (author only)"),
+  canDelete: z.boolean().describe("Caller may delete (author or org admin)"),
+}) satisfies z.ZodType<PastoralNoteResponse>
 
 const journeyUserRefSchema = z.object({ id: z.string().uuid(), name: z.string() })
 
@@ -427,3 +499,76 @@ export const journeyStageResponseSchema = z.object({
 export const organizationInviteResponseSchema = z.object({
   id: z.string().uuid(), email: z.string().email(), url: z.string().url(), expiresAt: z.string(),
 }) satisfies z.ZodType<OrganizationInviteResponse>
+
+export const digestPreferencesResponseSchema = digestPreferencesSchema satisfies z.ZodType<DigestPreferencesResponse>
+
+export const digestPreviewResponseSchema = z.object({
+  kind: z.enum(["personal", "admin"]),
+  empty: z.boolean().describe("True when there is nothing to report, so no message would be sent"),
+  subject: z.string(),
+  text: z.string(),
+}) satisfies z.ZodType<DigestPreviewResponse>
+
+export const notificationItemResponseSchema = z.object({
+  id: z.string().uuid(),
+  typeKey: z.string(),
+  category: z.enum(NOTIFICATION_CATEGORIES),
+  title: z.string(),
+  body: z.string(),
+  link: z.string().nullable().describe("Path inside the web app; null when there is no subject to open"),
+  readAt: z.string().nullable(),
+  createdAt: z.string(),
+}) satisfies z.ZodType<NotificationItemResponse>
+
+export const notificationListResponseSchema = z.object({
+  items: z.array(notificationItemResponseSchema),
+  nextCursor: z.string().nullable().describe("Pass as `cursor` to get the next (older) page; null on the last page"),
+}) satisfies z.ZodType<NotificationListResponse>
+
+export const notificationUnreadCountResponseSchema = z.object({
+  count: z.number().int(),
+}) satisfies z.ZodType<NotificationUnreadCountResponse>
+
+export const notificationReadAllResponseSchema = z.object({
+  updated: z.number().int(),
+}) satisfies z.ZodType<NotificationReadAllResponse>
+
+export const notificationUnsubscribePreviewResponseSchema = z.object({
+  category: z.enum(NOTIFICATION_CATEGORIES),
+}) satisfies z.ZodType<NotificationUnsubscribePreviewResponse>
+
+const notificationCellSchema = z.object({
+  enabled: z.boolean(),
+  locked: z.boolean().describe("Locked cells can't be changed (e.g. in-app, security email)"),
+})
+
+export const notificationPreferencesResponseSchema = z.object({
+  categories: z.array(
+    z.object({
+      category: z.enum(NOTIFICATION_CATEGORIES),
+      cells: z.object({ inapp: notificationCellSchema, email: notificationCellSchema, telegram: notificationCellSchema }),
+    }),
+  ),
+  channels: z.object({
+    email: z.object({ state: z.enum(["connected", "bounced"]), address: z.string() }),
+    telegram: z.object({ state: z.enum(["connected", "not_connected", "disconnected"]) }),
+  }),
+}) satisfies z.ZodType<NotificationPreferencesResponse>
+
+export const authConfigResponseSchema = z.object({
+  googleSignIn: z.boolean().describe("True when the server has a Google OAuth client configured"),
+}) satisfies z.ZodType<AuthConfigResponse>
+
+export const googleCalendarStatusResponseSchema = z.object({
+  configured: z.boolean(),
+  connected: z.boolean(),
+  googleEmail: z.string().nullable(),
+  syncEvents: z.boolean(),
+  syncRooms: z.boolean(),
+  lastError: z.string().nullable(),
+  lastSyncedAt: z.string().nullable(),
+}) satisfies z.ZodType<GoogleCalendarStatusResponse>
+
+export const googleConnectUrlResponseSchema = z.object({
+  url: z.string().describe("Google consent URL to send the browser to"),
+}) satisfies z.ZodType<GoogleConnectUrlResponse>

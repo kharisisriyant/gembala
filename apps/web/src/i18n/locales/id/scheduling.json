@@ -111,5 +111,26 @@
       "statusActive": "Aktif",
       "statusInactive": "Nonaktif"
     }
+  },
+  "confirmation": {
+    "title": "Konfirmasi",
+    "status": {
+      "pending": "Menunggu jawaban",
+      "confirmed": "Bersedia",
+      "declined": "Berhalangan"
+    },
+    "respondedAt": "Dijawab {{when}}",
+    "notifiedAt": "Terakhir dikirimi {{when}}",
+    "reason": "Alasan: {{reason}}",
+    "copyLink": "Salin tautan",
+    "notify": "Kirim lewat email",
+    "sending": "Mengirim…",
+    "hint": "Bagikan tautan lewat WhatsApp, atau kirim lewat email jika jemaat punya alamat email. Mengganti jemaat atau petugas membuat tautan lama tidak berlaku.",
+    "linkCopied": "Tautan disalin. Bagikan kepada jemaat.",
+    "linkCopyFailed": "Gagal menyalin. Tautan: {{url}}",
+    "emailed": "Email berisi tautan konfirmasi terkirim",
+    "noEmail": "Jemaat ini tidak punya email. Tautan disalin; bagikan lewat WhatsApp.",
+    "noEmailCopyFailed": "Jemaat ini tidak punya email. Bagikan tautan ini: {{url}}",
+    "error": "Gagal mengambil tautan konfirmasi"
   }
 }

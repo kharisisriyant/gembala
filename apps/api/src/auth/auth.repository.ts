@@ -22,7 +22,7 @@ import {
   journeyStages,
 } from "../db/schema"
 
-export type UserInsert = { email: string; name: string; passwordHash: string }
+export type UserInsert = { email: string; name: string; passwordHash: string | null; googleSub?: string }
 export type RequestMetadata = { ipAddress?: string; userAgent?: string }
 
 @Injectable()
@@ -52,6 +52,15 @@ export class AuthRepository {
   async findUserByEmail(email: string, tx: Db | Tx = this.db) {
     const [row] = await tx.select().from(users).where(eq(users.email, email))
     return row
+  }
+
+  async findUserByGoogleSub(googleSub: string, tx: Db | Tx = this.db) {
+    const [row] = await tx.select().from(users).where(eq(users.googleSub, googleSub))
+    return row
+  }
+
+  async setUserGoogleSub(userId: string, googleSub: string, tx: Db | Tx = this.db) {
+    await tx.update(users).set({ googleSub }).where(eq(users.id, userId))
   }
 
   async insertUser(input: UserInsert, tx: Db | Tx = this.db) {

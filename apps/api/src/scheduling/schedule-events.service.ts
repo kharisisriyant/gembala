@@ -9,6 +9,7 @@ import type {
 } from "@gembala/shared"
 import { scheduleEvents } from "../db/schema"
 import { ScheduleEventsRepository } from "./schedule-events.repository"
+import { toAssignmentResponse } from "./role-assignments.service"
 
 type EventRow = typeof scheduleEvents.$inferSelect
 
@@ -45,13 +46,7 @@ export class ScheduleEventsService {
     const assignmentsByInstance = new Map<string, RoleAssignmentResponse[]>()
     for (const { assignment, member } of assignmentRows) {
       const list = assignmentsByInstance.get(assignment.serviceInstanceId) ?? []
-      list.push({
-        id: assignment.id,
-        roleTemplateId: assignment.roleTemplateId,
-        member: member ? { id: member.id, name: member.name } : null,
-        freeText: assignment.freeText,
-        sortOrder: assignment.sortOrder,
-      })
+      list.push(toAssignmentResponse(assignment, member))
       assignmentsByInstance.set(assignment.serviceInstanceId, list)
     }
 

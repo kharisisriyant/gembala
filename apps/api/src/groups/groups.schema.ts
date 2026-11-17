@@ -1,4 +1,4 @@
-import { date, index, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { date, index, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core"
 import { organizations } from "../auth/auth.schema"
 import { members } from "../members/members.schema"
 import { tags } from "../tags/tags.schema"
@@ -55,6 +55,9 @@ export const attendanceSessions = pgTable(
   (t) => [index("attendance_sessions_group_idx").on(t.groupId)],
 )
 
+// Absent is "no row"; a row is either present or excused (with an optional reason).
+export const attendanceStatus = pgEnum("attendance_status", ["present", "excused"])
+
 export const sessionAttendance = pgTable(
   "session_attendance",
   {
@@ -64,6 +67,8 @@ export const sessionAttendance = pgTable(
     memberId: uuid("member_id")
       .notNull()
       .references(() => members.id, { onDelete: "cascade" }),
+    status: attendanceStatus("status").notNull().default("present"),
+    reason: text("reason").notNull().default(""),
   },
   (t) => [primaryKey({ columns: [t.sessionId, t.memberId] })],
 )

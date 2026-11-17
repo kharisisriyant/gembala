@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common"
 import type { RoleAssignmentCreateInput, RoleAssignmentResponse } from "@gembala/shared"
 import { members, roleAssignments } from "../db/schema"
@@ -7,13 +8,19 @@ import { RoleAssignmentsRepository } from "./role-assignments.repository"
 type RoleAssignmentRow = typeof roleAssignments.$inferSelect
 type MemberRow = typeof members.$inferSelect
 
-function toResponse(row: RoleAssignmentRow, member: MemberRow | null): RoleAssignmentResponse {
+export function toAssignmentResponse(row: RoleAssignmentRow, member: Pick<MemberRow, "id" | "name"> | null): RoleAssignmentResponse {
   return {
     id: row.id,
     roleTemplateId: row.roleTemplateId,
     member: member ? { id: member.id, name: member.name } : null,
     freeText: row.freeText,
     sortOrder: row.sortOrder,
+    confirmation: {
+      status: row.responseStatus,
+      respondedAt: row.respondedAt?.toISOString() ?? null,
+      declineReason: row.declineReason,
+      notifiedAt: row.notifiedAt?.toISOString() ?? null,
+    },
   }
 }
 
@@ -64,7 +71,7 @@ export class RoleAssignmentsService {
       freeText: input.freeText ?? "",
       sortOrder: input.sortOrder,
     })
-    return toResponse(row, member)
+    return toAssignmentResponse(row, member)
   }
 
   async update(
@@ -75,13 +82,25 @@ export class RoleAssignmentsService {
     const existing = await this.loadAssignmentScoped(orgId, assignmentId)
     const member = await this.resolveMember(orgId, input)
 
+    const memberId = input.memberId ?? null
+    // A different person or a different duty is a new request: the old answer no
+    // longer applies and a link already shared must stop working.
+    const reassigned = memberId !== existing.memberId || input.roleTemplateId !== existing.roleTemplateId
     const row = await this.assignments.update(existing.id, {
       roleTemplateId: input.roleTemplateId,
-      memberId: input.memberId ?? null,
+      memberId,
       freeText: input.freeText ?? "",
       sortOrder: input.sortOrder,
+      ...(reassigned && {
+        linkNonce: randomUUID(),
+        responseStatus: "pending" as const,
+        respondedAt: null,
+        declineReason: "",
+        notifiedAt: null,
+        requestedByUserId: null,
+      }),
     })
-    return toResponse(row, member)
+    return toAssignmentResponse(row, member)
   }
 
   async remove(orgId: string, assignmentId: string): Promise<void> {

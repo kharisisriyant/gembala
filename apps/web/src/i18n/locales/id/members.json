@@ -38,7 +38,7 @@
     "occupation": "Pekerjaan",
     "baptism": "Baptisan",
     "address": "Alamat",
-    "notes": "Catatan",
+    "notes": "Catatan profil (bersama)",
     "smallGroups": "Komsel",
     "noGroups": "Belum tergabung dalam komsel mana pun."
   },
@@ -78,7 +78,7 @@
     "photoUrlPlaceholder": "https://…",
     "baptismStatus": "Status baptisan",
     "baptismDate": "Tanggal baptisan",
-    "notes": "Catatan",
+    "notes": "Catatan profil (bersama)",
     "notesPlaceholder": "Hal-hal yang perlu diingat…"
   },
   "add": {
@@ -116,6 +116,25 @@
       "name": "Nama",
       "status": "Status",
       "error": "Kesalahan"
+    }
+  },
+  "pastoralNotes": {
+    "title": "Catatan pastoral",
+    "privacyHint": "Pribadi: hanya Anda dan admin gereja yang dapat membaca catatan yang Anda tulis di sini.",
+    "newNote": "Catatan pastoral baru",
+    "placeholder": "Telepon yang Anda lakukan, hal yang sedang mereka alami…",
+    "empty": "Belum ada catatan pastoral.",
+    "formerUser": "Mantan pengguna",
+    "edited": "diedit",
+    "viaTelegram": "via Telegram",
+    "editLabel": "Edit catatan pastoral",
+    "saveError": "Gagal menyimpan catatan",
+    "delete": {
+      "label": "Hapus catatan pastoral",
+      "title": "Hapus catatan pastoral ini?",
+      "description": "Catatan akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.",
+      "success": "Catatan dihapus",
+      "error": "Gagal menghapus catatan"
     }
   }
 }

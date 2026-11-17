@@ -1,6 +1,6 @@
 import type { AuthResponse, CsrfResponse } from "@gembala/shared"
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api"
+export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api"
 let accessToken: string | null = null
 let csrfToken: string | null = null
 let refreshPromise: Promise<boolean> | null = null
@@ -46,11 +46,17 @@ async function refreshAccessToken(): Promise<boolean> {
   return refreshPromise
 }
 
-export async function restoreSession(): Promise<AuthResponse | null> {
-  if (!csrfToken && !(await bootstrapCsrf())) return null
-  const res = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include", headers: { "X-CSRF-Token": csrfToken ?? "", "Cache-Control": "no-store" } })
-  if (!res.ok) { clearToken(); return null }
-  const auth = await parse<AuthResponse>(res); accessToken = auth.accessToken; return auth
+// Shared while in flight: two concurrent refreshes with one cookie look like a replayed
+// token to the API, which revokes the session (React's dev double-mount did exactly that).
+let restorePromise: Promise<AuthResponse | null> | null = null
+export function restoreSession(): Promise<AuthResponse | null> {
+  restorePromise ??= (async () => {
+    if (!csrfToken && !(await bootstrapCsrf())) return null
+    const res = await fetch(`${API_URL}/auth/refresh`, { method: "POST", credentials: "include", headers: { "X-CSRF-Token": csrfToken ?? "", "Cache-Control": "no-store" } })
+    if (!res.ok) { clearToken(); return null }
+    const auth = await parse<AuthResponse>(res); accessToken = auth.accessToken; return auth
+  })().finally(() => { restorePromise = null })
+  return restorePromise
 }
 
 export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promise<T> {

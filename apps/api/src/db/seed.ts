@@ -3,6 +3,7 @@ import * as argon2 from "argon2"
 import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
+import { addDays, todayInZone } from "@gembala/shared"
 import * as schema from "./schema"
 import {
   ORG_NAME,
@@ -155,7 +156,7 @@ async function main() {
     }
 
     await tx.insert(schema.careRequests).values(
-      seedCareRequests.map((r) => {
+      seedCareRequests.map((r, i) => {
         const userId = userIdByEmail.get(r.submittedByEmail)!
         return {
           orgId: org.id,
@@ -164,6 +165,9 @@ async function main() {
           body: r.body,
           source: "leader" as const,
           submittedByUserId: userId,
+          assignedToUserId: userId,
+          // The first request is already overdue so the weekly digest has something to show.
+          ...(r.closeNote === undefined && { dueAt: addDays(todayInZone(), i === 0 ? -3 : 3 + i) }),
           ...(r.closeNote !== undefined && {
             status: "closed" as const,
             closedAt: new Date(),

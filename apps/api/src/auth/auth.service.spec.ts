@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { BadRequestException, ForbiddenException, ConflictException, UnauthorizedException } from "@nestjs/common"
 import * as argon2 from "argon2"
 import { AuthService } from "./auth.service"
@@ -17,6 +18,8 @@ function makeRepo(): jest.Mocked<AuthRepository> {
     findUserIdByEmail: jest.fn(),
     findUserByEmail: jest.fn(),
     findUserById: jest.fn(),
+    findUserByGoogleSub: jest.fn(),
+    setUserGoogleSub: jest.fn(),
     updateUserName: jest.fn(),
     insertUser: jest.fn(),
     updateUserPasswordHash: jest.fn(),
@@ -53,9 +56,11 @@ describe("AuthService", () => {
   let jwt: jest.Mocked<JwtService>
   let config: jest.Mocked<ConfigService>
   let mail: jest.Mocked<MailService>
+  let notifications: { notifyUser: jest.Mock; notify: jest.Mock }
   let authContext: jest.Mocked<AuthContextService>
   let db: jest.Mocked<Db>
   let service: AuthService
+  let google: { configured: boolean; authUrl: jest.Mock; verifyState: jest.Mock; exchangeCode: jest.Mock }
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -78,7 +83,9 @@ describe("AuthService", () => {
     mail = { sendPasswordReset: jest.fn(), sendInvite: jest.fn() } as any
     authContext = { load: jest.fn() } as any
     db = { transaction: jest.fn((cb: any) => cb(db)) } as any
-    service = new AuthService(db, auth, jwt, config, mail, authContext)
+    notifications = { notifyUser: jest.fn().mockResolvedValue(true), notify: jest.fn().mockResolvedValue(true) }
+    google = { configured: true, authUrl: jest.fn(), verifyState: jest.fn().mockResolvedValue({}), exchangeCode: jest.fn() }
+    service = new AuthService(db, auth, jwt, config, mail, authContext, notifications as any, google as any)
     ;(argon2.hash as jest.Mock).mockResolvedValue("hashed")
     ;(argon2.verify as jest.Mock).mockResolvedValue(true)
   })
@@ -248,6 +255,15 @@ describe("AuthService", () => {
       expect(auth.updateUserPasswordHash).toHaveBeenCalledWith("u1", "hashed", db)
       expect(auth.burnPasswordResetTokensForUser).toHaveBeenCalledWith("u1", db)
     })
+
+    it("queues a security notification in the same transaction", async () => {
+      auth.findUserById.mockResolvedValue({ id: "u1", passwordHash: "old" } as any)
+      await service.changePassword("u1", { currentPassword: "old", newPassword: "newpassword" })
+      expect(notifications.notifyUser).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "security.password_changed", userId: "u1", payload: {} }),
+        db,
+      )
+    })
   })
 
   describe("changePassword", () => {
@@ -348,6 +364,133 @@ describe("AuthService", () => {
       expect(auth.insertMembershipScopeTags).toHaveBeenCalledWith("m1", ["t1"], db)
       expect(auth.insertMembershipRoles).toHaveBeenCalledWith("m1", ["r1"], db)
       expect(auth.markInviteAccepted).toHaveBeenCalledWith("i1", db)
+      expect(notifications.notify).not.toHaveBeenCalled() // invite had no inviter
+    })
+
+    it("tells the inviter when the invite is accepted", async () => {
+      auth.findInviteByTokenHash.mockResolvedValue({ id: "i1", email: "a@x.com", revokedAt: null, acceptedAt: null, expiresAt: new Date(Date.now() + 1000), orgId: "org1", invitedBy: "boss" } as any)
+      auth.findUserIdByEmail.mockResolvedValue(undefined as any)
+      auth.insertUser.mockResolvedValue({ id: "u1" } as any)
+      auth.insertMembership.mockResolvedValue({ id: "m1" } as any)
+      auth.inviteScopeTagIds.mockResolvedValue([] as any)
+      auth.inviteRoleIds.mockResolvedValue([] as any)
+      authContext.load.mockResolvedValue({ userId: "u1", userName: "A", userEmail: "a@x.com", orgId: "org1", orgName: "Org", roles: [], isSystemAdmin: false, permissions: [], scopeTagNames: [] } as any)
+      await service.acceptInvite({ token: "t", name: "Ana", password: "pw" } as any)
+      expect(notifications.notify).toHaveBeenCalledWith(
+        { type: "invite.accepted", orgId: "org1", recipients: ["boss"], payload: { inviteeName: "Ana" }, idempotencyKey: "invite_accepted:i1" },
+        db,
+      )
+    })
+  })
+
+  const sha256 = (v: string) => createHash("sha256").update(v).digest("hex")
+
+  describe("refresh token reuse", () => {
+    const sha = (v: string) => createHash("sha256").update(v).digest("hex")
+    const future = new Date(Date.now() + 60_000)
+    const row = (refresh: object = {}) => ({
+      refresh: { id: "rt1", tokenHash: "h", expiresAt: future, rotatedAt: null, revokedAt: null, ...refresh },
+      session: { id: "s1", userId: "u1", revokedAt: null, expiresAt: future, csrfTokenHash: sha("csrf") },
+      user: { authStatus: "active" },
+    })
+    beforeEach(() => {
+      auth.consumeRateLimit.mockResolvedValue(true)
+      ;(argon2.verify as jest.Mock).mockResolvedValue(true)
+    })
+
+    it("a concurrent rotation that loses is rejected without revoking the session or alerting", async () => {
+      auth.findRefreshToken.mockResolvedValue(row() as any)
+      auth.rotateRefreshToken.mockResolvedValue(undefined as any) // the other request rotated it first
+      await expect(service.refresh("rt1.secret", "csrf")).rejects.toThrow("invalid or expired authentication session")
+      expect(auth.revokeSession).not.toHaveBeenCalled()
+      expect(notifications.notifyUser).not.toHaveBeenCalled()
+    })
+
+    it("replaying an already-rotated token revokes the session and alerts the user", async () => {
+      auth.findRefreshToken.mockResolvedValue(row({ rotatedAt: new Date() }) as any)
+      await expect(service.refresh("rt1.secret", "csrf")).rejects.toThrow("invalid or expired authentication session")
+      expect(auth.revokeSession).toHaveBeenCalledWith("s1", "refresh_token_reuse", db)
+      expect(notifications.notifyUser).toHaveBeenCalledWith(expect.objectContaining({ type: "security.refresh_reuse", userId: "u1" }), db)
+    })
+  })
+
+  describe("googleSignIn", () => {
+    const profile = { sub: "g-1", email: "jane@example.com", emailVerified: true, name: "Jane" }
+    const input = { code: "code", state: "state", cookieState: "state" }
+    const invite = { id: "inv1", orgId: "org1", email: "Jane@Example.com", invitedBy: null, revokedAt: null, acceptedAt: null, expiresAt: new Date(Date.now() + 60_000) }
+    beforeEach(() => {
+      google.exchangeCode.mockResolvedValue({ profile })
+      authContext.load.mockResolvedValue({ userId: "u1", userEmail: profile.email, permissions: new Set(), roles: [] } as any)
+    })
+
+    it("signs in a user already linked to the Google account", async () => {
+      auth.findUserByGoogleSub.mockResolvedValue({ id: "u1", authStatus: "active" } as any)
+      const session = await service.googleSignIn(input)
+      expect(session.response.accessToken).toBe("jwt-token")
+      expect(auth.setUserGoogleSub).not.toHaveBeenCalled()
+      expect(auth.recordSecurityEvent).toHaveBeenCalledWith(expect.objectContaining({ type: "login_succeeded", metadata: { method: "google" } }), db)
+    })
+
+    it("links an existing account by verified email", async () => {
+      auth.findUserByEmail.mockResolvedValue({ id: "u1", authStatus: "active", googleSub: null } as any)
+      await service.googleSignIn(input)
+      expect(auth.setUserGoogleSub).toHaveBeenCalledWith("u1", "g-1")
+    })
+
+    it("refuses an unverified Google email before looking up any account", async () => {
+      google.exchangeCode.mockResolvedValue({ profile: { ...profile, emailVerified: false } })
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "unverified" })
+      expect(auth.findUserByEmail).not.toHaveBeenCalled()
+    })
+
+    it("refuses an email already linked to another Google account", async () => {
+      auth.findUserByEmail.mockResolvedValue({ id: "u1", authStatus: "active", googleSub: "other" } as any)
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "failed" })
+      expect(auth.setUserGoogleSub).not.toHaveBeenCalled()
+    })
+
+    it("never creates an account without an invite", async () => {
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "no_account" })
+      expect(auth.insertUser).not.toHaveBeenCalled()
+    })
+
+    it("fails when the state does not verify", async () => {
+      google.verifyState.mockRejectedValue(new Error("bad state"))
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "failed" })
+      expect(google.exchangeCode).not.toHaveBeenCalled()
+    })
+
+    it("refuses an invite addressed to a different email", async () => {
+      google.verifyState.mockResolvedValue({ invite: "tok" })
+      auth.findInviteByTokenHash.mockResolvedValue({ ...invite, email: "someone@else.com" } as any)
+      await expect(service.googleSignIn(input)).rejects.toMatchObject({ code: "email_mismatch" })
+      expect(auth.insertUser).not.toHaveBeenCalled()
+    })
+
+    it("redeems a matching invite into a password-less account", async () => {
+      google.verifyState.mockResolvedValue({ invite: "tok" })
+      auth.findInviteByTokenHash.mockResolvedValue(invite as any)
+      auth.insertUser.mockResolvedValue({ id: "u1" } as any)
+      auth.insertMembership.mockResolvedValue({ id: "m1" } as any)
+      auth.inviteScopeTagIds.mockResolvedValue([{ tagId: "t1" }] as any)
+      auth.inviteRoleIds.mockResolvedValue([{ roleId: "r1" }] as any)
+      await service.googleSignIn(input)
+      expect(auth.insertUser).toHaveBeenCalledWith({ email: profile.email, name: "Jane", passwordHash: null, googleSub: "g-1" }, db)
+      expect(auth.insertMembershipRoles).toHaveBeenCalledWith("m1", ["r1"], db)
+      expect(auth.markInviteAccepted).toHaveBeenCalledWith("inv1", db)
+    })
+  })
+
+  describe("password-less accounts", () => {
+    it("cannot log in with a password", async () => {
+      auth.findUserByEmail.mockResolvedValue({ id: "u1", authStatus: "active", passwordHash: null } as any)
+      await expect(service.login({ email: "jane@example.com", password: "x" })).rejects.toThrow(UnauthorizedException)
+      expect(argon2.verify).not.toHaveBeenCalled()
+    })
+
+    it("are pointed to the reset flow when changing password", async () => {
+      auth.findUserById.mockResolvedValue({ id: "u1", passwordHash: null } as any)
+      await expect(service.changePassword("u1", { currentPassword: "x", newPassword: "longenough1" })).rejects.toThrow(BadRequestException)
     })
   })
 })

@@ -1,10 +1,26 @@
 import { createZodDto } from "nestjs-zod"
 import {
+  rosterAssignmentPublicResponseSchema,
+  rosterLinkResponseSchema,
+  rosterNotifyResponseSchema,
+  notificationItemResponseSchema,
+  notificationListResponseSchema,
+  notificationPreferencesResponseSchema,
+  notificationReadAllResponseSchema,
+  notificationUnsubscribePreviewResponseSchema,
+  notificationUnreadCountResponseSchema,
   attendanceHeatmapResponseSchema,
   authResponseSchema,
+  authConfigResponseSchema,
+  googleCalendarStatusResponseSchema,
+  googleConnectUrlResponseSchema,
   csrfResponseSchema,
   organizationInviteResponseSchema,
+  careRequestAssigneeResponseSchema,
+  digestPreferencesResponseSchema,
+  digestPreviewResponseSchema,
   careRequestResponseSchema,
+  pastoralNoteResponseSchema,
   courseResponseSchema,
   enrollmentResponseSchema,
   leadershipAssessmentResponseSchema,
@@ -62,11 +78,16 @@ export class InstanceTypeResponseDto extends createZodDto(instanceTypeResponseSc
 export class RoleTemplateResponseDto extends createZodDto(roleTemplateResponseSchema) {}
 export class ServiceInstanceResponseDto extends createZodDto(serviceInstanceResponseSchema) {}
 export class RoleAssignmentResponseDto extends createZodDto(roleAssignmentResponseSchema) {}
+export class RosterLinkResponseDto extends createZodDto(rosterLinkResponseSchema) {}
+export class RosterNotifyResponseDto extends createZodDto(rosterNotifyResponseSchema) {}
+export class RosterAssignmentPublicResponseDto extends createZodDto(rosterAssignmentPublicResponseSchema) {}
 export class ScheduleEventDetailResponseDto extends createZodDto(scheduleEventDetailResponseSchema) {}
 export class InviteResponseDto extends createZodDto(inviteResponseSchema) {}
 export class InvitePreviewResponseDto extends createZodDto(invitePreviewResponseSchema) {}
 export class DashboardResponseDto extends createZodDto(dashboardResponseSchema) {}
 export class CareRequestResponseDto extends createZodDto(careRequestResponseSchema) {}
+export class CareRequestAssigneeResponseDto extends createZodDto(careRequestAssigneeResponseSchema) {}
+export class PastoralNoteResponseDto extends createZodDto(pastoralNoteResponseSchema) {}
 export class CourseResponseDto extends createZodDto(courseResponseSchema) {}
 export class MilestoneResponseDto extends createZodDto(milestoneResponseSchema) {}
 export class EnrollmentResponseDto extends createZodDto(enrollmentResponseSchema) {}
@@ -76,3 +97,16 @@ export class PipelineRowResponseDto extends createZodDto(pipelineRowResponseSche
 export class JourneyStageResponseDto extends createZodDto(journeyStageResponseSchema) {}
 
 export class OrganizationInviteResponseDto extends createZodDto(organizationInviteResponseSchema) {}
+export class DigestPreferencesResponseDto extends createZodDto(digestPreferencesResponseSchema) {}
+export class DigestPreviewResponseDto extends createZodDto(digestPreviewResponseSchema) {}
+
+export class NotificationItemResponseDto extends createZodDto(notificationItemResponseSchema) {}
+export class NotificationListResponseDto extends createZodDto(notificationListResponseSchema) {}
+export class NotificationUnreadCountResponseDto extends createZodDto(notificationUnreadCountResponseSchema) {}
+export class NotificationReadAllResponseDto extends createZodDto(notificationReadAllResponseSchema) {}
+export class NotificationUnsubscribePreviewResponseDto extends createZodDto(notificationUnsubscribePreviewResponseSchema) {}
+export class NotificationPreferencesResponseDto extends createZodDto(notificationPreferencesResponseSchema) {}
+
+export class AuthConfigResponseDto extends createZodDto(authConfigResponseSchema) {}
+export class GoogleCalendarStatusResponseDto extends createZodDto(googleCalendarStatusResponseSchema) {}
+export class GoogleConnectUrlResponseDto extends createZodDto(googleConnectUrlResponseSchema) {}

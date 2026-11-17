@@ -30,6 +30,12 @@ environment that points at a different API host (staging vs production).
 | `RESEND_API_KEY` | `re_...` API key from Resend |
 | `RESEND_FROM_EMAIL` | `noreply@example.com` — address at a Resend-verified domain |
 | `RESEND_FROM_NAME` | `Gembala` |
+| `NOTIFICATION_LINK_SECRET` | 32+ random chars; signs unsubscribe links (required in production) |
+| `API_PUBLIC_URL` | `https://api.staging.gembala.dev/api`, target for one-click unsubscribe |
+| `RESEND_WEBHOOK_SECRET` | `whsec_...` from the Resend webhook for `POST /api/webhooks/resend` (events: delivered, bounced, complained) |
+| `TELEGRAM_WEBHOOK_SECRET` | letters, digits, `_` and `-` only. Registered with Telegram as `secret_token`; the webhook (`POST /api/telegram/webhook`) rejects requests without the matching `X-Telegram-Bot-Api-Secret-Token` header |
+| `REDIS_URL` | `redis://redis:6379` (compose service by default; managed Redis works by changing this only) |
+| `NOTIFICATIONS_WORKERS` | `true` to run the notification relay and workers in this process |
 
 **web (build-time only)**
 
@@ -108,6 +114,13 @@ front of `web:8080` and `api:3000` for TLS and to route
 - [ ] `JWT_SECRET` set, unique per environment, not reused from dev
 - [ ] `WEB_ORIGIN` matches the exact web origin (CORS is exact-match, not wildcard)
 - [ ] Resend sender domain verified; `RESEND_API_KEY` and `RESEND_FROM_EMAIL` configured
+- [ ] Email deliverability (EM-2; the API refuses to boot in production from `@resend.dev`): the sending domain passes SPF, DKIM and DMARC. Check with
+      `dig +short TXT <domain>` (v=spf1 includes Resend), `dig +short TXT resend._domainkey.<domain>`
+      and `dig +short TXT _dmarc.<domain>`; Resend's domain page must show "Verified"
+- [ ] Resend webhook created for `https://<api>/api/webhooks/resend` (delivered, bounced, complained) and
+      `RESEND_WEBHOOK_SECRET` set
+- [ ] Redis reachable at `REDIS_URL` with `appendonly yes` and `maxmemory-policy noeviction` (the compose
+      service does this; managed Redis must be configured the same, or queued jobs can be evicted)
 - [ ] `VITE_API_URL` matches the environment the web image was built for
 - [ ] `migrate` run against the target DB before `api` serves traffic
 - [ ] Postgres reachable and backed up (managed service recommended)
@@ -121,3 +134,17 @@ Images are tagged by commit SHA — redeploy the previous tag for `api`/`web`.
 Migrations are forward-only (Drizzle); a rollback that depends on a schema
 change requires either a compensating migration or restoring the DB from
 backup.
+
+## Notification operations
+
+Operator commands run from the compiled API (`pnpm --filter @gembala/api build`, then
+`pnpm --filter @gembala/api notifications <command>`; in the container,
+`node dist/notifications/cli.js <command>`):
+
+- `replay [channel]` puts failed deliveries back in the queue (a running worker picks them up)
+- `kill list | add [--type KEY] [--channel CH] [--reason TEXT] | remove <id>` is the kill switch,
+  effective immediately and without a deploy. A matching delivery is skipped, not held
+- `preview <type> <en|id> '<json>'` renders a template; `send <type> <email> '<json>'` sends a test to one user
+
+Alert on error log lines from `NotificationDelivery` (they carry `correlation=<id>`). Delivery health
+comes from SQL over `notification_deliveries` (status, error_code, skip_reason by channel).

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { KeyRound, ShieldCheck, UserRound } from "lucide-react"
+import { Bell, KeyRound, ShieldCheck, UserRound } from "lucide-react"
 import { permissionResourceSchema } from "@gembala/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,12 +10,16 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { NotificationPreferences } from "@/components/notification-preferences"
 import { MemberAvatar } from "@/components/member-avatar"
 import { PageHeader } from "@/components/page-header"
 import { useAuth } from "@/lib/auth"
-import { useChangePassword, useUpdateProfile } from "@/lib/queries"
+import { useChangePassword, useDigestPreferences, useDigestPreview, useSaveDigestPreferences, useUpdateProfile } from "@/lib/queries"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { DigestLocale } from "@gembala/shared"
 
-const TABS = ["profile", "roles", "security"] as const
+const TABS = ["profile", "roles", "notifications", "security"] as const
 type Tab = (typeof TABS)[number]
 
 export function ProfilePage() {
@@ -35,15 +39,24 @@ export function ProfilePage() {
           <TabsTrigger value="roles">
             <ShieldCheck className="size-4" /> {t("tabs.roles")}
           </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <Bell className="size-4" /> {t("tabs.notifications")}
+          </TabsTrigger>
           <TabsTrigger value="security">
             <KeyRound className="size-4" /> {t("tabs.security")}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="profile" className="mt-4">
-          <ProfileCard />
+          <div className="space-y-4">
+            <ProfileCard />
+            <DigestCard />
+          </div>
         </TabsContent>
         <TabsContent value="roles" className="mt-4">
           <RolesCard />
+        </TabsContent>
+        <TabsContent value="notifications" className="mt-4">
+          <NotificationPreferences />
         </TabsContent>
         <TabsContent value="security" className="mt-4">
           <PasswordCard />
@@ -193,6 +206,72 @@ function RolesCard() {
         </Card>
       )}
     </div>
+  )
+}
+
+function DigestCard() {
+  const { t } = useTranslation("profile")
+  const { data: prefs } = useDigestPreferences()
+  const save = useSaveDigestPreferences()
+  const [enabled, setEnabled] = useState(true)
+  const [locale, setLocale] = useState<DigestLocale>("id")
+  const [showPreview, setShowPreview] = useState(false)
+  const { data: preview, isLoading: previewLoading } = useDigestPreview(showPreview)
+  useEffect(() => {
+    if (prefs) {
+      setEnabled(prefs.enabled)
+      setLocale(prefs.locale)
+    }
+  }, [prefs])
+
+  const dirty = !prefs || prefs.enabled !== enabled || prefs.locale !== locale
+  const submit = async () => {
+    try {
+      await save.mutateAsync({ enabled, locale })
+      toast.success(t("digest.saved"))
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("digest.error"))
+    }
+  }
+
+  return (
+    <Card className="max-w-lg p-6">
+      <h2 className="font-medium">{t("digest.title")}</h2>
+      <p className="text-muted-foreground mb-5 text-sm">{t("digest.description")}</p>
+      <div className="space-y-4">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox checked={enabled} onCheckedChange={(v) => setEnabled(v === true)} />
+          {t("digest.enabled")}
+        </label>
+        <div className="grid gap-2">
+          <Label>{t("digest.language")}</Label>
+          <Select value={locale} onValueChange={(v) => setLocale(v as DigestLocale)}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">{t("digest.english")}</SelectItem>
+              <SelectItem value="id">{t("digest.indonesian")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={submit} disabled={!dirty || save.isPending}>
+            {save.isPending ? t("digest.saving") : t("digest.save")}
+          </Button>
+          <Button variant="outline" onClick={() => setShowPreview((v) => !v)}>
+            {showPreview ? t("digest.hidePreview") : t("digest.preview")}
+          </Button>
+        </div>
+        {showPreview && !previewLoading && preview && (
+          preview.empty ? (
+            <p className="text-muted-foreground text-sm">{t("digest.previewEmpty")}</p>
+          ) : (
+            <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs whitespace-pre-wrap">{preview.text}</pre>
+          )
+        )}
+      </div>
+    </Card>
   )
 }
 

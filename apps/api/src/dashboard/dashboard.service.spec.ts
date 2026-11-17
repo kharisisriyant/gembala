@@ -1,3 +1,4 @@
+import { todayInZone } from "@gembala/shared"
 import { DashboardService } from "./dashboard.service"
 import type { ScopeService } from "../authz/scope.service"
 import type { MembersService } from "../members/members.service"
@@ -7,8 +8,7 @@ const auth = { orgId: "org-1" } as any
 
 describe("DashboardService", () => {
   it("returns birthdays and actionable small-group follow-up signals in the caller's scope", async () => {
-    const today = new Date()
-    const birthdayToday = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-")
+    const birthdayToday = todayInZone()
     const members = [
       { id: "m1", name: "Birthday", photoUrl: "", dateOfBirth: birthdayToday, status: "active", tags: ["youth"] },
       { id: "m2", name: "Absent", photoUrl: "", dateOfBirth: null, status: "active", tags: ["youth"] },

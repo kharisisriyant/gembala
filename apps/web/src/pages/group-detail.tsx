@@ -1,5 +1,7 @@
+import { useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import {
   ArrowLeft,
   MapPin,
@@ -9,19 +11,32 @@ import {
   X,
   Lock,
   Pencil,
+  Trash2,
+  CircleSlash,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { MemberAvatar } from "@/components/member-avatar"
 import { Tag, TagList } from "@/components/tag"
 import { LogAttendanceDialog } from "@/components/log-attendance-dialog"
 import { EditGroupDialog } from "@/components/edit-group-dialog"
 import { useAuth } from "@/lib/auth"
-import { useGroup } from "@/lib/queries"
+import { useDeleteSession, useGroup } from "@/lib/queries"
 import { ApiError } from "@/lib/api"
 import { formatDate } from "@/lib/helpers"
+import type { SessionResponse } from "@gembala/shared"
 
 export function GroupDetailPage() {
   const { t } = useTranslation("groups")
@@ -109,7 +124,10 @@ export function GroupDetailPage() {
               </CardContent>
             </Card>
           )}
-          {group.sessions.map((s) => (
+          {group.sessions.map((s) => {
+            const excusedById = new Map(s.excused.map((e) => [e.memberId, e.reason]))
+            const excusedMembers = group.members.filter((m) => excusedById.has(m.id))
+            return (
             <Card key={s.id}>
               <CardHeader>
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -117,12 +135,38 @@ export function GroupDetailPage() {
                     <CardTitle className="text-base">{formatDate(s.date)}</CardTitle>
                     <CardDescription className="mt-1">{s.topic}</CardDescription>
                   </div>
-                  <Badge variant="secondary">
-                    {t("groupDetail.presentCount", {
-                      present: s.presentIds.length,
-                      total: group.stats.memberCount,
-                    })}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">
+                      {t("groupDetail.presentCount", {
+                        present: s.presentIds.length,
+                        total: group.stats.memberCount,
+                      })}
+                    </Badge>
+                    {s.excused.length > 0 && (
+                      <Badge variant="warning">
+                        {t("groupDetail.excusedCount", { count: s.excused.length })}
+                      </Badge>
+                    )}
+                    {canUpdate && (
+                      <>
+                        <LogAttendanceDialog
+                          group={group}
+                          session={s}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t("groupDetail.editSessionLabel", { date: formatDate(s.date) })}
+                              title={t("common:actions.edit")}
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                          }
+                        />
+                        <DeleteSessionDialog groupId={group.id} session={s} />
+                      </>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -133,20 +177,26 @@ export function GroupDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     {group.members.map((m) => {
                       const here = s.presentIds.includes(m.id)
+                      const excused = excusedById.has(m.id)
                       return (
                         <div
                           key={m.id}
+                          title={excused ? excusedById.get(m.id) || t("groupDetail.excused") : undefined}
                           className={
                             "flex items-center gap-1.5 rounded-full border py-0.5 pr-2.5 pl-0.5 text-sm " +
                             (here
                               ? "border-primary/30 bg-primary/10"
-                              : "border-border bg-muted/40 text-muted-foreground")
+                              : excused
+                                ? "bg-warning-soft text-warning-foreground border-transparent"
+                                : "border-border bg-muted/40 text-muted-foreground")
                           }
                         >
                           <MemberAvatar name={m.name} className="size-6" />
                           {m.name.split(" ")[0]}
                           {here ? (
                             <Check className="text-primary size-3.5" />
+                          ) : excused ? (
+                            <CircleSlash className="size-3.5" aria-label={t("groupDetail.excused")} />
                           ) : (
                             <X className="size-3.5 opacity-50" />
                           )}
@@ -154,6 +204,17 @@ export function GroupDetailPage() {
                       )
                     })}
                   </div>
+                  {excusedMembers.length > 0 && (
+                    <p className="text-muted-foreground mt-2 text-xs">
+                      <span className="font-medium">{t("groupDetail.excused")}:</span>{" "}
+                      {excusedMembers
+                        .map((m) => {
+                          const reason = excusedById.get(m.id)
+                          return reason ? `${m.name} (${reason})` : m.name
+                        })
+                        .join(", ")}
+                    </p>
+                  )}
                 </div>
                 {s.prayerNotes && (
                   <div className="border-primary/40 bg-muted/30 rounded-md border-l-2 p-3">
@@ -165,7 +226,8 @@ export function GroupDetailPage() {
                 )}
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </TabsContent>
 
         <TabsContent value="members" className="mt-4">
@@ -193,6 +255,54 @@ export function GroupDetailPage() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+function DeleteSessionDialog({ groupId, session }: { groupId: string; session: SessionResponse }) {
+  const { t } = useTranslation("groups")
+  const deleteSession = useDeleteSession(groupId)
+  const [open, setOpen] = useState(false)
+  const date = formatDate(session.date)
+
+  const remove = async () => {
+    try {
+      await deleteSession.mutateAsync(session.id)
+      toast(t("groupDetail.deleteSession.successToast", { date }))
+      setOpen(false)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("groupDetail.deleteSession.errorToast"))
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("groupDetail.deleteSession.label", { date })}
+          title={t("common:actions.delete")}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("groupDetail.deleteSession.title")}</DialogTitle>
+          <DialogDescription>
+            {t("groupDetail.deleteSession.description", { date, topic: session.topic || t("logAttendanceDialog.noTopic") })}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">{t("common:actions.cancel")}</Button>
+          </DialogClose>
+          <Button variant="destructive" onClick={remove} disabled={deleteSession.isPending}>
+            {deleteSession.isPending ? t("common:actions.deleting") : t("common:actions.delete")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

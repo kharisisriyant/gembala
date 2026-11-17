@@ -1,0 +1,8 @@
+{
+  "title": "This page wandered off",
+  "body": "Ninety-nine sheep are safe in the fold. One is hiding behind a bush. Can you find it?",
+  "bush": "Look behind bush {{number}}",
+  "empty": "Nothing behind bush {{number}}. Keep looking.",
+  "found": "Found it! Let's head back home.",
+  "home": "Back to home"
+}
